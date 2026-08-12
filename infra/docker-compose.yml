@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: musakuce-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: musakuce
+      POSTGRES_PASSWORD: musakuce_dev
+      POSTGRES_DB: musakuce
+    ports:
+      - "5432:5432"
+    volumes:
+      - musakuce_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  musakuce_postgres_data:

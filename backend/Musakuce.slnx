@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Musakuce.Api/Musakuce.Api.csproj" />
+  <Project Path="Musakuce.Application/Musakuce.Application.csproj" />
+  <Project Path="Musakuce.Domain/Musakuce.Domain.csproj" />
+  <Project Path="Musakuce.Infrastructure/Musakuce.Infrastructure.csproj" />
+</Solution>
