@@ -153,7 +153,11 @@ public static class Roles
             Authorization.Permissions.PhotosView, Authorization.Permissions.PhotosWrite, Authorization.Permissions.PhotosModerate,
             Authorization.Permissions.VideosView, Authorization.Permissions.VideosWrite, Authorization.Permissions.VideosModerate,
             Authorization.Permissions.PlacesView, Authorization.Permissions.PlacesWrite, Authorization.Permissions.PlacesModerate,
-            Authorization.Permissions.MemorialView, Authorization.Permissions.MemorialWrite, Authorization.Permissions.MemorialModerate,
+            // MemorialModerate deliberately withheld — spec §13: "Only
+            // Administrator or Editor roles may approve and publish a
+            // memorial page. Archivist may draft/edit but not
+            // approve/publish." (docs/FINAL_PRE_DEPLOYMENT_AUDIT.md P1-1).
+            Authorization.Permissions.MemorialView, Authorization.Permissions.MemorialWrite,
             Authorization.Permissions.CulturalHeritageView, Authorization.Permissions.CulturalHeritageWrite, Authorization.Permissions.CulturalHeritageModerate,
             Authorization.Permissions.InterviewsView, Authorization.Permissions.InterviewsWrite, Authorization.Permissions.InterviewsModerate,
             Authorization.Permissions.EducationView, Authorization.Permissions.EducationWrite, Authorization.Permissions.EducationModerate,

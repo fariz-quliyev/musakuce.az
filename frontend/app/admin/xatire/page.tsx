@@ -6,6 +6,7 @@ import { MemorialRowActions } from "@/components/admin/memorial/MemorialRowActio
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { memorialApi } from "@/lib/api/memorial";
+import { authApi } from "@/lib/api/auth";
 import { memorialCategoryLabels } from "@/lib/api/labels";
 import { ApiError } from "@/lib/api/client";
 import { isNextRedirectError } from "@/lib/isNextRedirectError";
@@ -35,6 +36,12 @@ export default async function AdminXatirePage({ searchParams }: Props) {
     }
     return <EmptyState tone="error" title="Xatirə qeydlərini yükləmək mümkün olmadı" />;
   }
+
+  // Determines whether to render the publish/archive controls at all —
+  // see MemorialRowActions' doc comment: this is UX only, not the
+  // enforcement point (the API independently re-checks memorial.moderate).
+  const user = await authApi.me().catch(() => null);
+  const canModerate = user?.permissions.includes("memorial.moderate") ?? false;
 
   return (
     <div>
@@ -76,7 +83,7 @@ export default async function AdminXatirePage({ searchParams }: Props) {
                         >
                           Redaktə
                         </Link>
-                        <MemorialRowActions record={record} />
+                        <MemorialRowActions record={record} canModerate={canModerate} />
                       </div>
                     </td>
                   </tr>
