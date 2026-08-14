@@ -3,4 +3,5 @@
   <Project Path="Musakuce.Application/Musakuce.Application.csproj" />
   <Project Path="Musakuce.Domain/Musakuce.Domain.csproj" />
   <Project Path="Musakuce.Infrastructure/Musakuce.Infrastructure.csproj" />
+  <Project Path="Musakuce.Tests/Musakuce.Tests.csproj" />
 </Solution>

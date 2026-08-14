@@ -261,14 +261,17 @@ site useful every day, and includes:
 
 - Kəndimizdən / Bu gün kənddə (§8)
 - Elanlar — classifieds (§10)
-- Xidmətlər — local services directory (§11)
+- Yerli faydalı məlumatlar — unified local services, contacts and
+  recommendations directory (§11)
 - İş elanları — job postings (a category within Elanlar, §10)
 - İtirilmiş-tapılmış — lost & found (a category within Elanlar, §10)
 - Kənd təqvimi / Tədbirlər — village calendar and events (§12)
-- Community questions ("kömək lazımdır" / village Q&A)
-- Recommendations (tövsiyələr)
-- Useful local contacts (faydalı əlaqələr)
 - Interactive village map (§25, shared with the archive's historical places)
+
+Resident questions ("kömək lazımdır") are not a standalone open Q&A board
+for MVP — they route through the existing moderated contribution/contact
+flow (§22) and, where a pattern is genuinely recurring, become a
+curated entry in Yerli Faydalı Məlumatlar rather than a live forum thread.
 
 **Hard boundary:** these community functions must complement the village
 archive. They must NOT turn the website into Tap.az, Facebook, or a news
@@ -294,7 +297,7 @@ Categories:
 - Kənd təsərrüfatı məhsulları
 - Texnika
 - Avtomobil
-- Xidmətlər (cross-links to the Services directory, §11)
+- Xidmətlər (cross-links to Yerli Faydalı Məlumatlar, §11)
 - İş (job postings)
 - Axtarılır
 - İtirilmiş-tapılmış (lost & found)
@@ -320,25 +323,40 @@ Rules:
 
 ---
 
-# 11. LOCAL SERVICES DIRECTORY — "XİDMƏTLƏR"
+# 11. YERLİ FAYDALI MƏLUMATLAR (UNIFIED LOCAL INFORMATION)
 
-A directory of local service providers, for example:
+A single, unified directory — **not** three separate systems. It replaces
+what earlier drafts treated as three things (a services directory, a
+contacts list, and a recommendations feature) with one content type shown
+in one place, filterable by kind:
 
-- traktor
-- kombayn
-- sürücü
-- yük maşını
-- elektrikçi
-- santexnik
-- usta
-- tikiş
-- dayə
-- other agricultural services
-- other local services
+- local service providers (traktor, kombayn, sürücü, yük maşını,
+  elektrikçi, santexnik, usta, tikiş, dayə, other agricultural/local
+  services)
+- useful phone numbers and important contacts
+- shops
+- craftsmen
+- transport
+- community recommendations (tövsiyələr)
 
-Each entry: provider name, service category, description, contact, area
-served, and (optional) photo. Submitted by residents or maintained by
-Archivist/Editor, always moderated before publishing.
+Each entry: name, kind/category, description, contact info, area served,
+optional photo. A **recommendation** is not a separate free-floating post —
+where it concerns an existing entry (e.g. "bu ustaya güvənə bilərsiniz"), it
+attaches to that entry rather than creating a duplicate record; only
+free-standing tips with no matching entry become their own entry.
+
+Rules:
+
+- **Curated/editorial by default:** Administrator/Editor/Archivist maintain
+  this directory directly in the admin panel.
+- Residents may suggest additions or corrections through the existing
+  moderated contribution flow (§22) — there is no open public posting form
+  for this directory in MVP.
+- All publicly visible entries and attached recommendations are moderated;
+  nothing resident-suggested appears without Editor/Archivist/Administrator
+  review.
+- Shown on the homepage as "Useful local information" (§5, item 16) and
+  reachable from primary/secondary navigation (§27).
 
 ---
 
@@ -376,6 +394,26 @@ Content may include:
 - funeral information, only if the family chooses to publish it
 - memories
 - photographs
+
+**Editorial workflow (mandatory, never automatic):**
+
+```
+Draft → Pending Review → Approved → Published
+```
+
+- Obituaries are never auto-published, regardless of who submits them.
+  Community members may submit obituary information (name, dates, a
+  memorial text, photo) through the moderated contribution flow, but every
+  submission enters as Draft/Pending Review — it always requires editorial
+  approval before anyone but staff can see it.
+- Only **Administrator or Editor** roles may approve and publish a
+  memorial page. Archivist may draft/edit but not approve/publish.
+- Default visibility once Approved and Published is **public**.
+- Administrator/Editor actions available on a memorial record: **publish,
+  unpublish, archive, edit, reject** (reject returns a community
+  submission to the submitter's contact with an internal note; unpublish
+  and archive both remove it from public view — archive additionally
+  marks it as retained/closed rather than reusable as a draft).
 
 Rules:
 
@@ -621,9 +659,14 @@ HistoricalPlace, Photo, PhotoAlbum, Video, Document, Interview,
 CulturalItem, School, Teacher, Alumni, Memorial, Source,
 CommunitySubmission.
 
-**Village Square:** ClassifiedListing, ServiceProvider, VillageEvent,
-UsefulPlace (may share a base `Place` model with HistoricalPlace —
-see architecture plan), CommunityQuestion, LocalContact.
+**Village Square:** ClassifiedListing, VillageEvent, Place (unified
+Historical/Useful kind — see architecture plan), LocalInfoEntry (unified
+Yerli Faydalı Məlumatlar entry: service provider, contact, shop, craftsman,
+or attached recommendation — see §11).
+
+No separate ServiceProvider/LocalContact/Recommendation/CommunityQuestion
+types — deliberately merged into `LocalInfoEntry` (§11) or the existing
+contribution flow (§22) to avoid redundant, overlapping systems.
 
 ---
 
@@ -660,7 +703,7 @@ Tariximiz · Fotoalbom · Xəritə
 **Secondary:**
 
 Məktəb · Mədəni irs · Qəhrəmanlarımız · Xatirə · Videolar · Kəndimizin səsi
-· Xidmətlər · Əlaqə
+· Faydalı məlumatlar · Əlaqə
 
 "Xəbərlər" must never be used as a top-level/dominant nav label. Current
 information is represented as "Kəndimizdən" / "Bu gün kənddə".
@@ -690,9 +733,9 @@ Modules:
 - Documents
 - Sources
 - **Elanlar (classifieds moderation + expiry management)**
-- **Xidmətlər (service directory)**
+- **Yerli Faydalı Məlumatlar (unified services/contacts/recommendations directory)**
 - **Tədbirlər / Təqvim (events/calendar)**
-- **Useful places & local contacts**
+- **Places (historical + useful, shared map)**
 - Community Submissions (archive contributions)
 - Users
 - Roles
@@ -726,7 +769,8 @@ HistoricalEvent ↔ Source
 Photo ↔ Album
 Article ↔ Source
 ClassifiedListing ↔ Photo
-ServiceProvider ↔ Category
+LocalInfoEntry ↔ Category
+LocalInfoEntry ↔ LocalInfoEntry (recommendation attached to an entry)
 VillageEvent ↔ Place
 ```
 
@@ -743,6 +787,28 @@ Database: PostgreSQL. ORM: Entity Framework Core.
 Infrastructure: Nginx, Cloudflare, VPS.
 
 Media: Object storage / media storage.
+
+**Internationalization readiness:** the public site is **Azerbaijani-first
+and Azerbaijani-only for MVP** — no language switcher, no translated UI, no
+per-locale content editing screens are built now. However the content
+model must not hard-code Azerbaijani text into non-localizable columns in a
+way that would force a schema rewrite later:
+
+- User-facing text fields on content entities are stored in a way that
+  can be migrated to a per-locale table (`EntityTranslation`-style, keyed
+  by `EntityId + LanguageCode`) without changing primary keys or
+  relationships — e.g. avoid concatenating multiple languages into one
+  field, avoid baking language-specific slugs into foreign keys.
+- Routing is structured so a future `/az/...`, `/ru/...`, `/en/...` prefix
+  (or equivalent locale routing) can be introduced without renaming
+  existing routes.
+- Enums/category codes are stored as language-neutral codes (e.g.
+  `Category.Mescid`) with display labels resolved at the presentation
+  layer, not stored as Azerbaijani strings in the database.
+
+This is a design constraint for Phase 5/6 (database/backend), not an MVP
+feature — no RU/EN content or UI ships until a future phase explicitly
+scopes it.
 
 ---
 

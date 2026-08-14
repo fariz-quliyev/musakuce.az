@@ -1,0 +1,209 @@
+# Phase 15 §11 — clean production topology. Separate from
+# infra/docker-compose.yml (untouched, dev-only) rather than overloading
+# one file with profiles for both — the dev file stays exactly as it was.
+#
+# Usage (see docs/DEPLOYMENT.md for the full walkthrough):
+#   docker compose -f docker-compose.prod.yml --env-file .env.production up -d
+#   docker compose -f docker-compose.prod.yml --env-file .env.production --profile production-tools run --rm migrator
+#   docker compose -f docker-compose.prod.yml --env-file .env.production --profile production-tools run --rm admin-bootstrap
+#   docker compose -f docker-compose.prod.yml --env-file .env.production --profile production-tools run --rm backup
+#
+# .env.production is never committed (see .gitignore) — docs/PRODUCTION_ENV.md
+# documents every variable referenced below.
+#
+# No MinIO here — production media storage is an external S3-compatible
+# provider (MediaStorage__Endpoint/etc. point at it directly; see
+# docs/PRODUCTION_ENV.md). No service in this file publishes a port to
+# the host except nginx (80/443) — postgres/api/frontend are reachable
+# only over the internal Compose network.
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: musakuce-postgres-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - musakuce_postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: musakuce-api-prod
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Cors__AllowedOrigins__0: ${PUBLIC_SITE_URL}
+      MediaStorage__Endpoint: ${MEDIA_STORAGE_ENDPOINT}
+      MediaStorage__Region: ${MEDIA_STORAGE_REGION}
+      MediaStorage__Bucket: ${MEDIA_STORAGE_BUCKET}
+      MediaStorage__AccessKey: ${MEDIA_STORAGE_ACCESS_KEY}
+      MediaStorage__SecretKey: ${MEDIA_STORAGE_SECRET_KEY}
+      MediaStorage__ForcePathStyle: ${MEDIA_STORAGE_FORCE_PATH_STYLE}
+      MediaStorage__PublicBaseUrl: ${MEDIA_STORAGE_PUBLIC_BASE_URL}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL}
+        NEXT_PUBLIC_SITE_URL: ${PUBLIC_SITE_URL}
+        NEXT_PUBLIC_MEDIA_BASE_URL: ${MEDIA_STORAGE_PUBLIC_BASE_URL}
+    container_name: musakuce-frontend-prod
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  nginx:
+    image: nginx:alpine
+    container_name: musakuce-nginx-prod
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../infra/nginx/rendered:/etc/nginx/conf.d:ro
+      - ${SSL_CERT_DIR}:/etc/nginx/certs:ro
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "--no-check-certificate", "https://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ---- Explicit, opt-in tooling — never started by `docker compose up` ----
+  # (no `up` invocation starts anything in this profile; each is run
+  # individually via `docker compose ... --profile production-tools run --rm <name>`)
+
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src
+    volumes:
+      - ../backend:/src
+      - musakuce_nuget_cache_prod:/root/.nuget/packages
+      - musakuce_dotnet_tools_prod:/root/.dotnet/tools
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+    profiles: ["production-tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    entrypoint:
+      - bash
+      - -c
+      - |
+        set -e
+        dotnet tool install --global dotnet-ef --version 10.* >/dev/null 2>&1 || true
+        export PATH="$$PATH:/root/.dotnet/tools"
+        dotnet restore
+        dotnet ef database update --project Musakuce.Infrastructure --startup-project Musakuce.Api
+
+  admin-bootstrap:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: musakuce-admin-bootstrap
+    profiles: ["production-tools"]
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: ${JWT_ISSUER}
+      Jwt__Audience: ${JWT_AUDIENCE}
+      Cors__AllowedOrigins__0: ${PUBLIC_SITE_URL}
+      MediaStorage__Endpoint: ${MEDIA_STORAGE_ENDPOINT}
+      MediaStorage__Region: ${MEDIA_STORAGE_REGION}
+      MediaStorage__Bucket: ${MEDIA_STORAGE_BUCKET}
+      MediaStorage__AccessKey: ${MEDIA_STORAGE_ACCESS_KEY}
+      MediaStorage__SecretKey: ${MEDIA_STORAGE_SECRET_KEY}
+      # Set only for the one command invocation that creates the account
+      # — never persisted as part of the long-running `api` service's
+      # environment. See docs/DEPLOYMENT.md's admin bootstrap section.
+      AdminBootstrap__Email: ${ADMIN_BOOTSTRAP_EMAIL}
+      AdminBootstrap__Password: ${ADMIN_BOOTSTRAP_PASSWORD}
+      AdminBootstrap__DisplayName: ${ADMIN_BOOTSTRAP_DISPLAY_NAME}
+    entrypoint: ["dotnet", "Musakuce.Api.dll", "--bootstrap-admin"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  backup:
+    image: postgres:17-alpine
+    container_name: musakuce-backup
+    profiles: ["production-tools"]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGDATABASE: ${DB_NAME}
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+      BACKUP_DIR: /backups
+      RETENTION_DAYS: ${BACKUP_RETENTION_DAYS}
+    volumes:
+      - ../infra/scripts:/scripts:ro
+      - musakuce_backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/backup-database.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  restore:
+    image: postgres:17-alpine
+    container_name: musakuce-restore
+    profiles: ["production-tools"]
+    environment:
+      PGHOST: postgres
+      PGPORT: "5432"
+      PGUSER: ${DB_USER}
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ../infra/scripts:/scripts:ro
+      - musakuce_backups:/backups
+    entrypoint: ["/bin/sh", "/scripts/restore-database.sh"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  musakuce_postgres_prod_data:
+  musakuce_backups:
+  musakuce_nuget_cache_prod:
+  musakuce_dotnet_tools_prod:

@@ -1,0 +1,105 @@
+# Phase 15 §13 — reverse proxy for musakuce.az.
+#
+# Topology (see docs/DEPLOYMENT.md):
+#   Internet -> Cloudflare (public HTTPS, edge cert) -> Nginx (this file)
+#            -> Next.js frontend (container "frontend", port 3000)
+#            -> ASP.NET Core API (container "api", port 8080, only for /api/*)
+#
+# This is a TEMPLATE, not a ready-to-load config: ${DOMAIN} and
+# ${SSL_CERT_PATH}/${SSL_CERT_KEY_PATH} are substituted at deploy time
+# (see docs/DEPLOYMENT.md's Nginx section for the exact command). Not
+# deployed as part of Phase 15 — prepared and syntax-checked only.
+#
+# Assumes Cloudflare "Full (strict)" SSL mode: Cloudflare terminates the
+# public-facing HTTPS connection and re-encrypts to this origin using a
+# free Cloudflare Origin Certificate (issued in the Cloudflare dashboard,
+# not a public CA cert — browsers never see it directly, only Cloudflare
+# does) referenced by SSL_CERT_PATH/SSL_CERT_KEY_PATH below. This avoids
+# ever sending plaintext traffic between Cloudflare and the origin, which
+# "Flexible" mode would do.
+
+# Cloudflare's IP ranges, so X-Forwarded-For reflects the real visitor
+# rather than Cloudflare's edge IP. Verify/refresh against
+# https://www.cloudflare.com/ips/ at deploy time — these change
+# infrequently but are not guaranteed stable forever.
+set_real_ip_from 173.245.48.0/20;
+set_real_ip_from 103.21.244.0/22;
+set_real_ip_from 103.22.200.0/22;
+set_real_ip_from 103.31.4.0/22;
+set_real_ip_from 141.101.64.0/18;
+set_real_ip_from 108.162.192.0/18;
+set_real_ip_from 190.93.240.0/20;
+set_real_ip_from 188.114.96.0/20;
+set_real_ip_from 197.234.240.0/22;
+set_real_ip_from 198.41.128.0/17;
+set_real_ip_from 162.158.0.0/15;
+set_real_ip_from 104.16.0.0/13;
+set_real_ip_from 104.24.0.0/14;
+set_real_ip_from 172.64.0.0/13;
+set_real_ip_from 131.0.72.0/22;
+real_ip_header CF-Connecting-IP;
+
+# Plain HTTP: redirect to HTTPS. Cloudflare itself can also be configured
+# to always use HTTPS (Rules -> "Always Use HTTPS"), making this a
+# second, origin-side layer of the same rule rather than the only one.
+server {
+    listen 80;
+    server_name ${DOMAIN};
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name ${DOMAIN};
+
+    ssl_certificate     ${SSL_CERT_PATH};
+    ssl_certificate_key ${SSL_CERT_KEY_PATH};
+    ssl_protocols TLSv1.2 TLSv1.3;
+
+    client_max_body_size 25m; # photo/video uploads via the community submission + admin media flows
+
+    # Docker Compose's embedded DNS (127.0.0.11) — combined with `set`
+    # below, this makes nginx resolve api/frontend per-request rather
+    # than once at startup. Without this, nginx fails to start entirely
+    # if it comes up before those containers are ready (a real startup-
+    # ordering race in Compose, confirmed while syntax-checking this
+    # file), and would keep serving a stale IP if a container restarts.
+    resolver 127.0.0.11 valid=30s;
+
+    # API — only /api/* goes to the backend; everything else is the
+    # Next.js frontend. sitemap.xml/robots.txt are Next.js routes (see
+    # frontend/app/sitemap.ts, frontend/app/robots.ts), not served here.
+    #
+    # No URI after $upstream_api: when proxy_pass's target is a variable
+    # (required for the resolver-based late-DNS behavior above), nginx
+    # does NOT do the usual "replace the matched location prefix" URI
+    # rewriting even if a URI is appended — confirmed by hitting a bare
+    # 404 straight from nginx (never reaching the API) while dry-running
+    # this exact config. The backend's own routes already live at
+    # /api/... (see Musakuce.Api's [Route] attributes), so passing the
+    # original request URI through unmodified is correct here anyway —
+    # no rewrite was ever needed.
+    location /api/ {
+        set $upstream_api api:8080;
+        proxy_pass http://$upstream_api;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        set $upstream_frontend frontend:3000;
+        proxy_pass http://$upstream_frontend;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Next.js dev-time HMR websocket isn't relevant in production
+        # (standalone `next start`/`node server.js` serves plain HTTP),
+        # so no Upgrade/Connection headers are needed here.
+    }
+}

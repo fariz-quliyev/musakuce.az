@@ -16,6 +16,10 @@ obj/
 .env.*
 !.env.example
 
+# --- Deploy-time generated artifacts (infra/nginx/musakuce.conf.template
+# is the committed source; this is what envsubst renders it into) ---
+infra/nginx/rendered/
+
 # --- OS ---
 .DS_Store
 Thumbs.db

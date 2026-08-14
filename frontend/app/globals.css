@@ -1,26 +1,208 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   MUSAKÜÇƏ — BİZİM KƏND — Design Tokens
+   "Modern Heritage + Digital Village Square"
+
+   Warm, local, human, photographic — never government/newspaper/SaaS.
+   Palette drawn from village greenery, earth, stone, wood, warm sunlight
+   and old photographs. See docs/MUSAKUCE_SPEC.md §3 for the design brief.
+   ========================================================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- Surfaces --------------------------------------------------------- */
+  --color-cream: #f8f2e6;       /* page background — warm parchment */
+  --color-cream-deep: #efe4cd;  /* alternating-section background */
+  --color-paper: #fffdf8;       /* card / raised-surface background */
+  --color-paper-soft: #faf5ea;  /* subtle recessed surface (inputs, wells) */
+
+  /* --- Ink (text) --------------------------------------------------------
+     Warm near-black rather than pure black — softer, more human. */
+  --color-ink: #2a2318;
+  --color-ink-soft: #5c5344;
+  --color-ink-faint: #8a8072;
+  --color-ink-on-dark: #f8f2e6;
+
+  /* --- Forest (primary brand green) -------------------------------------
+     Buttons, links, active nav, primary icons. */
+  --color-forest: #2f4a3b;
+  --color-forest-dark: #1f3329;
+  --color-forest-light: #6e8f73;
+  --color-moss: #8fa37a;
+  --color-moss-light: #e3ead9;
+
+  /* --- Terracotta (earth accent) -----------------------------------------
+     Village-square CTAs ("Bu gün kənddə"), stat highlights, secondary
+     emphasis. Warm clay, not corporate orange. */
+  --color-terracotta: #b15e3b;
+  --color-terracotta-dark: #8f4a2d;
+  --color-clay-light: #f1ddc4;
+
+  /* --- Gold (sunlight accent) --------------------------------------------
+     Used sparingly: featured markers, highlights, "bir hekayə" moments. */
+  --color-gold: #c99a3e;
+  --color-gold-dark: #a67c2c;
+  --color-gold-light: #f4e6bf;
+
+  /* --- Stone (neutral / borders) ------------------------------------------ */
+  --color-stone: #a79c89;
+  --color-stone-light: #e4dcc9;
+  --color-stone-dark: #6b6152;
+
+  /* --- Memorial / calm palette (Xatirə) -----------------------------------
+     Deliberately muted and desaturated — never the lively site accent. */
+  --color-memorial-bg: #f1efe8;
+  --color-memorial-surface: #f8f7f2;
+  --color-memorial-ink: #4a463e;
+  --color-memorial-accent: #7c8a82;
+  --color-memorial-line: #dcd7ca;
+
+  /* --- Status (muted — no news-red, no corporate blue) -------------------- */
+  --color-success: #4c7a52;
+  --color-success-bg: #e7f0e3;
+  --color-warning: #ad7c25;
+  --color-warning-bg: #f6ecd4;
+  --color-danger: #a8482f;
+  --color-danger-bg: #f5e3dc;
+  --color-info: #3e6e82;
+  --color-info-bg: #e2edf0;
+
+  /* --- Radii --------------------------------------------------------------
+     Soft, generous rounding — "modern heritage", never sharp/corporate. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-full: 9999px;
+
+  /* --- Shadows --------------------------------------------------------------
+     Warm-tinted (brown, not cold gray) soft elevation. */
+  --shadow-color: 30 20% 20%;
+  --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06),
+    0 1px 1px hsl(var(--shadow-color) / 0.04);
+  --shadow-md: 0 6px 16px -4px hsl(var(--shadow-color) / 0.14),
+    0 2px 6px -2px hsl(var(--shadow-color) / 0.08);
+  --shadow-lg: 0 16px 32px -8px hsl(var(--shadow-color) / 0.18),
+    0 6px 12px -4px hsl(var(--shadow-color) / 0.1);
+  --shadow-photo: 0 20px 40px -12px hsl(var(--shadow-color) / 0.28);
+
+  /* --- Focus ring ----------------------------------------------------------
+     Accessible, warm-toned focus indicator (not corporate blue). */
+  --ring-color: #b15e3b;
 }
 
+/* ==========================================================================
+   Tailwind v4 theme mapping — turns the tokens above into utility classes
+   (bg-cream, text-forest, rounded-lg, shadow-photo, font-display, etc.)
+   ========================================================================== */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--color-cream);
+  --color-cream-deep: var(--color-cream-deep);
+  --color-paper: var(--color-paper);
+  --color-paper-soft: var(--color-paper-soft);
+
+  --color-ink: var(--color-ink);
+  --color-ink-soft: var(--color-ink-soft);
+  --color-ink-faint: var(--color-ink-faint);
+  --color-ink-on-dark: var(--color-ink-on-dark);
+
+  --color-forest: var(--color-forest);
+  --color-forest-dark: var(--color-forest-dark);
+  --color-forest-light: var(--color-forest-light);
+  --color-moss: var(--color-moss);
+  --color-moss-light: var(--color-moss-light);
+
+  --color-terracotta: var(--color-terracotta);
+  --color-terracotta-dark: var(--color-terracotta-dark);
+  --color-clay-light: var(--color-clay-light);
+
+  --color-gold: var(--color-gold);
+  --color-gold-dark: var(--color-gold-dark);
+  --color-gold-light: var(--color-gold-light);
+
+  --color-stone: var(--color-stone);
+  --color-stone-light: var(--color-stone-light);
+  --color-stone-dark: var(--color-stone-dark);
+
+  --color-memorial-bg: var(--color-memorial-bg);
+  --color-memorial-surface: var(--color-memorial-surface);
+  --color-memorial-ink: var(--color-memorial-ink);
+  --color-memorial-accent: var(--color-memorial-accent);
+  --color-memorial-line: var(--color-memorial-line);
+
+  --color-success: var(--color-success);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning: var(--color-warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-danger: var(--color-danger);
+  --color-danger-bg: var(--color-danger-bg);
+  --color-info: var(--color-info);
+  --color-info-bg: var(--color-info-bg);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-photo: var(--shadow-photo);
+
+  --font-display: var(--font-display), "Georgia", serif;
+  --font-body: var(--font-body), "Segoe UI", sans-serif;
+
+  /* Fine mobile-first breakpoint below Tailwind's default `sm` (40rem). */
+  --breakpoint-xs: 30rem;
+
+  /* Editorial type scale — fluid where it benefits hero/section headings.
+     --text-display sized ~17-18% down from its original clamp(2.75rem,
+     2rem + 3vw, 4.75rem) so the hero wordmark shares visual weight with
+     the intro copy/CTAs/weather widget below it instead of dominating
+     the section on its own. */
+  --text-display: clamp(2.25rem, 1.65rem + 2.5vw, 3.9rem);
+  --text-display--line-height: 1.04;
+  --text-h1: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+  --text-h1--line-height: 1.1;
+  --text-h2: clamp(1.5rem, 1.3rem + 0.8vw, 2.125rem);
+  --text-h2--line-height: 1.18;
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.28;
+  --text-h4: 1.125rem;
+  --text-h4--line-height: 1.35;
+  --text-eyebrow: 0.8125rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.09em;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ==========================================================================
+   Base element styles
+   ========================================================================== */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body), "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display), "Georgia", serif;
+  letter-spacing: -0.01em;
+}
+
+/* Accessible, warm-toned focus ring for every interactive element. */
+:focus-visible {
+  outline: 2px solid var(--ring-color);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-gold-light);
+  color: var(--color-ink);
 }

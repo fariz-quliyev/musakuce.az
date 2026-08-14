@@ -1,0 +1,99 @@
+import Link from "next/link";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { StatusTabs } from "@/components/admin/StatusTabs";
+import { PublicationStatusBadge } from "@/components/admin/StatusBadge";
+import { LocalInfoRowActions } from "@/components/admin/localInfo/LocalInfoRowActions";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { localInfoApi } from "@/lib/api/localInfo";
+import { localInfoKindLabels } from "@/lib/api/labels";
+import { ApiError } from "@/lib/api/client";
+import { isNextRedirectError } from "@/lib/isNextRedirectError";
+import type { PublicationStatus } from "@/lib/api/types";
+
+export const metadata = { title: "Faydalı məlumatlar — Admin — Musaküçə" };
+
+const TABS = [
+  { label: "Qaralamalar", value: "Draft" },
+  { label: "Dərc edilmiş", value: "Published" },
+  { label: "Arxiv", value: "Archived" },
+];
+
+type Props = { searchParams: Promise<{ status?: string }> };
+
+export default async function AdminLocalInfoPage({ searchParams }: Props) {
+  const { status } = await searchParams;
+  const tab = (status ?? "Draft") as PublicationStatus;
+
+  let result;
+  try {
+    result = await localInfoApi.getPaged({ publicationStatus: tab, pageSize: 50 });
+  } catch (error) {
+    if (isNextRedirectError(error)) throw error;
+    if (error instanceof ApiError && error.status === 403) {
+      return (
+        <EmptyState
+          tone="error"
+          title="İcazəniz yoxdur"
+          description="Faydalı məlumatları idarə etmək üçün icazəniz yoxdur."
+        />
+      );
+    }
+    return <EmptyState tone="error" title="Faydalı məlumatları yükləmək mümkün olmadı" />;
+  }
+
+  return (
+    <div>
+      <AdminPageHeader
+        title="Faydalı məlumatlar"
+        description="Xidmətlər, faydalı əlaqələr, mağazalar, ustalar, nəqliyyat, tövsiyələr."
+        actions={<Button href="/admin/faydali-melumatlar/yeni">+ Yeni qeyd</Button>}
+      />
+
+      <StatusTabs tabs={TABS} active={tab} basePath="/admin/faydali-melumatlar" />
+
+      <div className="mt-4">
+        {result.items.length === 0 ? (
+          <EmptyState title="Bu statusda qeyd yoxdur" />
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-stone-light bg-paper">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-stone-light bg-paper-soft text-left text-xs uppercase tracking-wide text-ink-faint">
+                  <th className="px-4 py-3">Ad</th>
+                  <th className="px-4 py-3">Növ</th>
+                  <th className="px-4 py-3">Kateqoriya</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3" />
+                </tr>
+              </thead>
+              <tbody>
+                {result.items.map((entry) => (
+                  <tr key={entry.id} className="border-b border-stone-light last:border-0 hover:bg-paper-soft">
+                    <td className="px-4 py-3 font-medium text-ink">{entry.name}</td>
+                    <td className="px-4 py-3 text-ink-soft">{localInfoKindLabels[entry.kind]}</td>
+                    <td className="px-4 py-3 text-ink-soft">{entry.category}</td>
+                    <td className="px-4 py-3">
+                      <PublicationStatusBadge status={entry.publicationStatus} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-3">
+                        <Link
+                          href={`/admin/faydali-melumatlar/${entry.id}/redakte?s=${entry.publicationStatus}`}
+                          className="font-medium text-forest hover:underline"
+                        >
+                          Redaktə
+                        </Link>
+                        <LocalInfoRowActions entry={entry} />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

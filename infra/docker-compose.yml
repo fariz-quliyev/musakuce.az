@@ -11,6 +11,106 @@ services:
       - "5432:5432"
     volumes:
       - musakuce_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U musakuce -d musakuce"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # MinIO — local S3-compatible object storage (Phase 8). Console UI at
+  # http://localhost:9001 (login with the credentials below), S3 API at
+  # http://localhost:9000. Swap for real AWS S3/another S3-compatible
+  # provider in production by changing MediaStorage__* env vars on `api`
+  # only — nothing in application code is MinIO-specific.
+  minio:
+    image: minio/minio:latest
+    container_name: musakuce-minio
+    restart: unless-stopped
+    environment:
+      # Dev-only credentials — not real secrets. Override via env vars
+      # for anything beyond local development; never hard-code
+      # production storage credentials here or anywhere in source.
+      MINIO_ROOT_USER: musakuce_minio
+      MINIO_ROOT_PASSWORD: musakuce_minio_dev
+    command: server /data --console-address ":9001"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - musakuce_minio_data:/data
+
+  # ASP.NET Core API — built from backend/Dockerfile. Runs here instead
+  # of natively on Windows because Windows Smart App Control blocks
+  # freshly-compiled local .NET assemblies from loading (see Phase 4
+  # notes); the container's Linux runtime isn't subject to that policy.
+  api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: musakuce-api
+    restart: unless-stopped
+    ports:
+      - "5295:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=musakuce;Username=musakuce;Password=musakuce_dev"
+      Cors__AllowedOrigins__0: "http://localhost:3000"
+      # Dev-only JWT signing key. MUST be overridden with a real secret
+      # (env var, not this file) in any non-Development deployment —
+      # Program.cs refuses to start without one outside Development.
+      Jwt__Secret: "musakuce-dev-only-jwt-signing-key-do-not-use-in-production-2026"
+      # Dev-only seed for the first Administrator account — only used by
+      # DevAdminSeeder when ASPNETCORE_ENVIRONMENT=Development, and only
+      # creates the account if it doesn't already exist. Not a real
+      # credential; change/remove for anything beyond local development.
+      Admin__SeedEmail: "admin@musakuce.local"
+      Admin__SeedPassword: "MusakuceDev_Admin2026!"
+      Admin__SeedDisplayName: "Baş Administrator"
+      # Media storage (Phase 8) — MinIO locally, an S3-compatible bucket
+      # in production (see MediaStorageOptions doc comments). Endpoint is
+      # the Docker-internal address the API uses to talk to MinIO;
+      # PublicBaseUrl is what the *browser* uses, so it must be
+      # host-reachable (localhost), not the Docker service name.
+      MediaStorage__Endpoint: "http://minio:9000"
+      MediaStorage__Region: "us-east-1"
+      MediaStorage__Bucket: "musakuce-media"
+      MediaStorage__AccessKey: "musakuce_minio"
+      MediaStorage__SecretKey: "musakuce_minio_dev"
+      MediaStorage__ForcePathStyle: "true"
+      MediaStorage__PublicBaseUrl: "http://localhost:9000/musakuce-media"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # Dev-only helper for running `dotnet ef` from inside a container (same
+  # reason as `api` above). Not part of the production topology — it's
+  # invoked ad hoc via `docker compose run --rm migrator <command>`, not
+  # started by `docker compose up`.
+  migrator:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    working_dir: /src
+    volumes:
+      - ../backend:/src
+      - musakuce_nuget_cache:/root/.nuget/packages
+      - musakuce_dotnet_tools:/root/.dotnet/tools
+    environment:
+      ConnectionStrings__Default: "Host=postgres;Port=5432;Database=musakuce;Username=musakuce;Password=musakuce_dev"
+    profiles: ["tools"]
+    depends_on:
+      postgres:
+        condition: service_healthy
 
 volumes:
   musakuce_postgres_data:
+  musakuce_minio_data:
+  musakuce_nuget_cache:
+  musakuce_dotnet_tools:
