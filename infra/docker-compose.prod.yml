@@ -13,9 +13,32 @@
 #
 # No MinIO here — production media storage is an external S3-compatible
 # provider (MediaStorage__Endpoint/etc. point at it directly; see
-# docs/PRODUCTION_ENV.md). No service in this file publishes a port to
-# the host except nginx (80/443) — postgres/api/frontend are reachable
-# only over the internal Compose network.
+# docs/PRODUCTION_ENV.md). postgres publishes no host port at all
+# (internal Compose network only).
+#
+# Two supported Nginx/TLS topologies (see docs/DEPLOYMENT.md §10/§10b):
+#   A. Dedicated VPS — Musakuce's own `nginx` service (below) owns ports
+#      80/443 directly, terminating TLS with a Cloudflare Origin
+#      Certificate. Start it explicitly with `--profile bundled-nginx`.
+#   B. Shared VPS (this project's actual deployment target — coexists
+#      with another site's own host-level Nginx, which already owns
+#      80/443) — `api`/`frontend` instead publish to loopback ports
+#      (127.0.0.1:8081 / 127.0.0.1:3001) that the *host's* Nginx reverse-
+#      proxies to; TLS terminates there via Certbot/Let's Encrypt. The
+#      `nginx` service below is NOT started in this topology — it's
+#      gated behind the `bundled-nginx` profile precisely so a plain
+#      `docker compose ... up -d` (topology B's normal startup command)
+#      never attempts to bind 80/443, which would already be owned by
+#      the host's own Nginx.
+
+# Pinned explicitly (rather than left to the invoking directory's
+# basename, e.g. `infra`, or a `-p`/COMPOSE_PROJECT_NAME flag someone
+# could forget to pass) — on a shared VPS running more than one Compose
+# project, an implicit, generic project name risks colliding with
+# something unrelated. Also fixes the resulting network/volume name
+# prefixes to `musakuce_...` regardless of which directory this file is
+# invoked from.
+name: musakuce
 
 services:
   postgres:
@@ -40,6 +63,15 @@ services:
       dockerfile: Dockerfile
     container_name: musakuce-api-prod
     restart: unless-stopped
+    # Topology B only (see top-of-file note) — loopback-only, matching
+    # the same pattern this VPS's other site already uses for its own
+    # API container (127.0.0.1:8080). Never published to 0.0.0.0: the
+    # host's own Nginx is the only intended caller, reverse-proxying
+    # 127.0.0.1:8081 -> this container's 8080. Harmless but unused under
+    # topology A (the bundled `nginx` service reaches this container by
+    # Compose service name over the internal network regardless).
+    ports:
+      - "127.0.0.1:8081:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
@@ -75,6 +107,9 @@ services:
         NEXT_PUBLIC_MEDIA_BASE_URL: ${MEDIA_STORAGE_PUBLIC_BASE_URL}
     container_name: musakuce-frontend-prod
     restart: unless-stopped
+    # Topology B only — same reasoning as `api`'s `ports:` above.
+    ports:
+      - "127.0.0.1:3001:3000"
     environment:
       NODE_ENV: production
     depends_on:
@@ -87,10 +122,19 @@ services:
       retries: 5
       start_period: 15s
 
+  # Topology A only (see top-of-file note) — a dedicated VPS where this
+  # container owns 80/443 directly. Gated behind the `bundled-nginx`
+  # profile so it is NEVER started by a plain `docker compose ... up -d`
+  # (topology B's normal command) — critical on a shared VPS where those
+  # ports are already bound by the host's own Nginx; a second process
+  # trying to bind them would simply fail to start, but must not be
+  # attempted in the first place. Start explicitly, only under topology
+  # A, with: `docker compose ... --profile bundled-nginx up -d`.
   nginx:
     image: nginx:alpine
     container_name: musakuce-nginx-prod
     restart: unless-stopped
+    profiles: ["bundled-nginx"]
     ports:
       - "80:80"
       - "443:443"

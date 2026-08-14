@@ -180,15 +180,31 @@ This builds `api` (from `backend/Dockerfile` — already non-root, Phase
 14) and `frontend` (from `frontend/Dockerfile`, new this phase —
 multi-stage build producing a `next.config.ts` `output: "standalone"`
 bundle, also non-root, runs as the image's built-in `node` user), then
-starts `postgres` (if not already up from §5), `api`, `frontend`, and
-`nginx` in dependency order (`depends_on: condition: service_healthy`
-throughout).
+starts `postgres` (if not already up from §5), `api`, and `frontend` in
+dependency order (`depends_on: condition: service_healthy` throughout).
+
+**The bundled `nginx` service is intentionally excluded from this
+command** — it's gated behind the `bundled-nginx` Compose profile (see
+the file's own top-of-file comment), which a plain `up -d` never
+activates. Whether you need it at all depends on which topology applies
+to you — see §10 (dedicated VPS, `nginx` included) vs. §10b (shared VPS,
+`nginx` never started) below.
 
 Note: `NEXT_PUBLIC_*` values are baked into the frontend image at *build*
 time (Docker `ARG`/`ENV` in `frontend/Dockerfile`) — changing one
 requires `--build` again, not just a restart.
 
-## 10. Nginx, Cloudflare, HTTPS
+## 10. Nginx, Cloudflare, HTTPS (topology A — dedicated VPS)
+
+**This section assumes Musakuce owns the whole VPS** (its own `nginx`
+container binds 80/443 directly). **If you're deploying onto a VPS that
+already runs its own host-level Nginx for another site — this project's
+actual current deployment target — skip to §10b instead**, which
+describes the shared-host topology: host Nginx owns 80/443, terminates
+TLS via Certbot/Let's Encrypt, and reverse-proxies to Musakuce's
+`api`/`frontend` containers over loopback ports. Both topologies build
+from the same `docker-compose.prod.yml` and the same application images;
+only how Nginx/TLS is arranged differs.
 
 **Topology**: `Internet → Cloudflare (public HTTPS) → Nginx → {frontend, api}`.
 
@@ -227,6 +243,66 @@ requires `--build` again, not just a restart.
 Cloudflare DNS records (**not created this phase** — DNS was explicitly
 out of scope): an `A`/`AAAA` (or `CNAME`) record for `musakuce.az`
 pointed at the VPS IP, proxied (orange-clouded) through Cloudflare.
+
+## 10b. Nginx, Cloudflare, HTTPS (topology B — shared host Nginx)
+
+**This is this project's actual deployment target**: a VPS that already
+runs its own host-level Nginx serving another, unrelated site (ports
+80/443 already bound by that process — confirmed by a read-only VPS
+audit). Musakuce's bundled `nginx` container (§10) cannot be used here —
+it would either fail to bind already-occupied ports or, worse, fight the
+existing process for them. Instead:
+
+**Topology**: `Internet → Cloudflare (public HTTPS) → host's own Nginx → {127.0.0.1:3001 frontend, 127.0.0.1:8081/api api}`.
+
+1. **Do not start the bundled `nginx` service.** It's gated behind the
+   `bundled-nginx` Compose profile specifically so the normal startup
+   command (§9) never touches it. Bring up only `postgres`, `api`, and
+   `frontend`.
+2. `api`/`frontend` publish to **loopback-only** host ports —
+   `127.0.0.1:8081→8080` and `127.0.0.1:3001→3000` respectively (see
+   `docker-compose.prod.yml`'s `ports:` entries under those two
+   services) — matching the same loopback-binding convention this VPS's
+   other site's own containers already use. Never publish these to
+   `0.0.0.0`; the host's own Nginx is the only intended caller.
+3. Install a new server block into the host's existing Nginx — do not
+   modify that site's own config. `infra/nginx/musakuce.host-shared.conf.example`
+   is a ready-to-adapt reference (proxies `/api/` → `127.0.0.1:8081`,
+   `/` → `127.0.0.1:3001`, redirects `www.musakuce.az` → `musakuce.az`,
+   sets a per-server `client_max_body_size 25m` since the shared host's
+   own global default may be smaller). Copy it alongside that site's
+   config (e.g. `/etc/nginx/sites-available/musakuce.az`), symlink into
+   `sites-enabled/`, then `nginx -t` and `systemctl reload nginx` (reload,
+   not restart — avoids disturbing the other site's active connections).
+4. Issue the certificate with **Certbot** (`certbot --nginx -d musakuce.az
+   -d www.musakuce.az`), matching this VPS's existing certificate
+   convention for its other site, rather than a Cloudflare Origin
+   Certificate — Certbot rewrites the file from step 3 in place to add
+   the 443/SSL server block. This is a deliberate topology-B-specific
+   choice: topology A (§10) uses a Cloudflare Origin Certificate because
+   it assumes Musakuce's own Nginx is the sole origin; here, matching
+   the shared host's own established convention keeps certificate
+   renewal (`certbot renew`, already cron-scheduled on such a host for
+   its other site) uniform across every site it serves, rather than
+   introducing a second, differently-managed certificate mechanism
+   alongside it.
+5. Cloudflare configuration (DNS record, SSL/TLS mode, "Always Use
+   HTTPS", `www` redirect rule) is unchanged from §10/§11 — the
+   Cloudflare-side setup doesn't depend on which origin-side topology is
+   in front of it. **Not performed yet** — deliberately deferred; the
+   domain itself is registered and active, but no DNS record has been
+   created pointing it at this VPS.
+6. Once Cloudflare is actually proxying traffic here, add the
+   Cloudflare-IP-range `set_real_ip_from` / `real_ip_header
+   CF-Connecting-IP` directives (already written out in
+   `infra/nginx/musakuce.conf.template`, reusable verbatim) once, at the
+   shared host Nginx's `http{}` scope — not duplicated per server block,
+   and not needed until Cloudflare is confirmed in front of real traffic.
+
+**Not yet done** (this phase was read-only VPS audit + this
+configuration/documentation update only — no VPS file was touched, no
+container started, no DNS/Cloudflare record created): steps 3–6 above
+all happen on the VPS itself, not in this repository.
 
 ## 11. Public URL / canonical host
 

@@ -1,0 +1,90 @@
+# Reference host Nginx server block for deploying musakuce.az onto a VPS
+# that already runs its own host-level Nginx for another site (this
+# project's actual deployment target: a shared Contabo VPS that also
+# serves observer.az). This file is NOT read by docker-compose.prod.yml
+# or any container — it documents what to install directly into the
+# VPS's own Nginx (e.g. as /etc/nginx/sites-available/musakuce.az),
+# separate from and alongside that other site's existing config, which
+# this file does not touch or replace.
+#
+# Musakuce's bundled `nginx` container
+# (infra/nginx/musakuce.conf.template) assumes it owns ports 80/443
+# directly — correct for a dedicated VPS, but not usable here, since
+# those ports already belong to the host's own Nginx. See
+# docs/DEPLOYMENT.md §10b for the full walkthrough this file matches.
+#
+# NOT applied automatically by anything in this repo. On the VPS:
+#   1. Copy this file to /etc/nginx/sites-available/musakuce.az
+#      (adjust the path/filename to match that host's existing
+#      convention alongside its other site(s)).
+#   2. Symlink it into sites-enabled/, `nginx -t`, `systemctl reload nginx`.
+#   3. Run `certbot --nginx -d musakuce.az -d www.musakuce.az` — certbot
+#      rewrites this file in place to add the 443/SSL server block using
+#      the certificate it issues (the same flow already used for this
+#      VPS's other site's certificate).
+#
+# Assumes Musakuce's `api`/`frontend` containers publish to loopback
+# ports 127.0.0.1:8081 and 127.0.0.1:3001 respectively — see
+# infra/docker-compose.prod.yml's `ports:` entries under those two
+# services. This Nginx process runs on the host, outside any Compose
+# network, so it addresses those containers by loopback IP:port, not by
+# Compose service name (no `resolver`/`set $upstream_*` needed here —
+# unlike musakuce.conf.template, there's no Compose-internal DNS timing
+# race to work around against a static loopback address).
+
+# www.musakuce.az -> https://musakuce.az (musakuce.az is canonical, never
+# www — see docs/DEPLOYMENT.md §11). Kept here as an origin-level second
+# layer in addition to the Cloudflare-level redirect §11 already
+# documents, so the correct behavior doesn't depend on Cloudflare being
+# configured correctly.
+server {
+    listen 80;
+    server_name www.musakuce.az;
+    return 301 https://musakuce.az$request_uri;
+}
+
+server {
+    listen 80;
+    server_name musakuce.az;
+
+    # Photo/video uploads via the community submission + admin media
+    # flows — see infra/nginx/musakuce.conf.template's identical note.
+    # Larger than this host Nginx's global http{} client_max_body_size
+    # (confirmed 2m during the read-only VPS audit) — this per-server
+    # value overrides that default for musakuce.az only, without
+    # changing it for any other site sharing this Nginx instance.
+    client_max_body_size 25m;
+
+    # /api/* -> backend; everything else -> Next.js frontend. Same split
+    # as musakuce.conf.template — sitemap.xml/robots.txt are Next.js
+    # routes (frontend/app/sitemap.ts, frontend/app/robots.ts), not
+    # served here.
+    location /api/ {
+        proxy_pass http://127.0.0.1:8081;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# After certbot adds the 443/SSL server block above (step 3), also
+# verify/add Cloudflare's real-IP restoration if Cloudflare proxying
+# (orange-cloud) is enabled for musakuce.az, so X-Forwarded-For reflects
+# the real visitor rather than Cloudflare's edge IP — see the
+# `set_real_ip_from`/`real_ip_header CF-Connecting-IP` block already
+# written in infra/nginx/musakuce.conf.template (same IP ranges apply
+# here; add once at this host's shared http{} scope, not duplicated per
+# server block, and only once Cloudflare is confirmed actually in front
+# of traffic — DNS/Cloudflare setup is deliberately out of scope for
+# this file).

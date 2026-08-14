@@ -186,7 +186,13 @@ than one service:
 | Variable | Controls | Secret? |
 |---|---|---|
 | `DB_USER` / `DB_PASSWORD` / `DB_NAME` | Postgres container's own credentials, and the values interpolated into `ConnectionStrings__Default` for `api`/`migrator`/`admin-bootstrap` | `DB_PASSWORD`: **Yes** |
-| `SSL_CERT_DIR` | Host directory containing the TLS certificate/key Nginx mounts (see docs/DEPLOYMENT.md §10) | No (path, not a secret itself — but protect the directory's contents) |
+| `SSL_CERT_DIR` | Host directory containing the TLS certificate/key the *bundled* `nginx` service mounts (see docs/DEPLOYMENT.md §10) | No (path, not a secret itself — but protect the directory's contents) |
+
+**Topology B (shared host Nginx, docs/DEPLOYMENT.md §10b) does not use
+`SSL_CERT_DIR` or the bundled `nginx` service at all** — TLS terminates
+at the shared host's own Nginx via Certbot instead, entirely outside
+Compose/`.env.production`. Only set this variable if you're actually
+starting the `nginx` service under the `bundled-nginx` profile (topology A).
 | `BACKUP_RETENTION_DAYS` | How many days of local backup files `backup-database.sh` keeps before deleting old ones | No |
 
 ---
