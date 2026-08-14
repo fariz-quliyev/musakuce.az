@@ -7,15 +7,17 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { localInfoKindLabels } from "@/lib/api/labels";
-import type { LocalInfoEntryDto, LocalInfoKind } from "@/lib/api/types";
+import type { LocalInfoEntryDto, LocalInfoKind, MediaAssetDto } from "@/lib/api/types";
 
 const KIND_OPTIONS = Object.entries(localInfoKindLabels) as [LocalInfoKind, string][];
 
 export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(entry?.photoMediaAssetId ?? null);
   const isEdit = !!entry;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -30,7 +32,7 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
       description: String(form.get("description") ?? "") || null,
       contactInfo: String(form.get("contactInfo") ?? "") || null,
       areaServed: String(form.get("areaServed") ?? "") || null,
-      photoUrl: String(form.get("photoUrl") ?? "") || null,
+      photoMediaAssetId,
       attachedToEntryId: String(form.get("attachedToEntryId") ?? "") || null,
     };
 
@@ -82,9 +84,12 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
         </FormField>
       </div>
 
-      <FormField label="Şəkil URL-i" htmlFor="photoUrl" hint="Boş buraxıla bilər">
-        <Input id="photoUrl" name="photoUrl" type="url" defaultValue={entry?.photoUrl ?? ""} />
-      </FormField>
+      <ImageUploadField
+        label="Şəkil"
+        initialPreviewUrl={entry?.photoUrl}
+        onUploaded={(media: MediaAssetDto) => setPhotoMediaAssetId(media.id)}
+        hint="Boş buraxıla bilər — JPEG, PNG, WebP və ya AVIF, maks. 15 MB"
+      />
 
       <FormField
         label="Bağlı olduğu qeyd (ID)"

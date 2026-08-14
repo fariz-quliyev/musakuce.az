@@ -2,12 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
+using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
 
 namespace Musakuce.Application.LocalInfo;
 
-public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog) : ILocalInfoService
+public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog, IMediaUploadService mediaUploadService) : ILocalInfoService
 {
     public async Task<PagedResult<LocalInfoEntryDto>> GetPagedAsync(LocalInfoQuery query, CancellationToken ct = default)
     {
@@ -66,11 +67,10 @@ public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog) 
             AttachedToEntryId = request.AttachedToEntryId,
         };
 
-        if (!string.IsNullOrWhiteSpace(request.PhotoUrl))
+        if (request.PhotoMediaAssetId is { } mediaId)
         {
-            var media = new MediaAsset { Url = request.PhotoUrl };
-            db.MediaAssets.Add(media);
-            entry.PhotoMediaAsset = media;
+            entry.PhotoMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == mediaId, ct)
+                ?? throw new NotFoundException(nameof(MediaAsset), mediaId);
         }
 
         db.LocalInfoEntries.Add(entry);
@@ -92,6 +92,8 @@ public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog) 
         }
 
         var oldName = entry.Name;
+        var oldMediaAssetId = entry.PhotoMediaAssetId;
+
         entry.Name = request.Name;
         entry.Kind = request.Kind;
         entry.Category = request.Category;
@@ -101,15 +103,29 @@ public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog) 
         entry.AttachedToEntryId = request.AttachedToEntryId;
         entry.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (!string.IsNullOrWhiteSpace(request.PhotoUrl) && request.PhotoUrl != entry.PhotoMediaAsset?.Url)
+        if (request.PhotoMediaAssetId != entry.PhotoMediaAssetId)
         {
-            var media = new MediaAsset { Url = request.PhotoUrl };
-            db.MediaAssets.Add(media);
-            entry.PhotoMediaAsset = media;
+            if (request.PhotoMediaAssetId is { } newMediaId)
+            {
+                entry.PhotoMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == newMediaId, ct)
+                    ?? throw new NotFoundException(nameof(MediaAsset), newMediaId);
+            }
+            else
+            {
+                entry.PhotoMediaAsset = null;
+                entry.PhotoMediaAssetId = null;
+            }
         }
 
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Update", nameof(LocalInfoEntry), entry.Id.ToString(), oldValue: oldName, newValue: entry.Name, ct: ct);
+
+        if (oldMediaAssetId is { } removedId && oldMediaAssetId != entry.PhotoMediaAssetId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(removedId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+
         return ToDto(entry);
     }
 
@@ -136,5 +152,5 @@ public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog) 
 
     private static LocalInfoEntryDto ToDto(LocalInfoEntry e) => new(
         e.Id, e.Name, e.Kind, e.Category, e.Description, e.ContactInfo, e.AreaServed,
-        e.PhotoMediaAsset?.Url, e.AttachedToEntryId, e.PublicationStatus);
+        e.PhotoMediaAssetId, e.PhotoMediaAsset?.Url, e.AttachedToEntryId, e.PublicationStatus);
 }

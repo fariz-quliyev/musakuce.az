@@ -2,12 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
+using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
 
 namespace Musakuce.Application.Events;
 
-public class EventService(IMusakuceDbContext db, IAuditLogService auditLog) : IEventService
+public class EventService(IMusakuceDbContext db, IAuditLogService auditLog, IMediaUploadService mediaUploadService) : IEventService
 {
     public async Task<PagedResult<EventDto>> GetPagedAsync(EventQuery query, CancellationToken ct = default)
     {
@@ -66,11 +67,10 @@ public class EventService(IMusakuceDbContext db, IAuditLogService auditLog) : IE
             OrganizerName = request.OrganizerName,
         };
 
-        if (!string.IsNullOrWhiteSpace(request.CoverImageUrl))
+        if (request.CoverMediaAssetId is { } mediaId)
         {
-            var media = new MediaAsset { Url = request.CoverImageUrl };
-            db.MediaAssets.Add(media);
-            ev.CoverMediaAsset = media;
+            ev.CoverMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == mediaId, ct)
+                ?? throw new NotFoundException(nameof(MediaAsset), mediaId);
         }
 
         db.VillageEvents.Add(ev);
@@ -85,6 +85,8 @@ public class EventService(IMusakuceDbContext db, IAuditLogService auditLog) : IE
             ?? throw new NotFoundException(nameof(VillageEvent), id);
 
         var oldTitle = ev.Title;
+        var oldMediaAssetId = ev.CoverMediaAssetId;
+
         ev.Title = request.Title;
         ev.Description = request.Description;
         ev.Category = request.Category;
@@ -95,15 +97,29 @@ public class EventService(IMusakuceDbContext db, IAuditLogService auditLog) : IE
         ev.OrganizerName = request.OrganizerName;
         ev.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (!string.IsNullOrWhiteSpace(request.CoverImageUrl) && request.CoverImageUrl != ev.CoverMediaAsset?.Url)
+        if (request.CoverMediaAssetId != ev.CoverMediaAssetId)
         {
-            var media = new MediaAsset { Url = request.CoverImageUrl };
-            db.MediaAssets.Add(media);
-            ev.CoverMediaAsset = media;
+            if (request.CoverMediaAssetId is { } newMediaId)
+            {
+                ev.CoverMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == newMediaId, ct)
+                    ?? throw new NotFoundException(nameof(MediaAsset), newMediaId);
+            }
+            else
+            {
+                ev.CoverMediaAsset = null;
+                ev.CoverMediaAssetId = null;
+            }
         }
 
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Update", nameof(VillageEvent), ev.Id.ToString(), oldValue: oldTitle, newValue: ev.Title, ct: ct);
+
+        if (oldMediaAssetId is { } removedId && oldMediaAssetId != ev.CoverMediaAssetId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(removedId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+
         return ToDto(ev);
     }
 
@@ -130,5 +146,5 @@ public class EventService(IMusakuceDbContext db, IAuditLogService auditLog) : IE
 
     private static EventDto ToDto(VillageEvent e) => new(
         e.Id, e.Title, e.Description, e.Category, e.StartsAt, e.EndsAt, e.Location, e.PlaceId,
-        e.OrganizerName, e.CoverMediaAsset?.Url, e.PublicationStatus);
+        e.OrganizerName, e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.PublicationStatus);
 }

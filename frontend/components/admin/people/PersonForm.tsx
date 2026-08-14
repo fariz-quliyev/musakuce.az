@@ -7,9 +7,10 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { peopleApi } from "@/lib/api/people";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
-import type { PersonCategory, PersonDto, SourceStatus } from "@/lib/api/types";
+import type { MediaAssetDto, PersonCategory, PersonDto, SourceStatus } from "@/lib/api/types";
 
 const CATEGORY_OPTIONS = Object.entries(personCategoryLabels) as [PersonCategory, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
@@ -17,6 +18,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 export function PersonForm({ person }: { person?: PersonDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
   const isEdit = !!person;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -33,7 +35,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
       category: form.get("category") as PersonCategory,
       occupation: String(form.get("occupation") ?? "") || null,
       biography: String(form.get("biography") ?? ""),
-      coverImageUrl: String(form.get("coverImageUrl") ?? "") || null,
+      coverMediaAssetId,
       sourceStatus: form.get("sourceStatus") as SourceStatus,
     };
 
@@ -94,9 +96,12 @@ export function PersonForm({ person }: { person?: PersonDto }) {
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Şəkil URL-i" htmlFor="coverImageUrl" hint="Boş buraxıla bilər">
-          <Input id="coverImageUrl" name="coverImageUrl" type="url" defaultValue={person?.coverImageUrl ?? ""} />
-        </FormField>
+        <ImageUploadField
+          label="Şəkil"
+          initialPreviewUrl={person?.coverImageUrl}
+          onUploaded={(media: MediaAssetDto) => setCoverMediaAssetId(media.id)}
+          hint="Boş buraxıla bilər — JPEG, PNG, WebP və ya AVIF, maks. 15 MB"
+        />
         <FormField label="Mənbə statusu" htmlFor="sourceStatus" required>
           <Select id="sourceStatus" name="sourceStatus" defaultValue={person?.sourceStatus ?? "UnderResearch"} required>
             {SOURCE_OPTIONS.map(([value, label]) => (

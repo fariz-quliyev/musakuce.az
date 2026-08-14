@@ -13,6 +13,7 @@ public record EventDto(
     string Location,
     Guid? PlaceId,
     string? OrganizerName,
+    Guid? CoverMediaAssetId,
     string? CoverImageUrl,
     PublicationStatus PublicationStatus
 );
@@ -27,7 +28,9 @@ public class CreateEventRequest
     public required string Location { get; set; }
     public Guid? PlaceId { get; set; }
     public string? OrganizerName { get; set; }
-    public string? CoverImageUrl { get; set; }
+    /// <summary>Id of a MediaAsset created via POST /api/media/upload —
+    /// same pipeline as Photos/People/Places (docs/FINAL_PRE_DEPLOYMENT_AUDIT.md P1-5).</summary>
+    public Guid? CoverMediaAssetId { get; set; }
 }
 
 /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>

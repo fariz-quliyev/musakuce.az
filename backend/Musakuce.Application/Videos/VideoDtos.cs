@@ -9,6 +9,7 @@ public record VideoDto(
     string? Description,
     VideoEmbedProvider EmbedProvider,
     string EmbedUrlOrKey,
+    Guid? ThumbnailMediaAssetId,
     string? ThumbnailUrl,
     string? Category,
     DateOnly? RecordedDate,
@@ -22,7 +23,11 @@ public class CreateVideoRequest
     public string? Description { get; set; }
     public VideoEmbedProvider EmbedProvider { get; set; }
     public required string EmbedUrlOrKey { get; set; }
-    public string? ThumbnailUrl { get; set; }
+    /// <summary>Id of a MediaAsset created via POST /api/media/upload —
+    /// same pipeline as Photos/People/Places (docs/FINAL_PRE_DEPLOYMENT_AUDIT.md P1-5).
+    /// The video itself stays embed-URL-only (EmbedUrlOrKey) — only the
+    /// thumbnail is an uploaded image.</summary>
+    public Guid? ThumbnailMediaAssetId { get; set; }
     public string? Category { get; set; }
     public DateOnly? RecordedDate { get; set; }
     public SourceStatus SourceStatus { get; set; } = SourceStatus.UnderResearch;

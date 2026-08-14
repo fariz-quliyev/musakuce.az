@@ -7,9 +7,10 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { eventsApi } from "@/lib/api/events";
 import { eventCategoryLabels } from "@/lib/api/labels";
-import type { EventCategory, EventDto } from "@/lib/api/types";
+import type { EventCategory, EventDto, MediaAssetDto } from "@/lib/api/types";
 
 const CATEGORY_OPTIONS = Object.entries(eventCategoryLabels) as [EventCategory, string][];
 
@@ -24,6 +25,7 @@ function toLocalInputValue(iso: string | null): string {
 export function EventForm({ event }: { event?: EventDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(event?.coverMediaAssetId ?? null);
   const isEdit = !!event;
 
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
@@ -41,7 +43,7 @@ export function EventForm({ event }: { event?: EventDto }) {
       endsAt: endsAtLocal ? new Date(endsAtLocal).toISOString() : null,
       location: String(form.get("location") ?? ""),
       organizerName: String(form.get("organizerName") ?? "") || null,
-      coverImageUrl: String(form.get("coverImageUrl") ?? "") || null,
+      coverMediaAssetId,
     };
 
     try {
@@ -107,9 +109,12 @@ export function EventForm({ event }: { event?: EventDto }) {
         <Input id="organizerName" name="organizerName" maxLength={150} defaultValue={event?.organizerName ?? ""} />
       </FormField>
 
-      <FormField label="Şəkil URL-i" htmlFor="coverImageUrl" hint="Boş buraxıla bilər">
-        <Input id="coverImageUrl" name="coverImageUrl" type="url" defaultValue={event?.coverImageUrl ?? ""} />
-      </FormField>
+      <ImageUploadField
+        label="Şəkil"
+        initialPreviewUrl={event?.coverImageUrl}
+        onUploaded={(media: MediaAssetDto) => setCoverMediaAssetId(media.id)}
+        hint="Boş buraxıla bilər — JPEG, PNG, WebP və ya AVIF, maks. 15 MB"
+      />
 
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>

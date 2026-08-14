@@ -7,9 +7,10 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { videosApi } from "@/lib/api/videos";
 import { sourceStatusLabels, videoEmbedProviderLabels } from "@/lib/api/labels";
-import type { SourceStatus, VideoDto, VideoEmbedProvider } from "@/lib/api/types";
+import type { MediaAssetDto, SourceStatus, VideoDto, VideoEmbedProvider } from "@/lib/api/types";
 
 const PROVIDER_OPTIONS = Object.entries(videoEmbedProviderLabels) as [VideoEmbedProvider, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
@@ -17,6 +18,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 export function VideoForm({ video }: { video?: VideoDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [thumbnailMediaAssetId, setThumbnailMediaAssetId] = useState<string | null>(video?.thumbnailMediaAssetId ?? null);
   const isEdit = !!video;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -29,7 +31,7 @@ export function VideoForm({ video }: { video?: VideoDto }) {
       description: String(form.get("description") ?? "") || null,
       embedProvider: form.get("embedProvider") as VideoEmbedProvider,
       embedUrlOrKey: String(form.get("embedUrlOrKey") ?? ""),
-      thumbnailUrl: String(form.get("thumbnailUrl") ?? "") || null,
+      thumbnailMediaAssetId,
       category: String(form.get("category") ?? "") || null,
       recordedDate: String(form.get("recordedDate") ?? "") || null,
       sourceStatus: form.get("sourceStatus") as SourceStatus,
@@ -74,9 +76,12 @@ export function VideoForm({ video }: { video?: VideoDto }) {
         </FormField>
       </div>
 
-      <FormField label="Ön izləmə şəkli (thumbnail) URL-i" htmlFor="thumbnailUrl" hint="Boş buraxıla bilər">
-        <Input id="thumbnailUrl" name="thumbnailUrl" type="url" defaultValue={video?.thumbnailUrl ?? ""} />
-      </FormField>
+      <ImageUploadField
+        label="Ön izləmə şəkli (thumbnail)"
+        initialPreviewUrl={video?.thumbnailUrl}
+        onUploaded={(media: MediaAssetDto) => setThumbnailMediaAssetId(media.id)}
+        hint="Boş buraxıla bilər — JPEG, PNG, WebP və ya AVIF, maks. 15 MB"
+      />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Kateqoriya" htmlFor="category" hint="Boş buraxıla bilər — sərbəst mətn">

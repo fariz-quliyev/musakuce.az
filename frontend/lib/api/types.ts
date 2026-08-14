@@ -110,6 +110,7 @@ export interface EventDto {
   location: string;
   placeId: string | null;
   organizerName: string | null;
+  coverMediaAssetId: string | null;
   coverImageUrl: string | null;
   publicationStatus: PublicationStatus;
 }
@@ -123,7 +124,7 @@ export interface CreateEventRequest {
   location: string;
   placeId?: string | null;
   organizerName?: string | null;
-  coverImageUrl?: string | null;
+  coverMediaAssetId?: string | null;
 }
 
 /** ADMIN-PRIVILEGED — full field edit. */
@@ -153,6 +154,7 @@ export interface LocalInfoEntryDto {
   description: string | null;
   contactInfo: string | null;
   areaServed: string | null;
+  photoMediaAssetId: string | null;
   photoUrl: string | null;
   attachedToEntryId: string | null;
   publicationStatus: PublicationStatus;
@@ -171,7 +173,7 @@ export interface CreateLocalInfoEntryRequest {
   description?: string | null;
   contactInfo?: string | null;
   areaServed?: string | null;
-  photoUrl?: string | null;
+  photoMediaAssetId?: string | null;
   attachedToEntryId?: string | null;
 }
 
@@ -439,6 +441,7 @@ export interface VideoDto {
   description: string | null;
   embedProvider: VideoEmbedProvider;
   embedUrlOrKey: string;
+  thumbnailMediaAssetId: string | null;
   thumbnailUrl: string | null;
   category: string | null;
   recordedDate: string | null;
@@ -456,7 +459,7 @@ export interface CreateVideoRequest {
   description?: string | null;
   embedProvider: VideoEmbedProvider;
   embedUrlOrKey: string;
-  thumbnailUrl?: string | null;
+  thumbnailMediaAssetId?: string | null;
   category?: string | null;
   recordedDate?: string | null;
   sourceStatus?: SourceStatus;

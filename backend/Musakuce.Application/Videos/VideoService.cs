@@ -2,12 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
+using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
 
 namespace Musakuce.Application.Videos;
 
-public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog) : IVideoService
+public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog, IMediaUploadService mediaUploadService) : IVideoService
 {
     public async Task<PagedResult<VideoDto>> GetPagedAsync(VideoQuery query, CancellationToken ct = default)
     {
@@ -52,11 +53,10 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog) : IV
             SourceStatus = request.SourceStatus,
         };
 
-        if (!string.IsNullOrWhiteSpace(request.ThumbnailUrl))
+        if (request.ThumbnailMediaAssetId is { } mediaId)
         {
-            var media = new MediaAsset { Url = request.ThumbnailUrl };
-            db.MediaAssets.Add(media);
-            video.ThumbnailMediaAsset = media;
+            video.ThumbnailMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == mediaId, ct)
+                ?? throw new NotFoundException(nameof(MediaAsset), mediaId);
         }
 
         db.Videos.Add(video);
@@ -71,6 +71,8 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog) : IV
             ?? throw new NotFoundException(nameof(Video), id);
 
         var oldTitle = video.Title;
+        var oldMediaAssetId = video.ThumbnailMediaAssetId;
+
         video.Title = request.Title;
         video.Description = request.Description;
         video.EmbedProvider = request.EmbedProvider;
@@ -80,15 +82,29 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog) : IV
         video.SourceStatus = request.SourceStatus;
         video.UpdatedAt = DateTimeOffset.UtcNow;
 
-        if (!string.IsNullOrWhiteSpace(request.ThumbnailUrl) && request.ThumbnailUrl != video.ThumbnailMediaAsset?.Url)
+        if (request.ThumbnailMediaAssetId != video.ThumbnailMediaAssetId)
         {
-            var media = new MediaAsset { Url = request.ThumbnailUrl };
-            db.MediaAssets.Add(media);
-            video.ThumbnailMediaAsset = media;
+            if (request.ThumbnailMediaAssetId is { } newMediaId)
+            {
+                video.ThumbnailMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == newMediaId, ct)
+                    ?? throw new NotFoundException(nameof(MediaAsset), newMediaId);
+            }
+            else
+            {
+                video.ThumbnailMediaAsset = null;
+                video.ThumbnailMediaAssetId = null;
+            }
         }
 
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Update", nameof(Video), video.Id.ToString(), oldValue: oldTitle, newValue: video.Title, ct: ct);
+
+        if (oldMediaAssetId is { } removedId && oldMediaAssetId != video.ThumbnailMediaAssetId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(removedId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+
         return ToDto(video);
     }
 
@@ -115,5 +131,5 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog) : IV
 
     private static VideoDto ToDto(Video v) => new(
         v.Id, v.Title, v.Description, v.EmbedProvider, v.EmbedUrlOrKey,
-        v.ThumbnailMediaAsset?.Url, v.Category, v.RecordedDate, v.SourceStatus, v.PublicationStatus);
+        v.ThumbnailMediaAssetId, v.ThumbnailMediaAsset?.Url, v.Category, v.RecordedDate, v.SourceStatus, v.PublicationStatus);
 }

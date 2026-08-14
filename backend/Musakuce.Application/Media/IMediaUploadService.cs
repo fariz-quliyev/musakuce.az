@@ -12,7 +12,8 @@ public interface IMediaUploadService
     Task<MediaAssetDto> UploadCommunityImageAsync(Stream content, string originalFileName, long sizeBytes, CancellationToken ct = default);
 
     /// <summary>True if any Photo/Person/Event/LocalInfo/Video/Listing/
-    /// Place/Submission still references this MediaAsset.</summary>
+    /// Place/Submission/MemorialRecord/EducationEntry/CulturalHeritageItem/
+    /// Interview/VillageProfile still references this MediaAsset.</summary>
     Task<bool> IsReferencedAsync(Guid mediaAssetId, CancellationToken ct = default);
 
     /// <summary>Deletes the MediaAsset's storage objects and DB row, but

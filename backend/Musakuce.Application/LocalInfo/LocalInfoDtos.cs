@@ -11,6 +11,7 @@ public record LocalInfoEntryDto(
     string? Description,
     string? ContactInfo,
     string? AreaServed,
+    Guid? PhotoMediaAssetId,
     string? PhotoUrl,
     Guid? AttachedToEntryId,
     PublicationStatus PublicationStatus
@@ -26,7 +27,9 @@ public class CreateLocalInfoEntryRequest
     public string? Description { get; set; }
     public string? ContactInfo { get; set; }
     public string? AreaServed { get; set; }
-    public string? PhotoUrl { get; set; }
+    /// <summary>Id of a MediaAsset created via POST /api/media/upload —
+    /// same pipeline as Photos/People/Places (docs/FINAL_PRE_DEPLOYMENT_AUDIT.md P1-5).</summary>
+    public Guid? PhotoMediaAssetId { get; set; }
     public Guid? AttachedToEntryId { get; set; }
 }
 

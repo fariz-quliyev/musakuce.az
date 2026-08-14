@@ -81,7 +81,19 @@ public class MediaUploadService(
         || await db.Videos.AnyAsync(v => v.ThumbnailMediaAssetId == mediaAssetId, ct)
         || await db.ListingImages.AnyAsync(i => i.MediaAssetId == mediaAssetId, ct)
         || await db.SubmissionFiles.AnyAsync(s => s.MediaAssetId == mediaAssetId, ct)
-        || await db.Places.AnyAsync(p => p.CoverMediaAssetId == mediaAssetId, ct);
+        || await db.Places.AnyAsync(p => p.CoverMediaAssetId == mediaAssetId, ct)
+        // These five were missing even though MemorialRecordService,
+        // EducationEntryService, CulturalHeritageItemService, and
+        // InterviewService already call DeleteIfUnreferencedAsync on
+        // replace — without checking their own tables here, that call
+        // could not actually detect "still referenced" for their own
+        // content type. Found and fixed as part of
+        // docs/FINAL_PRE_DEPLOYMENT_AUDIT.md P1-5's media-pipeline audit.
+        || await db.MemorialRecords.AnyAsync(m => m.CoverMediaAssetId == mediaAssetId, ct)
+        || await db.EducationEntries.AnyAsync(e => e.CoverMediaAssetId == mediaAssetId, ct)
+        || await db.CulturalHeritageItems.AnyAsync(c => c.CoverMediaAssetId == mediaAssetId, ct)
+        || await db.Interviews.AnyAsync(i => i.ThumbnailMediaAssetId == mediaAssetId, ct)
+        || await db.VillageProfiles.AnyAsync(v => v.HeroMediaAssetId == mediaAssetId || v.LogoMediaAssetId == mediaAssetId, ct);
 
     public async Task DeleteIfUnreferencedAsync(Guid mediaAssetId, CancellationToken ct = default)
     {

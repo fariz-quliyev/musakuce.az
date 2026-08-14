@@ -23,6 +23,7 @@ const FALLBACK: PagedResult<VideoDto> = {
       description: "Musaküçənin qış aylarında çəkilmiş qısa görüntülər.",
       embedProvider: "YouTube",
       embedUrlOrKey: "",
+      thumbnailMediaAssetId: null,
       thumbnailUrl: null,
       category: "Kənd həyatı",
       recordedDate: null,
