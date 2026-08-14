@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Card, CardBody, CardTitle } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { cn } from "@/lib/cn";
 import { memorialApi } from "@/lib/api/memorial";
 import { memorialCategoryLabels } from "@/lib/api/labels";
@@ -16,6 +17,7 @@ const CATEGORY_OPTIONS = Object.entries(memorialCategoryLabels) as [MemorialCate
 
 type Props = {
   initialData: PagedResult<MemorialRecordDto>;
+  initialIsLive: boolean;
 };
 
 /**
@@ -24,10 +26,11 @@ type Props = {
  * plain search field. Mirrors ListingsBrowser's client-refetch pattern
  * but deliberately without its livelier styling.
  */
-export function MemorialBrowser({ initialData }: Props) {
+export function MemorialBrowser({ initialData, initialIsLive }: Props) {
   const [category, setCategory] = useState<MemorialCategory | "">("");
   const [search, setSearch] = useState("");
   const [result, setResult] = useState(initialData);
+  const [isLive, setIsLive] = useState(initialIsLive);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
 
   const isFirstRender = useRef(true);
@@ -48,6 +51,7 @@ export function MemorialBrowser({ initialData }: Props) {
         .then((data) => {
           if (requestIdRef.current !== thisRequestId) return;
           setResult(data);
+          setIsLive(true);
           setStatus("idle");
         })
         .catch(() => {
@@ -61,6 +65,8 @@ export function MemorialBrowser({ initialData }: Props) {
 
   return (
     <div>
+      <DataSourceNote isLive={isLive} />
+
       <div className="mb-6 flex flex-wrap items-center gap-2">
         <button
           type="button"

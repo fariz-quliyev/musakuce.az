@@ -10,7 +10,7 @@ import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { memorialCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd } from "@/lib/structuredData";
+import { breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
 import type { MemorialRecordDto, PersonDto } from "@/lib/api/types";
 
 type Props = { params: Promise<{ id: string }> };
@@ -67,7 +67,7 @@ export default async function MemorialDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(
+          __html: jsonLdScript(
             breadcrumbJsonLd([
               { name: "Ana səhifə", path: "/" },
               { name: "Xatirə", path: "/xatire" },

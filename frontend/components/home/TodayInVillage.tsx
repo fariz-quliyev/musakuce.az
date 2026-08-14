@@ -3,6 +3,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { photosApi } from "@/lib/api/photos";
 import { listingsApi } from "@/lib/api/listings";
 import { withFallback } from "@/lib/api/withFallback";
@@ -46,12 +47,17 @@ export async function TodayInVillage() {
       date: l.postedAt,
     }));
 
-    const combined = [...fromPhotos, ...fromListings];
-    if (combined.length === 0) throw new Error("No recent activity to show");
-    return combined;
+    // An empty result here is real, live data (the API answered — there
+    // just happens to be nothing recent yet), not a failure. Throwing on
+    // it would misreport a genuine empty state as an outage and silently
+    // substitute the mock bulletin below with no indicator that it's
+    // fabricated — exactly the P0-2 content-integrity bug this guards
+    // against. Only an actual fetch failure (network/API error) should
+    // reach the `withFallback` catch and mark `isLive: false`.
+    return [...fromPhotos, ...fromListings];
   }, MOCK_UPDATES);
 
-  if (!isLive && updates.length === 0) return null;
+  if (updates.length === 0) return null;
 
   const [featured, ...rest] = updates;
   if (!featured) return null;
@@ -60,6 +66,7 @@ export async function TodayInVillage() {
 
   return (
     <Container as="section" id="bu-gun-kendde" className="py-16 sm:py-20">
+      <DataSourceNote isLive={isLive} />
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <SectionHeading
           eyebrow="Kənd gündəliyi"

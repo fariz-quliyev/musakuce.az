@@ -1,4 +1,5 @@
 import { Container } from "@/components/ui/Container";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { listingsApi } from "@/lib/api/listings";
 import { eventsApi } from "@/lib/api/events";
 import { photosApi } from "@/lib/api/photos";
@@ -43,7 +44,11 @@ const iconProps = {
  * API can't actually back up.
  */
 export async function VillageTodayStrip() {
-  const [{ data: listingsTotal }, { data: eventsTotal }, { data: photosTotal }] = await Promise.all([
+  const [
+    { data: listingsTotal, isLive: listingsLive },
+    { data: eventsTotal, isLive: eventsLive },
+    { data: photosTotal, isLive: photosLive },
+  ] = await Promise.all([
     withFallback(
       () => listingsApi.getPaged({ listingStatus: "Active", pageSize: 1 }, HOMEPAGE_REVALIDATE_SECONDS).then((r) => r.totalCount),
       3,
@@ -51,6 +56,11 @@ export async function VillageTodayStrip() {
     withFallback(() => eventsApi.getPaged({ pageSize: 1 }, HOMEPAGE_REVALIDATE_SECONDS).then((r) => r.totalCount), 5),
     withFallback(() => photosApi.getPaged({ pageSize: 1 }, HOMEPAGE_REVALIDATE_SECONDS).then((r) => r.totalCount), 5),
   ]);
+  // This strip always renders one combined line — if any one of the
+  // three counts is fallback data, the whole line must say so (a reader
+  // can't tell which individual number is fabricated once merged into
+  // "3 aktiv elan / 5 tədbir / 5 foto arxivdə").
+  const isLive = listingsLive && eventsLive && photosLive;
 
   const items = [
     {
@@ -103,6 +113,7 @@ export async function VillageTodayStrip() {
   return (
     <div className="border-b border-stone-light bg-paper-soft">
       <Container className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 py-3 text-xs font-medium text-ink-soft sm:justify-start">
+        <DataSourceNote isLive={isLive} />
         <span className="font-display text-sm text-forest">Kənd bu gün</span>
         {items.map((item) => (
           <span key={item.label} className="flex items-center gap-1.5">

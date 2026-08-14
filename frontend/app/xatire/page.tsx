@@ -25,7 +25,7 @@ const FALLBACK: PagedResult<MemorialRecordDto> = {
 /** Deliberately the calmest page on the site — memorial design tokens
  * throughout (see globals.css), no lively terracotta/gold accents. */
 export default async function XatirePage() {
-  const { data } = await withFallback(() => memorialApi.getPaged({ publicationStatus: "Published", pageSize: 60 }), FALLBACK);
+  const { data, isLive } = await withFallback(() => memorialApi.getPaged({ publicationStatus: "Published", pageSize: 60 }), FALLBACK);
 
   return (
     <PageShell>
@@ -39,7 +39,7 @@ export default async function XatirePage() {
             tone="memorial"
             className="mb-10"
           />
-          <MemorialBrowser initialData={data} />
+          <MemorialBrowser initialData={data} initialIsLive={isLive} />
         </Container>
       </div>
     </PageShell>

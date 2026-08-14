@@ -9,7 +9,7 @@ import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { ApiError } from "@/lib/api/client";
 import { culturalHeritageKindLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { articleJsonLd, breadcrumbJsonLd } from "@/lib/structuredData";
+import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
 import type { CulturalHeritageItemDto } from "@/lib/api/types";
 
 type Props = { params: Promise<{ id: string }> };
@@ -47,7 +47,7 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             breadcrumbJsonLd([
               { name: "Ana səhifə", path: "/" },
               { name: "Mədəni irs", path: "/medeniyyet" },

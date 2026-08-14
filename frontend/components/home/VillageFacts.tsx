@@ -1,4 +1,5 @@
 import { Container } from "@/components/ui/Container";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { withFallback } from "@/lib/api/withFallback";
 import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
@@ -15,7 +16,7 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * request in practice despite being two independent components.
  */
 export async function VillageFacts() {
-  const { data: profile } = await withFallback(
+  const { data: profile, isLive } = await withFallback(
     () => villageProfileApi.get(undefined, HOMEPAGE_REVALIDATE_SECONDS),
     VILLAGE_PROFILE_FALLBACK,
   );
@@ -36,6 +37,7 @@ export async function VillageFacts() {
   return (
     <div className="border-y border-stone-light bg-cream-deep">
       <Container className="grid grid-cols-2 gap-x-6 gap-y-8 py-12 sm:grid-cols-5 sm:gap-x-4">
+        <DataSourceNote isLive={isLive} />
         {facts.map((fact) => (
           <div key={fact.label} className="text-center sm:text-left">
             <p className="font-display text-[length:var(--text-h1)] leading-none text-forest">{fact.value}</p>

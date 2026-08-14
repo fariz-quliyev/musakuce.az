@@ -11,7 +11,7 @@ import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd, videoObjectJsonLd } from "@/lib/structuredData";
+import { breadcrumbJsonLd, jsonLdScript, videoObjectJsonLd } from "@/lib/structuredData";
 import type { InterviewDto, PersonDto } from "@/lib/api/types";
 
 function interviewEmbedUrl(interview: InterviewDto): string | null {
@@ -71,7 +71,7 @@ export default async function InterviewDetailPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([
+          __html: jsonLdScript([
             breadcrumbJsonLd([
               { name: "Ana səhifə", path: "/" },
               { name: "Kəndimizin səsi", path: "/kendimizin-sesi" },

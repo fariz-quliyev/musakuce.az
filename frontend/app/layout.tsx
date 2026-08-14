@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { fraunces, plusJakartaSans } from "@/lib/fonts";
-import { websiteJsonLd } from "@/lib/structuredData";
+import { websiteJsonLd, jsonLdScript } from "@/lib/structuredData";
 import "./globals.css";
 
 // Enables relative canonical/OG URLs on individual pages (Phase 13 §13)
@@ -24,7 +24,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd()) }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(websiteJsonLd()) }}
         />
         {children}
       </body>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/layout/PageShell";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
@@ -26,7 +27,7 @@ const FALLBACK: PagedResult<InterviewDto> = {
 };
 
 export default async function KendimizinSesiPage() {
-  const { data } = await withFallback(
+  const { data, isLive } = await withFallback(
     () => interviewsApi.getPaged({ publicationStatus: "Published", pageSize: 60 }),
     FALLBACK,
   );
@@ -34,6 +35,7 @@ export default async function KendimizinSesiPage() {
   return (
     <PageShell>
       <Container className="py-16 sm:py-20">
+        <DataSourceNote isLive={isLive} />
         <SectionHeading
           as="h1"
           eyebrow="Şifahi tarix"

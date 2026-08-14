@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { withFallback } from "@/lib/api/withFallback";
 import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
@@ -14,7 +15,7 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * while no profile has been published yet.
  */
 export async function VillageIntro() {
-  const { data: profile } = await withFallback(
+  const { data: profile, isLive } = await withFallback(
     () => villageProfileApi.get(undefined, HOMEPAGE_REVALIDATE_SECONDS),
     VILLAGE_PROFILE_FALLBACK,
   );
@@ -22,6 +23,7 @@ export async function VillageIntro() {
 
   return (
     <Container as="section" id="kendimiz" className="py-10 sm:py-14">
+      <DataSourceNote isLive={isLive} />
       <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto] sm:gap-10">
         <div>
           <h2 className="font-display text-[length:var(--text-h3)] leading-[var(--text-h3--line-height)] text-forest">

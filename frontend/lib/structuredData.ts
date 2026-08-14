@@ -8,6 +8,28 @@
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://musakuce.az";
 
+/**
+ * `<script type="application/ld+json">` content is parsed by the HTML
+ * tokenizer as raw text up to the first literal `</script` (case-
+ * insensitive) — `JSON.stringify` alone does not escape that sequence, so
+ * DB-sourced text (a listing title, a memorial name, ...) containing
+ * `</script><script>...` can close the tag early and inject real,
+ * executing markup (stored XSS). Escaping every `<`, `>`, and `&` to its
+ * `\uXXXX` JSON escape removes all literal angle brackets/ampersands from
+ * the emitted HTML while leaving the JSON value itself unchanged —
+ * `JSON.parse` (and every schema.org/JSON-LD consumer) decodes `<`
+ * back to `<` losslessly, so semantics are preserved. This must be the
+ * only place any JSON-LD payload is serialized in this app; every
+ * `<script type="application/ld+json">` should call this, never
+ * `JSON.stringify` directly.
+ */
+export function jsonLdScript(data: unknown): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026");
+}
+
 export function websiteJsonLd() {
   return {
     "@context": "https://schema.org",

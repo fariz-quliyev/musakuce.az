@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Card, CardMedia, CardBody, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { cn } from "@/lib/cn";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { culturalHeritageKindLabels } from "@/lib/api/labels";
@@ -13,9 +14,15 @@ import type { CulturalHeritageItemDto, CulturalHeritageKind, PagedResult } from 
 
 const KIND_OPTIONS = Object.entries(culturalHeritageKindLabels) as [CulturalHeritageKind, string][];
 
-export function CulturalHeritageBrowser({ initialData }: { initialData: PagedResult<CulturalHeritageItemDto> }) {
+type Props = {
+  initialData: PagedResult<CulturalHeritageItemDto>;
+  initialIsLive: boolean;
+};
+
+export function CulturalHeritageBrowser({ initialData, initialIsLive }: Props) {
   const [kind, setKind] = useState<CulturalHeritageKind | "">("");
   const [result, setResult] = useState(initialData);
+  const [isLive, setIsLive] = useState(initialIsLive);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const isFirstRender = useRef(true);
   const requestIdRef = useRef(0);
@@ -32,6 +39,7 @@ export function CulturalHeritageBrowser({ initialData }: { initialData: PagedRes
       .then((data) => {
         if (requestIdRef.current !== thisRequestId) return;
         setResult(data);
+        setIsLive(true);
         setStatus("idle");
       })
       .catch(() => {
@@ -44,6 +52,8 @@ export function CulturalHeritageBrowser({ initialData }: { initialData: PagedRes
 
   return (
     <div>
+      <DataSourceNote isLive={isLive} />
+
       <div className="mb-10 flex flex-wrap gap-2">
         <button
           type="button"

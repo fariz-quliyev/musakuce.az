@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { PageShell } from "@/components/layout/PageShell";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
@@ -77,11 +78,19 @@ const EMPTY_PHOTOS: PhotoDto[] = [];
 const EMPTY_VIDEOS: VideoDto[] = [];
 
 export default async function TehsilPage() {
-  const [{ data: entries }, { data: relatedPhotos }, { data: relatedVideos }] = await Promise.all([
+  const [
+    { data: entries, isLive: entriesLive },
+    { data: relatedPhotos, isLive: photosLive },
+    { data: relatedVideos, isLive: videosLive },
+  ] = await Promise.all([
     withFallback(() => educationApi.getPaged({ publicationStatus: "Published", pageSize: 100 }).then((r) => r.items), EMPTY_ENTRIES),
     withFallback(() => photosApi.getPaged({ category: "Mektab", publicationStatus: "Published", pageSize: 6 }).then((r) => r.items), EMPTY_PHOTOS),
     withFallback(() => videosApi.getPaged({ search: "məktəb", publicationStatus: "Published", pageSize: 4 }).then((r) => r.items), EMPTY_VIDEOS),
   ]);
+  // Three independent sources feed this one page — if any is on fallback,
+  // the combined page (e.g. "Əlaqəli fotolar" silently absent) can't be
+  // told apart from a fully-live, genuinely-sparse page without this.
+  const isLive = entriesLive && photosLive && videosLive;
 
   const byKind = (kinds: EducationKind[]) => entries.filter((e) => kinds.includes(e.kind));
   const timeline = byKind(TIMELINE_KINDS);
@@ -94,6 +103,7 @@ export default async function TehsilPage() {
   return (
     <PageShell>
       <Container className="py-16 sm:py-20">
+        <DataSourceNote isLive={isLive} />
         <SectionHeading
           as="h1"
           eyebrow="Musaküçədə təhsilin izi"

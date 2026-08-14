@@ -12,7 +12,7 @@ import { listingsApi } from "@/lib/api/listings";
 import { ApiError } from "@/lib/api/client";
 import { classifiedCategoryLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd } from "@/lib/structuredData";
+import { breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
 import type { ListingDto } from "@/lib/api/types";
 
 const LISTING_STATUS_LABELS: Record<ListingDto["listingStatus"], string> = {
@@ -58,7 +58,7 @@ export default async function ListingDetailPage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify(
+            __html: jsonLdScript(
               breadcrumbJsonLd([
                 { name: "Ana səhifə", path: "/" },
                 { name: "Elanlar", path: "/elanlar" },

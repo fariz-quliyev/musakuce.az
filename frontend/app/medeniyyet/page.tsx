@@ -23,7 +23,7 @@ const FALLBACK: PagedResult<CulturalHeritageItemDto> = {
 };
 
 export default async function MedeniyyetPage() {
-  const { data } = await withFallback(
+  const { data, isLive } = await withFallback(
     () => culturalHeritageApi.getPaged({ publicationStatus: "Published", pageSize: 60 }),
     FALLBACK,
   );
@@ -38,7 +38,7 @@ export default async function MedeniyyetPage() {
           description="Ənənələr, sənətkarlıq, folklor, mətbəx və adətlər — nəsildən-nəslə keçən yerli bilik."
           className="mb-10"
         />
-        <CulturalHeritageBrowser initialData={data} />
+        <CulturalHeritageBrowser initialData={data} initialIsLive={isLive} />
       </Container>
     </PageShell>
   );

@@ -11,7 +11,7 @@ import { eventsApi } from "@/lib/api/events";
 import { ApiError } from "@/lib/api/client";
 import { eventCategoryLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { breadcrumbJsonLd, eventJsonLd } from "@/lib/structuredData";
+import { breadcrumbJsonLd, eventJsonLd, jsonLdScript } from "@/lib/structuredData";
 import type { EventDto } from "@/lib/api/types";
 
 type Props = { params: Promise<{ id: string }> };
@@ -50,7 +50,7 @@ export default async function EventDetailPage({ params }: Props) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: JSON.stringify([
+            __html: jsonLdScript([
               breadcrumbJsonLd([
                 { name: "Ana səhifə", path: "/" },
                 { name: "Təqvim", path: "/teqvim" },
