@@ -48,7 +48,17 @@ public static class DependencyInjection
         services.AddSingleton<IAmazonS3>(sp =>
         {
             var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<MediaStorageOptions>>().Value;
-            var config = new AmazonS3Config { ForcePathStyle = options.ForcePathStyle };
+            var config = new AmazonS3Config
+            {
+                ForcePathStyle = options.ForcePathStyle,
+                // AWSSDK.S3 4.x defaults to WHEN_SUPPORTED, which signs PutObject
+                // with the STREAMING-AWS4-HMAC-SHA256-PAYLOAD-TRAILER chunked
+                // encoding — Cloudflare R2's S3 API doesn't implement that mode
+                // and rejects the request. WHEN_REQUIRED only attaches a request
+                // checksum for operations that mandate one, avoiding the trailer
+                // encoding entirely; verified against real R2 uploads.
+                RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            };
             if (!string.IsNullOrWhiteSpace(options.Endpoint))
                 config.ServiceURL = options.Endpoint;
             else

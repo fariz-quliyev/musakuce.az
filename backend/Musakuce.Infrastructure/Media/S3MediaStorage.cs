@@ -18,6 +18,11 @@ public class S3MediaStorage(IAmazonS3 client, IOptions<MediaStorageOptions> opti
             InputStream = content,
             ContentType = contentType,
             AutoCloseStream = false,
+            // AWSSDK.S3 4.x defaults to chunked transfer with per-chunk SigV4
+            // signing (STREAMING-AWS4-HMAC-SHA256-PAYLOAD), which Cloudflare
+            // R2 doesn't implement and rejects. Disabling it sends a single,
+            // normally-signed request body instead; verified against real R2.
+            UseChunkEncoding = false,
         };
         await client.PutObjectAsync(request, ct);
     }
