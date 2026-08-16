@@ -47,7 +47,7 @@ export function Navbar() {
           Musaküçə
         </Link>
 
-        <nav className="hidden items-center gap-5 xl:gap-6 lg:flex">
+        <nav className="hidden items-center gap-6 xl:flex">
           {PRIMARY_NAV.map((item) => {
             const active = isActivePath(pathname, item.href);
             return (
@@ -95,7 +95,7 @@ export function Navbar() {
             aria-label={open ? "Menyunu bağla" : "Menyunu aç"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest lg:hidden"
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest xl:hidden"
           >
             <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-5 w-5">
               {open ? (
@@ -125,7 +125,7 @@ export function Navbar() {
         // focus in some browsers even though nothing is visible.
         inert={!open}
         className={cn(
-          "grid gap-1 overflow-hidden border-t border-stone-light/70 bg-cream px-5 transition-[grid-template-rows] duration-200 lg:hidden",
+          "grid gap-1 overflow-hidden border-t border-stone-light/70 bg-cream px-5 transition-[grid-template-rows] duration-200 xl:hidden",
           open ? "grid-rows-[1fr] py-3" : "grid-rows-[0fr]",
         )}
       >

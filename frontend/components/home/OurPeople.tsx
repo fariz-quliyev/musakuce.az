@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Card, CardMedia, CardBody, CardTitle, CardMeta } from "@/components/ui/Card";
@@ -37,26 +38,28 @@ export async function OurPeople() {
 
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-4">
         {people.map((person) => (
-          <Card key={person.id} variant="default">
-            <CardMedia aspect="portrait">
-              <VillagePhoto
-                src={person.coverImageUrl ?? undefined}
-                alt={`${person.firstName} ${person.lastName}`}
-                tone="forest"
-                placeholderLabel={`${person.firstName} ${person.lastName}`}
-                sizes="(min-width: 640px) 25vw, 50vw"
-              />
-            </CardMedia>
-            <CardBody>
-              <CardTitle className="text-base">
-                {person.firstName} {person.lastName}
-              </CardTitle>
-              {person.occupation ? <p className="mt-1 text-sm text-ink-soft">{person.occupation}</p> : null}
-              <CardMeta>
-                <Badge tone="forest">{personCategoryLabels[person.category]}</Badge>
-              </CardMeta>
-            </CardBody>
-          </Card>
+          <Link key={person.id} href={`/insanlarimiz/${person.id}`} className="group">
+            <Card variant="default" className="transition-transform group-hover:-translate-y-0.5">
+              <CardMedia aspect="portrait">
+                <VillagePhoto
+                  src={person.coverImageUrl ?? undefined}
+                  alt={`${person.firstName} ${person.lastName}`}
+                  tone="forest"
+                  placeholderLabel={`${person.firstName} ${person.lastName}`}
+                  sizes="(min-width: 640px) 25vw, 50vw"
+                />
+              </CardMedia>
+              <CardBody>
+                <CardTitle className="text-base line-clamp-2">
+                  {person.firstName} {person.lastName}
+                </CardTitle>
+                {person.occupation ? <p className="mt-1 line-clamp-1 text-sm text-ink-soft">{person.occupation}</p> : null}
+                <CardMeta>
+                  <Badge tone="forest">{personCategoryLabels[person.category]}</Badge>
+                </CardMeta>
+              </CardBody>
+            </Card>
+          </Link>
         ))}
       </div>
     </Container>

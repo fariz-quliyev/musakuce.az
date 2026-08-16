@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
-import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
-import { Badge } from "@/components/ui/Badge";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { HistoryBrowser } from "@/components/history/HistoryBrowser";
 import { historyApi } from "@/lib/api/history";
 import { withFallback } from "@/lib/api/withFallback";
-import { sourceStatusLabels } from "@/lib/api/labels";
 import type { HistoricalEventDto, PagedResult } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -58,21 +55,20 @@ const FALLBACK: PagedResult<HistoricalEventDto> = {
     },
   ],
   page: 1,
-  pageSize: 50,
+  pageSize: 20,
   totalCount: 3,
   totalPages: 1,
 };
 
 export default async function TariximizPage() {
   const { data: events, isLive } = await withFallback(
-    () => historyApi.getPaged({ publicationStatus: "Published", pageSize: 50 }),
+    () => historyApi.getPaged({ publicationStatus: "Published", pageSize: 20 }),
     FALLBACK,
   );
 
   return (
     <PageShell>
       <Container className="py-16 sm:py-20">
-        <DataSourceNote isLive={isLive} />
         <SectionHeading
           as="h1"
           eyebrow="Yaddaş"
@@ -81,28 +77,7 @@ export default async function TariximizPage() {
           className="mb-10"
         />
 
-        {events.items.length === 0 ? (
-          <EmptyState title="Hələ tarixi məlumat əlavə edilməyib" />
-        ) : (
-          <ol className="relative space-y-8 border-l border-stone-light pl-8">
-            {events.items.map((event) => (
-              <li key={event.id} className="relative">
-                <span
-                  aria-hidden
-                  className="absolute top-1.5 -left-[calc(2rem+2.5px)] h-2.5 w-2.5 rounded-full bg-terracotta"
-                />
-                <p className="font-display text-xl text-forest">{event.period}</p>
-                <h3 className="mt-1 font-display text-lg text-ink">{event.title}</h3>
-                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
-                  {event.description}
-                </p>
-                <Badge tone="terracotta" className="mt-2">
-                  {sourceStatusLabels[event.sourceStatus]}
-                </Badge>
-              </li>
-            ))}
-          </ol>
-        )}
+        <HistoryBrowser initialData={events} initialIsLive={isLive} />
       </Container>
     </PageShell>
   );
