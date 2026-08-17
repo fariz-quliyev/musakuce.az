@@ -1,6 +1,4 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { PublicationStatusBadge } from "@/components/admin/StatusBadge";
-import { VillageProfileRowActions } from "@/components/admin/villageProfile/VillageProfileRowActions";
 import { VillageProfileForm } from "@/components/admin/villageProfile/VillageProfileForm";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { villageProfileApi } from "@/lib/api/villageProfile";
@@ -45,18 +43,10 @@ export default async function AdminKendimizPage() {
       <AdminPageHeader
         title="Kəndimiz"
         description="Baş səhifədə göstərilən kənd məlumatları — əhali, ərazi, coğrafiya, ad mənşəyi."
-        actions={
-          profile ? (
-            <div className="flex items-center gap-3">
-              <PublicationStatusBadge status={profile.publicationStatus} />
-              <VillageProfileRowActions profile={profile} />
-            </div>
-          ) : undefined
-        }
       />
       {!profile ? (
         <p className="mb-6 text-sm text-ink-soft">
-          Hələ heç bir məlumat yadda saxlanılmayıb — formu doldurub &ldquo;Yadda saxla&rdquo; düyməsini basın, sonra dərc edin.
+          Hələ heç bir məlumat yadda saxlanılmayıb — formu doldurub &ldquo;Yadda saxla&rdquo; düyməsini basın.
         </p>
       ) : null}
       <VillageProfileForm profile={profile} />

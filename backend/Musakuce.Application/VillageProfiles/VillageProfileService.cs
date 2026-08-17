@@ -51,6 +51,12 @@ public class VillageProfileService(IMusakuceDbContext db, IAuditLogService audit
         profile.SocialLinks = request.SocialLinks;
         profile.EditorialNote = request.EditorialNote;
         profile.UpdatedAt = DateTimeOffset.UtcNow;
+        // Unlike every other content type, VillageProfile has no separate
+        // publish step in the admin UI (singleton "Kəndimiz" settings, not
+        // a content queue) — saving is the only action, so it always
+        // publishes immediately rather than leaving a Draft that never
+        // reaches the homepage.
+        profile.PublicationStatus = PublicationStatus.Published;
 
         if (request.HeroMediaAssetId != profile.HeroMediaAssetId)
         {
