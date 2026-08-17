@@ -1,6 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { PublicationStatusBadge } from "@/components/admin/StatusBadge";
-import { PublicationStatusActions } from "@/components/admin/PublicationStatusActions";
+import { VillageProfileRowActions } from "@/components/admin/villageProfile/VillageProfileRowActions";
 import { VillageProfileForm } from "@/components/admin/villageProfile/VillageProfileForm";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { villageProfileApi } from "@/lib/api/villageProfile";
@@ -49,10 +49,7 @@ export default async function AdminKendimizPage() {
           profile ? (
             <div className="flex items-center gap-3">
               <PublicationStatusBadge status={profile.publicationStatus} />
-              <PublicationStatusActions
-                status={profile.publicationStatus}
-                onChangeStatus={(publicationStatus) => villageProfileApi.updateStatus({ publicationStatus })}
-              />
+              <VillageProfileRowActions profile={profile} />
             </div>
           ) : undefined
         }
