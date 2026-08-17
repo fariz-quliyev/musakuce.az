@@ -2,13 +2,21 @@ import { Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { HeroWeather } from "@/components/home/HeroWeather";
+import { villageProfileApi } from "@/lib/api/villageProfile";
+import { withFallback } from "@/lib/api/withFallback";
+import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
+import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
 
 /**
- * Full-bleed hero — currently a TEMPORARY VISUAL-DEMO photo (generic
- * royalty-free rural landscape, not Musaküçə — see
- * public/images/village/DEMO_SOURCES.md). Real Musaküçə panorama
- * photography replaces `src` below once available; the `PhotoPlaceholder`
- * fallback (via `VillagePhoto`) still applies if `src` is removed.
+ * Full-bleed hero. Image, main heading, subtitle, and the primary CTA
+ * button are admin-managed via the "Kəndimiz" profile (heroImageUrl /
+ * villageName / shortDescription / ctaText+ctaLink) — falls back to the
+ * TEMPORARY VISUAL-DEMO photo (see public/images/village/DEMO_SOURCES.md)
+ * and today's copy/CTA only while no profile has been published yet,
+ * same fallback convention as VillageIntro. The eyebrow line, second
+ * paragraph, and secondary button are not part of the managed fields —
+ * left as-is.
+ *
  * Composition: wide/tall background image with a bottom-weighted
  * gradient so the wordmark and buttons stay legible over any photo.
  *
@@ -18,13 +26,18 @@ import { HeroWeather } from "@/components/home/HeroWeather";
  * tech either): 1) village name, 2) short intro, 3) primary CTAs,
  * 4) weather — a useful secondary element, not the hero's focal point.
  */
-export function Hero() {
+export async function Hero() {
+  const { data: profile } = await withFallback(
+    () => villageProfileApi.get(undefined, HOMEPAGE_REVALIDATE_SECONDS),
+    VILLAGE_PROFILE_FALLBACK,
+  );
+
   return (
     <section className="relative flex min-h-[76vh] w-full items-end overflow-hidden sm:min-h-[80vh]">
       <div className="absolute inset-0">
         <VillagePhoto
-          src="/images/village/hero-demo.jpg"
-          alt="Kənd mənzərəsi (müvəqqəti demo foto — Musaküçəyə aid deyil)"
+          src={profile.heroImageUrl ?? "/images/village/hero-demo.jpg"}
+          alt={profile.heroImageUrl ? "Musaküçə" : "Kənd mənzərəsi (müvəqqəti demo foto — Musaküçəyə aid deyil)"}
           tone="forest"
           variant="scene"
           placeholderLabel="Musaküçə panoramı əlavə olunacaq"
@@ -46,20 +59,18 @@ export function Hero() {
         <p className="mb-4 text-[length:var(--text-eyebrow)] font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-cream/80">
           Musaküçə — bizim kənd
         </p>
-        <h1 className="font-display text-[length:var(--text-display)] leading-[var(--text-display--line-height)] text-cream text-balance">
-          MUSAKÜÇƏ
+        <h1 className="font-display text-[length:var(--text-display)] leading-[var(--text-display--line-height)] text-cream text-balance uppercase">
+          {profile.villageName}
         </h1>
-        <p className="mt-4 max-w-xl text-xl leading-snug text-cream/95">
-          Kəndimizin yaddaşı, insanları və həyatı.
-        </p>
+        <p className="mt-4 max-w-xl text-xl leading-snug text-cream/95">{profile.shortDescription}</p>
         <p className="mt-3 max-w-lg text-base leading-relaxed text-cream/75">
           Musaküçə haqqında tarix, insanlar, xatirələr və bu gün kənddə baş
           verənlər — bir yerdə.
         </p>
 
         <div className="mt-8 flex flex-wrap gap-3">
-          <Button href="#kendimiz" variant="secondary" size="lg">
-            Kəndimizi tanı
+          <Button href={profile.ctaLink ?? "#kendimiz"} variant="secondary" size="lg">
+            {profile.ctaText ?? "Kəndimizi tanı"}
           </Button>
           <Button
             href="#bu-gun-kendde"

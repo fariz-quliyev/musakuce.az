@@ -20,6 +20,8 @@ public class UpsertVillageProfileRequestValidator : AbstractValidator<UpsertVill
         RuleFor(x => x.NameOriginSourceReference).MaximumLength(500);
         RuleFor(x => x.Latitude).InclusiveBetween(-90, 90).When(x => x.Latitude.HasValue);
         RuleFor(x => x.Longitude).InclusiveBetween(-180, 180).When(x => x.Longitude.HasValue);
+        RuleFor(x => x.CtaText).MaximumLength(60);
+        RuleFor(x => x.CtaLink).MaximumLength(300);
         RuleFor(x => x.ContactInfo).MaximumLength(500);
         RuleFor(x => x.SocialLinks).MaximumLength(500);
         RuleFor(x => x.EditorialNote).MaximumLength(2000);

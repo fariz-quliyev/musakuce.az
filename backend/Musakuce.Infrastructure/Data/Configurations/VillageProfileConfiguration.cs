@@ -20,6 +20,8 @@ public class VillageProfileConfiguration : IEntityTypeConfiguration<VillageProfi
         builder.Property(x => x.NameOriginSourceReference).HasMaxLength(500);
         builder.Property(x => x.Latitude).HasPrecision(9, 6);
         builder.Property(x => x.Longitude).HasPrecision(9, 6);
+        builder.Property(x => x.CtaText).HasMaxLength(60);
+        builder.Property(x => x.CtaLink).HasMaxLength(300);
         builder.Property(x => x.ContactInfo).HasMaxLength(500);
         builder.Property(x => x.SocialLinks).HasMaxLength(500);
         builder.Property(x => x.EditorialNote).HasMaxLength(2000);

@@ -10,9 +10,10 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * Compact editorial transition between the hero and the facts strip —
  * intentionally brief (a heading + two short sentences), not a full
  * "about" section, so the page doesn't stall with empty space before
- * reaching the village statistics. Reads its text from the admin-managed
- * VillageProfile (Phase 12 §2); falls back to placeholder copy only
- * while no profile has been published yet.
+ * reaching the village statistics. Reads its text and photo from the
+ * admin-managed VillageProfile (Phase 12 §2) — same heroImageUrl the
+ * Hero section uses; falls back to placeholder text/photo only while no
+ * profile has been published yet.
  */
 export async function VillageIntro() {
   const { data: profile, isLive } = await withFallback(
@@ -34,8 +35,8 @@ export async function VillageIntro() {
 
         <div className="hidden aspect-[4/5] w-36 shrink-0 overflow-hidden rounded-lg shadow-md sm:block md:w-44">
           <VillagePhoto
-            src="/images/village/hero-demo.jpg"
-            alt="Kənd mənzərəsi (müvəqqəti demo foto — Musaküçəyə aid deyil)"
+            src={profile.heroImageUrl ?? "/images/village/hero-demo.jpg"}
+            alt={profile.heroImageUrl ? "Musaküçə" : "Kənd mənzərəsi (müvəqqəti demo foto — Musaküçəyə aid deyil)"}
             tone="warm"
             placeholderLabel="Kənd mənzərəsi"
             sizes="(min-width: 768px) 11rem, 9rem"

@@ -47,6 +47,8 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
       latitude: num("latitude"),
       longitude: num("longitude"),
       heroMediaAssetId,
+      ctaText: String(form.get("ctaText") ?? "") || null,
+      ctaLink: String(form.get("ctaLink") ?? "") || null,
       logoMediaAssetId,
       contactInfo: String(form.get("contactInfo") ?? "") || null,
       socialLinks: String(form.get("socialLinks") ?? "") || null,
@@ -146,6 +148,15 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
         onUploaded={(media: MediaAssetDto) => setHeroMediaAssetId(media.id)}
         hint="Boş buraxıla bilər"
       />
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        <FormField label="Baş səhifə düyməsinin mətni" htmlFor="ctaText" hint="Boş buraxılsa, standart mətn görünür">
+          <Input id="ctaText" name="ctaText" maxLength={60} defaultValue={profile?.ctaText ?? ""} />
+        </FormField>
+        <FormField label="Baş səhifə düyməsinin keçidi" htmlFor="ctaLink" hint="Məs. #kendimiz və ya /elanlar">
+          <Input id="ctaLink" name="ctaLink" maxLength={300} defaultValue={profile?.ctaLink ?? ""} />
+        </FormField>
+      </div>
 
       <ImageUploadField
         label="Logo/emblem"

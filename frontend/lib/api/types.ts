@@ -657,6 +657,8 @@ export interface VillageProfileDto {
   longitude: number | null;
   heroMediaAssetId: string | null;
   heroImageUrl: string | null;
+  ctaText: string | null;
+  ctaLink: string | null;
   logoMediaAssetId: string | null;
   logoImageUrl: string | null;
   contactInfo: string | null;
@@ -685,6 +687,8 @@ export interface UpsertVillageProfileRequest {
   latitude?: number | null;
   longitude?: number | null;
   heroMediaAssetId?: string | null;
+  ctaText?: string | null;
+  ctaLink?: string | null;
   logoMediaAssetId?: string | null;
   contactInfo?: string | null;
   socialLinks?: string | null;

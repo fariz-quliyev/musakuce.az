@@ -21,6 +21,8 @@ public record VillageProfileDto(
     decimal? Longitude,
     Guid? HeroMediaAssetId,
     string? HeroImageUrl,
+    string? CtaText,
+    string? CtaLink,
     Guid? LogoMediaAssetId,
     string? LogoImageUrl,
     string? ContactInfo,
@@ -52,6 +54,8 @@ public class UpsertVillageProfileRequest
     public decimal? Latitude { get; set; }
     public decimal? Longitude { get; set; }
     public Guid? HeroMediaAssetId { get; set; }
+    public string? CtaText { get; set; }
+    public string? CtaLink { get; set; }
     public Guid? LogoMediaAssetId { get; set; }
     public string? ContactInfo { get; set; }
     public string? SocialLinks { get; set; }

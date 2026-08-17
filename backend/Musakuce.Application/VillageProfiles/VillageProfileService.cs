@@ -45,6 +45,8 @@ public class VillageProfileService(IMusakuceDbContext db, IAuditLogService audit
         profile.NameOriginSourceReference = request.NameOriginSourceReference;
         profile.Latitude = request.Latitude;
         profile.Longitude = request.Longitude;
+        profile.CtaText = request.CtaText;
+        profile.CtaLink = request.CtaLink;
         profile.ContactInfo = request.ContactInfo;
         profile.SocialLinks = request.SocialLinks;
         profile.EditorialNote = request.EditorialNote;
@@ -100,7 +102,7 @@ public class VillageProfileService(IMusakuceDbContext db, IAuditLogService audit
         p.Population, p.PopulationAsOfYear, p.AreaHectares, p.GeographicalDescription,
         p.MainOccupations, p.NeighboringSettlements, p.NameOriginNarrative,
         p.NameOriginSourceStatus, p.NameOriginSourceReference, p.Latitude, p.Longitude,
-        p.HeroMediaAssetId, p.HeroMediaAsset?.Url, p.LogoMediaAssetId, p.LogoMediaAsset?.Url,
+        p.HeroMediaAssetId, p.HeroMediaAsset?.Url, p.CtaText, p.CtaLink, p.LogoMediaAssetId, p.LogoMediaAsset?.Url,
         p.ContactInfo, p.SocialLinks, includeEditorial ? p.EditorialNote : null,
         p.PublicationStatus, p.UpdatedAt);
 }

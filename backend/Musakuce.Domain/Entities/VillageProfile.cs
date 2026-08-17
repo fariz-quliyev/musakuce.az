@@ -37,6 +37,10 @@ public class VillageProfile : BaseEntity
     public decimal? Longitude { get; set; }
     public Guid? HeroMediaAssetId { get; set; }
     public MediaAsset? HeroMediaAsset { get; set; }
+    /// <summary>Homepage hero call-to-action button — both null falls
+    /// back to the frontend's built-in default (see components/home/Hero.tsx).</summary>
+    public string? CtaText { get; set; }
+    public string? CtaLink { get; set; }
     public Guid? LogoMediaAssetId { get; set; }
     public MediaAsset? LogoMediaAsset { get; set; }
     public string? ContactInfo { get; set; }
