@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
+import type { LoginResponse } from "@/lib/api/types";
 
 function LoginForm() {
   const router = useRouter();
@@ -34,6 +36,10 @@ function LoginForm() {
         setErrorMessage("E-poçt və ya şifrə yanlışdır.");
         return;
       }
+
+      const data = (await response.json()) as LoginResponse;
+      const isProduction = process.env.NODE_ENV === "production";
+      document.cookie = `${AUTH_COOKIE_NAME}=${data.token}; path=/; expires=${new Date(data.expiresAt).toUTCString()}; samesite=lax${isProduction ? "; secure" : ""}`;
 
       router.push(next && next.startsWith("/admin") ? next : "/admin/dashboard");
       router.refresh();
