@@ -7,6 +7,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { HistoryTimelineSection } from "@/components/history/HistoryTimelineSection";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { photosApi } from "@/lib/api/photos";
@@ -344,6 +345,8 @@ export default async function KendimizPage() {
           </div>
         </Container>
       ) : null}
+
+      <HistoryTimelineSection />
 
       {/* Kəndin yaddaşı */}
       <Container as="section" className="pb-10 sm:pb-14">
