@@ -68,16 +68,16 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
   return (
     <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
-        <FormField label="Kənd adı" htmlFor="villageName" required>
-          <Input id="villageName" name="villageName" required maxLength={150} defaultValue={profile?.villageName ?? "Musaküçə"} />
+        <FormField label="Kənd adı" htmlFor="villageName" hint="Boş buraxıla bilər">
+          <Input id="villageName" name="villageName" maxLength={150} defaultValue={profile?.villageName ?? "Musaküçə"} />
         </FormField>
         <FormField label="Tanıtım cümləsi" htmlFor="tagline" hint="Boş buraxıla bilər">
           <Input id="tagline" name="tagline" maxLength={200} defaultValue={profile?.tagline ?? ""} />
         </FormField>
       </div>
 
-      <FormField label="Qısa təsvir" htmlFor="shortDescription" required hint="Baş səhifədə istifadə olunur — 1-2 cümlə">
-        <Textarea id="shortDescription" name="shortDescription" required maxLength={500} defaultValue={profile?.shortDescription} />
+      <FormField label="Qısa təsvir" htmlFor="shortDescription" hint="Baş səhifədə istifadə olunur — 1-2 cümlə, boş buraxıla bilər">
+        <Textarea id="shortDescription" name="shortDescription" maxLength={500} defaultValue={profile?.shortDescription} />
       </FormField>
 
       <FormField label="Ətraflı təsvir" htmlFor="longDescription" hint="'Kəndimiz haqqında' bölməsi üçün tam mətn">

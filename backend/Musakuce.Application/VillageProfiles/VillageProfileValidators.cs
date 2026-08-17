@@ -6,9 +6,9 @@ public class UpsertVillageProfileRequestValidator : AbstractValidator<UpsertVill
 {
     public UpsertVillageProfileRequestValidator()
     {
-        RuleFor(x => x.VillageName).NotEmpty().MaximumLength(150);
+        RuleFor(x => x.VillageName).MaximumLength(150);
         RuleFor(x => x.Tagline).MaximumLength(200);
-        RuleFor(x => x.ShortDescription).NotEmpty().MaximumLength(500);
+        RuleFor(x => x.ShortDescription).MaximumLength(500);
         RuleFor(x => x.LongDescription).MaximumLength(8000);
         RuleFor(x => x.Population).GreaterThanOrEqualTo(0).When(x => x.Population.HasValue);
         RuleFor(x => x.AreaHectares).GreaterThanOrEqualTo(0).When(x => x.AreaHectares.HasValue);
