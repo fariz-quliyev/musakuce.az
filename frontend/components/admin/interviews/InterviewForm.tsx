@@ -50,6 +50,7 @@ export function InterviewForm({ interview, personOptions }: Props) {
     try {
       if (isEdit) {
         await interviewsApi.update(interview.id, payload);
+        setStatus("idle");
         router.push(`/admin/kendimizin-sesi/${interview.id}/redakte?s=${interview.publicationStatus}`);
       } else {
         const created = await interviewsApi.create(payload);

@@ -39,6 +39,7 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
     try {
       if (isEdit) {
         await localInfoApi.update(entry.id, payload);
+        setStatus("idle");
         router.push(`/admin/faydali-melumatlar/${entry.id}/redakte?s=${entry.publicationStatus}`);
       } else {
         const created = await localInfoApi.create(payload);

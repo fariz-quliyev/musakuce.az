@@ -49,6 +49,7 @@ export function EventForm({ event }: { event?: EventDto }) {
     try {
       if (isEdit) {
         await eventsApi.update(event.id, payload);
+        setStatus("idle");
         router.push(`/admin/teqvim/${event.id}/redakte?s=${event.publicationStatus}`);
       } else {
         const created = await eventsApi.create(payload);

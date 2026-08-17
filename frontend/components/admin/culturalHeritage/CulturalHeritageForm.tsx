@@ -40,6 +40,7 @@ export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto 
     try {
       if (isEdit) {
         await culturalHeritageApi.update(item.id, payload);
+        setStatus("idle");
         router.push(`/admin/medeni-iras/${item.id}/redakte?s=${item.publicationStatus}`);
       } else {
         const created = await culturalHeritageApi.create(payload);

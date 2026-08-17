@@ -81,6 +81,7 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
     try {
       if (isEdit) {
         await placesApi.update(place.id, payload);
+        setStatus("idle");
         router.push(`/admin/yerler/${place.id}/redakte?s=${place.publicationStatus}`);
       } else {
         const created = await placesApi.create(payload);

@@ -40,6 +40,7 @@ export function VideoForm({ video }: { video?: VideoDto }) {
     try {
       if (isEdit) {
         await videosApi.update(video.id, payload);
+        setStatus("idle");
         router.push(`/admin/videolar/${video.id}/redakte?s=${video.publicationStatus}`);
       } else {
         const created = await videosApi.create(payload);

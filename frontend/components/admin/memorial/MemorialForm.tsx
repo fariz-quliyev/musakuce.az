@@ -50,6 +50,7 @@ export function MemorialForm({ record, personOptions }: Props) {
     try {
       if (isEdit) {
         await memorialApi.update(record.id, payload);
+        setStatus("idle");
         router.push(`/admin/xatire/${record.id}/redakte?s=${record.publicationStatus}`);
       } else {
         const created = await memorialApi.create(payload);

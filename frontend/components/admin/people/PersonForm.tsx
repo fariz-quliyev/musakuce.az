@@ -42,6 +42,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     try {
       if (isEdit) {
         await peopleApi.update(person.id, payload);
+        setStatus("idle");
         router.push(`/admin/insanlar/${person.id}/redakte?s=${person.publicationStatus}`);
       } else {
         const created = await peopleApi.create(payload);

@@ -48,6 +48,7 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
     try {
       if (isEdit) {
         await photosApi.update(photo.id, payload);
+        setStatus("idle");
         router.push(`/admin/fotoalbom/${photo.id}/redakte?s=${photo.publicationStatus}`);
       } else {
         const created = await photosApi.create(payload);

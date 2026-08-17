@@ -36,6 +36,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
     try {
       if (isEdit) {
         await historyApi.update(event.id, payload);
+        setStatus("idle");
         router.push(`/admin/tarix/${event.id}/redakte?s=${event.publicationStatus}`);
       } else {
         const created = await historyApi.create(payload);

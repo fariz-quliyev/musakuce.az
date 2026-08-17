@@ -49,6 +49,7 @@ export function EducationForm({ entry, personOptions }: Props) {
     try {
       if (isEdit) {
         await educationApi.update(entry.id, payload);
+        setStatus("idle");
         router.push(`/admin/tehsil/${entry.id}/redakte?s=${entry.publicationStatus}`);
       } else {
         const created = await educationApi.create(payload);
