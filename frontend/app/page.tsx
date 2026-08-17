@@ -15,6 +15,10 @@ import { MapPreview } from "@/components/home/MapPreview";
 import { MemorialMinimal } from "@/components/home/MemorialMinimal";
 import { ContributeCta } from "@/components/home/ContributeCta";
 import { Footer } from "@/components/home/Footer";
+import { villageProfileApi } from "@/lib/api/villageProfile";
+import { withFallback } from "@/lib/api/withFallback";
+import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
+import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
 
 export const metadata: Metadata = {
   title: "Musaküçə — bizim kənd",
@@ -30,10 +34,15 @@ export const metadata: Metadata = {
  * real Musaküçə photography; all list content is placeholder data from
  * lib/mock-content.ts pending the admin CMS (Phase 5+).
  */
-export default function Home() {
+export default async function Home() {
+  const { data: profile } = await withFallback(
+    () => villageProfileApi.get(undefined, HOMEPAGE_REVALIDATE_SECONDS),
+    VILLAGE_PROFILE_FALLBACK,
+  );
+
   return (
     <>
-      <Navbar />
+      <Navbar logoImageUrl={profile.logoImageUrl} />
       <main className="flex-1">
         <Hero />
         <VillageIntro />

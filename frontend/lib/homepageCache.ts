@@ -8,7 +8,9 @@
  * 60 seconds: short enough that "admin just published something" never
  * feels stale for an unreasonable period (the spec's own bar), long
  * enough to absorb repeat homepage loads without re-hitting the backend
- * for every visitor. Not applied anywhere else — every other public
- * list page and every admin page keeps today's always-fresh behavior.
+ * for every visitor. Also used by PageShell for the site-wide Navbar
+ * logo (same VillageProfile fetch, same staleness bar) — every other
+ * public list page and every admin page keeps today's always-fresh
+ * behavior.
  */
 export const HOMEPAGE_REVALIDATE_SECONDS = 60;
