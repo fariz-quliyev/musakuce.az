@@ -16,7 +16,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | null }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [heroMediaAssetId, setHeroMediaAssetId] = useState<string | null>(profile?.heroMediaAssetId ?? null);
   const [logoMediaAssetId, setLogoMediaAssetId] = useState<string | null>(profile?.logoMediaAssetId ?? null);
 
@@ -57,6 +57,7 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
 
     try {
       await villageProfileApi.upsert(payload);
+      setStatus("success");
       router.push("/admin/kendimiz");
       router.refresh();
     } catch {
@@ -178,6 +179,9 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
         <Textarea id="editorialNote" name="editorialNote" maxLength={2000} defaultValue={profile?.editorialNote ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}
