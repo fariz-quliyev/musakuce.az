@@ -29,7 +29,11 @@ export default async function AdminEditPersonPage({ params, searchParams }: Prop
 
   return (
     <div>
-      <AdminPageHeader title="Şəxsi redaktə et" description={`${person.firstName} ${person.lastName}`} />
+      <AdminPageHeader
+        title="Şəxsi redaktə et"
+        description={`${person.firstName} ${person.lastName}`}
+        breadcrumb={[{ label: "İnsanlarımız", href: "/admin/insanlar" }, { label: `${person.firstName} ${person.lastName}` }]}
+      />
       <PersonForm person={person} />
     </div>
   );

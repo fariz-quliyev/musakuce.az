@@ -29,7 +29,11 @@ export default async function AdminEditPhotoPage({ params, searchParams }: Props
 
   return (
     <div>
-      <AdminPageHeader title="Fotonu redaktə et" description={photo.title} />
+      <AdminPageHeader
+        title="Fotonu redaktə et"
+        description={photo.title}
+        breadcrumb={[{ label: "Fotoalbom", href: "/admin/fotoalbom" }, { label: photo.title }]}
+      />
       <PhotoForm photo={photo} />
     </div>
   );

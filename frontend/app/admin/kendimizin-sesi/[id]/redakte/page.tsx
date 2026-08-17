@@ -32,7 +32,11 @@ export default async function AdminEditInterviewPage({ params, searchParams }: P
 
   return (
     <div>
-      <AdminPageHeader title="Müsahibəni redaktə et" description={interview.personName} />
+      <AdminPageHeader
+        title="Müsahibəni redaktə et"
+        description={interview.personName}
+        breadcrumb={[{ label: "Kəndimizin səsi", href: "/admin/kendimizin-sesi" }, { label: interview.personName }]}
+      />
       <InterviewForm interview={interview} personOptions={personOptions} />
     </div>
   );

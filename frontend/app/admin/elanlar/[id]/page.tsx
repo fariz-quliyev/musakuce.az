@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { ListingStatusBadge, ModerationStatusBadge } from "@/components/admin/StatusBadge";
@@ -34,13 +33,10 @@ export default async function AdminListingDetailPage({ params, searchParams }: P
 
   return (
     <div>
-      <Link href="/admin/elanlar" className="text-sm text-ink-soft hover:text-forest">
-        ← Elanlar
-      </Link>
-
       <AdminPageHeader
         title={listing.title}
         description={`${classifiedCategoryLabels[listing.category]} · ${listing.location}`}
+        breadcrumb={[{ label: "Elanlar", href: "/admin/elanlar" }, { label: listing.title }]}
         actions={
           <div className="flex gap-2">
             <ModerationStatusBadge status={listing.moderationStatus} />

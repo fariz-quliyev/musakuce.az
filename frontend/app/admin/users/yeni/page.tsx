@@ -6,7 +6,11 @@ export const metadata = { title: "Yeni istifadəçi — Admin — Musaküçə" }
 export default function AdminNewUserPage() {
   return (
     <div>
-      <AdminPageHeader title="Yeni istifadəçi" description="Açıq qeydiyyat yoxdur — hesab yalnız burada yaradılır." />
+      <AdminPageHeader
+        title="Yeni istifadəçi"
+        description="Açıq qeydiyyat yoxdur — hesab yalnız burada yaradılır."
+        breadcrumb={[{ label: "İstifadəçilər", href: "/admin/users" }, { label: "Yeni istifadəçi" }]}
+      />
       <CreateUserForm />
     </div>
   );

@@ -29,7 +29,11 @@ export default async function AdminEditPlacePage({ params, searchParams }: Props
 
   return (
     <div>
-      <AdminPageHeader title="Yeri redaktə et" description={place.name} />
+      <AdminPageHeader
+        title="Yeri redaktə et"
+        description={place.name}
+        breadcrumb={[{ label: "Məkanlar", href: "/admin/yerler" }, { label: place.name }]}
+      />
       <PlaceForm place={place} />
     </div>
   );

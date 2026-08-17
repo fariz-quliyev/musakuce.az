@@ -29,7 +29,11 @@ export default async function AdminEditCulturalHeritagePage({ params, searchPara
 
   return (
     <div>
-      <AdminPageHeader title="Mədəni irs məzmununu redaktə et" description={item.title} />
+      <AdminPageHeader
+        title="Mədəni irs məzmununu redaktə et"
+        description={item.title}
+        breadcrumb={[{ label: "Mədəni irs", href: "/admin/medeni-iras" }, { label: item.title }]}
+      />
       <CulturalHeritageForm item={item} />
     </div>
   );

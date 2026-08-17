@@ -32,7 +32,11 @@ export default async function AdminEditEducationPage({ params, searchParams }: P
 
   return (
     <div>
-      <AdminPageHeader title="Təhsil qeydini redaktə et" description={entry.title} />
+      <AdminPageHeader
+        title="Təhsil qeydini redaktə et"
+        description={entry.title}
+        breadcrumb={[{ label: "Təhsil", href: "/admin/tehsil" }, { label: entry.title }]}
+      />
       <EducationForm entry={entry} personOptions={personOptions} />
     </div>
   );

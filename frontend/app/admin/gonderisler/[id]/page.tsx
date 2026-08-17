@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { SubmissionStatusBadge } from "@/components/admin/StatusBadge";
@@ -30,10 +29,6 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
 
   return (
     <div>
-      <Link href="/admin/gonderisler" className="text-sm text-ink-soft hover:text-forest">
-        ← Göndərişlər
-      </Link>
-
       <AdminPageHeader
         title={submissionKindLabels[submission.kind]}
         description={new Date(submission.createdAt).toLocaleDateString("az-AZ", {
@@ -41,6 +36,7 @@ export default async function AdminSubmissionDetailPage({ params }: Props) {
           month: "long",
           year: "numeric",
         })}
+        breadcrumb={[{ label: "Göndərişlər", href: "/admin/gonderisler" }, { label: submissionKindLabels[submission.kind] }]}
         actions={<SubmissionStatusBadge status={submission.status} />}
       />
 

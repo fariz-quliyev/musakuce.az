@@ -6,7 +6,10 @@ export const metadata = { title: "Yeni faydalı məlumat — Admin — Musaküç
 export default function AdminNewLocalInfoPage() {
   return (
     <div>
-      <AdminPageHeader title="Yeni faydalı məlumat" />
+      <AdminPageHeader
+        title="Yeni faydalı məlumat"
+        breadcrumb={[{ label: "Faydalı məlumatlar", href: "/admin/faydali-melumatlar" }, { label: "Yeni faydalı məlumat" }]}
+      />
       <LocalInfoForm />
     </div>
   );

@@ -71,33 +71,72 @@ const NAV: NavGroup[] = [
  * Deliberately utilitarian — dense sidebar, no display font, no photo
  * treatment — so the admin panel never reads as the public village site.
  * Still built from the same design tokens (spec Phase 6 requirement).
+ *
+ * Groups are collapsible; a group containing the active route is always
+ * forced open (can't be collapsed away) so the current location never
+ * disappears from the sidebar.
  */
 function NavLinks({ groups, pathname, onNavigate }: { groups: NavGroup[]; pathname: string; onNavigate?: () => void }) {
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
   return (
-    <nav className="flex-1 space-y-4 overflow-y-auto px-3 py-4">
-      {groups.map((group, i) => (
-        <div key={group.label ?? i}>
-          {group.label ? (
-            <p className="mb-1 px-3 text-[11px] font-semibold tracking-wide text-ink-faint uppercase">{group.label}</p>
-          ) : null}
-          {group.items.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onNavigate}
-                className={cn(
-                  "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  active ? "bg-forest text-ink-on-dark" : "text-ink-soft hover:bg-paper-soft hover:text-ink",
-                )}
+    <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+      {groups.map((group, i) => {
+        const groupActive = group.items.some(
+          (item) => pathname === item.href || pathname.startsWith(`${item.href}/`),
+        );
+        const isOpen = !group.label || groupActive || !collapsed.has(group.label);
+
+        return (
+          <div key={group.label ?? i} className="pb-3">
+            {group.label ? (
+              <button
+                type="button"
+                onClick={() =>
+                  setCollapsed((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(group.label!)) next.delete(group.label!);
+                    else next.add(group.label!);
+                    return next;
+                  })
+                }
+                aria-expanded={isOpen}
+                className="mb-1 flex w-full items-center justify-between rounded-md px-3 py-1.5 text-[11px] font-semibold tracking-wide text-ink-faint uppercase hover:bg-paper-soft hover:text-ink-soft"
               >
-                {item.label}
-              </Link>
-            );
-          })}
-        </div>
-      ))}
+                {group.label}
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  className={cn("h-3 w-3 shrink-0 transition-transform", isOpen ? "rotate-180" : "")}
+                >
+                  <path d="M3 4.5 6 8l3-3.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+            ) : null}
+            {isOpen ? (
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={onNavigate}
+                      className={cn(
+                        "block rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        active ? "bg-forest text-ink-on-dark" : "text-ink-soft hover:bg-paper-soft hover:text-ink",
+                      )}
+                    >
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : null}
+          </div>
+        );
+      })}
     </nav>
   );
 }
@@ -192,8 +231,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         ) : null}
 
         <div className="border-b border-warning/30 bg-warning-bg px-5 py-2 text-xs font-medium text-warning">
-          Admin panel — giriş {user ? `(${user.displayName})` : ""} JWT ilə qorunur. Bütün əməliyyatlar audit
-          qeydiyyatına yazılır.
+          🔒 Təhlükəsiz idarəetmə paneli · dəyişikliklər qeyd olunur
         </div>
         <main className="flex-1 px-5 py-6 sm:px-8 sm:py-8">{children}</main>
       </div>

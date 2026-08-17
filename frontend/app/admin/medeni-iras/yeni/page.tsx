@@ -6,7 +6,10 @@ export const metadata = { title: "Yeni mədəni irs məzmunu — Admin — Musak
 export default function AdminNewCulturalHeritagePage() {
   return (
     <div>
-      <AdminPageHeader title="Yeni mədəni irs məzmunu" />
+      <AdminPageHeader
+        title="Yeni mədəni irs məzmunu"
+        breadcrumb={[{ label: "Mədəni irs", href: "/admin/medeni-iras" }, { label: "Yeni mədəni irs məzmunu" }]}
+      />
       <CulturalHeritageForm />
     </div>
   );

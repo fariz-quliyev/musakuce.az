@@ -8,7 +8,10 @@ export default async function AdminNewMemorialPage() {
   const personOptions = await getPersonOptions();
   return (
     <div>
-      <AdminPageHeader title="Yeni xatirə qeydi" />
+      <AdminPageHeader
+        title="Yeni xatirə qeydi"
+        breadcrumb={[{ label: "Xatirə", href: "/admin/xatire" }, { label: "Yeni xatirə qeydi" }]}
+      />
       <MemorialForm personOptions={personOptions} />
     </div>
   );

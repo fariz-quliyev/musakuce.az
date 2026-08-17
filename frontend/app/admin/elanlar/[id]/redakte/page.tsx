@@ -28,7 +28,11 @@ export default async function AdminListingEditPage({ params, searchParams }: Pro
 
   return (
     <div>
-      <AdminPageHeader title="Elanı redaktə et" description={listing.title} />
+      <AdminPageHeader
+        title="Elanı redaktə et"
+        description={listing.title}
+        breadcrumb={[{ label: "Elanlar", href: "/admin/elanlar" }, { label: listing.title }]}
+      />
       <ListingEditForm listing={listing} />
     </div>
   );

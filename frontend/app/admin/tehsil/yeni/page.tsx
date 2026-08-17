@@ -8,7 +8,10 @@ export default async function AdminNewEducationPage() {
   const personOptions = await getPersonOptions();
   return (
     <div>
-      <AdminPageHeader title="Yeni təhsil qeydi" />
+      <AdminPageHeader
+        title="Yeni təhsil qeydi"
+        breadcrumb={[{ label: "Təhsil", href: "/admin/tehsil" }, { label: "Yeni təhsil qeydi" }]}
+      />
       <EducationForm personOptions={personOptions} />
     </div>
   );

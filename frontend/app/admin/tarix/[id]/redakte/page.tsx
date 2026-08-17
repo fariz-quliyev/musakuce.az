@@ -29,7 +29,11 @@ export default async function AdminEditHistoryPage({ params, searchParams }: Pro
 
   return (
     <div>
-      <AdminPageHeader title="Tarix qeydini redaktə et" description={event.title} />
+      <AdminPageHeader
+        title="Tarix qeydini redaktə et"
+        description={event.title}
+        breadcrumb={[{ label: "Tariximiz", href: "/admin/tarix" }, { label: event.title }]}
+      />
       <HistoryForm event={event} />
     </div>
   );

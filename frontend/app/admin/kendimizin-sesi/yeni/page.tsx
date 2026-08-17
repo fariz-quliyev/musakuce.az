@@ -8,7 +8,10 @@ export default async function AdminNewInterviewPage() {
   const personOptions = await getPersonOptions();
   return (
     <div>
-      <AdminPageHeader title="Yeni müsahibə" />
+      <AdminPageHeader
+        title="Yeni müsahibə"
+        breadcrumb={[{ label: "Kəndimizin səsi", href: "/admin/kendimizin-sesi" }, { label: "Yeni müsahibə" }]}
+      />
       <InterviewForm personOptions={personOptions} />
     </div>
   );

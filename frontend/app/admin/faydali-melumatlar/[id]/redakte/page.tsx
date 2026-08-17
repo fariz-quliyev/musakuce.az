@@ -29,7 +29,11 @@ export default async function AdminEditLocalInfoPage({ params, searchParams }: P
 
   return (
     <div>
-      <AdminPageHeader title="Qeydi redaktə et" description={entry.name} />
+      <AdminPageHeader
+        title="Qeydi redaktə et"
+        description={entry.name}
+        breadcrumb={[{ label: "Faydalı məlumatlar", href: "/admin/faydali-melumatlar" }, { label: entry.name }]}
+      />
       <LocalInfoForm entry={entry} />
     </div>
   );

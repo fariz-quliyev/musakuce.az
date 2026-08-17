@@ -29,7 +29,11 @@ export default async function AdminEditEventPage({ params, searchParams }: Props
 
   return (
     <div>
-      <AdminPageHeader title="Tədbiri redaktə et" description={event.title} />
+      <AdminPageHeader
+        title="Tədbiri redaktə et"
+        description={event.title}
+        breadcrumb={[{ label: "Təqvim", href: "/admin/teqvim" }, { label: event.title }]}
+      />
       <EventForm event={event} />
     </div>
   );

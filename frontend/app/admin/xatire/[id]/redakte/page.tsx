@@ -32,7 +32,11 @@ export default async function AdminEditMemorialPage({ params, searchParams }: Pr
 
   return (
     <div>
-      <AdminPageHeader title="Xatirə qeydini redaktə et" description={record.fullName} />
+      <AdminPageHeader
+        title="Xatirə qeydini redaktə et"
+        description={record.fullName}
+        breadcrumb={[{ label: "Xatirə", href: "/admin/xatire" }, { label: record.fullName }]}
+      />
       <MemorialForm record={record} personOptions={personOptions} />
     </div>
   );

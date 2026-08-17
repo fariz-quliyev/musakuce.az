@@ -29,7 +29,11 @@ export default async function AdminEditVideoPage({ params, searchParams }: Props
 
   return (
     <div>
-      <AdminPageHeader title="Videonu redaktə et" description={video.title} />
+      <AdminPageHeader
+        title="Videonu redaktə et"
+        description={video.title}
+        breadcrumb={[{ label: "Videolar", href: "/admin/videolar" }, { label: video.title }]}
+      />
       <VideoForm video={video} />
     </div>
   );

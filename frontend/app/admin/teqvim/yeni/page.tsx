@@ -6,7 +6,10 @@ export const metadata = { title: "Yeni tədbir — Admin — Musaküçə" };
 export default function AdminNewEventPage() {
   return (
     <div>
-      <AdminPageHeader title="Yeni tədbir" />
+      <AdminPageHeader
+        title="Yeni tədbir"
+        breadcrumb={[{ label: "Təqvim", href: "/admin/teqvim" }, { label: "Yeni tədbir" }]}
+      />
       <EventForm />
     </div>
   );
