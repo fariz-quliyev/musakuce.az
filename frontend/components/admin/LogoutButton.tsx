@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api/auth";
+import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
 
 export function LogoutButton() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export function LogoutButton() {
       // Best-effort audit log — still clear the local session below.
     }
     await fetch("/api/auth/logout", { method: "POST" });
+    const isProduction = process.env.NODE_ENV === "production";
+    document.cookie = `${AUTH_COOKIE_NAME}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; samesite=lax${isProduction ? "; secure" : ""}`;
     router.push("/admin/login");
     router.refresh();
   }
