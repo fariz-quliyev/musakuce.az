@@ -22,7 +22,7 @@ type Props = {
 
 export function InterviewForm({ interview, personOptions }: Props) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [thumbnailMediaAssetId, setThumbnailMediaAssetId] = useState<string | null>(interview?.thumbnailMediaAssetId ?? null);
   const isEdit = !!interview;
 
@@ -50,7 +50,7 @@ export function InterviewForm({ interview, personOptions }: Props) {
     try {
       if (isEdit) {
         await interviewsApi.update(interview.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/kendimizin-sesi/${interview.id}/redakte?s=${interview.publicationStatus}`);
       } else {
         const created = await interviewsApi.create(payload);
@@ -145,6 +145,9 @@ export function InterviewForm({ interview, personOptions }: Props) {
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={interview?.originalSourceText ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

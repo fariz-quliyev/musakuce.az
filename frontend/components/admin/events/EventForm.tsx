@@ -24,7 +24,7 @@ function toLocalInputValue(iso: string | null): string {
 
 export function EventForm({ event }: { event?: EventDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(event?.coverMediaAssetId ?? null);
   const isEdit = !!event;
 
@@ -49,7 +49,7 @@ export function EventForm({ event }: { event?: EventDto }) {
     try {
       if (isEdit) {
         await eventsApi.update(event.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/teqvim/${event.id}/redakte?s=${event.publicationStatus}`);
       } else {
         const created = await eventsApi.create(payload);
@@ -117,6 +117,9 @@ export function EventForm({ event }: { event?: EventDto }) {
         hint="Boş buraxıla bilər — JPEG, PNG, WebP və ya AVIF, maks. 15 MB"
       />
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

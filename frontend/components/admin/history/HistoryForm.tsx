@@ -15,7 +15,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const isEdit = !!event;
 
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
@@ -36,7 +36,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
     try {
       if (isEdit) {
         await historyApi.update(event.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/tarix/${event.id}/redakte?s=${event.publicationStatus}`);
       } else {
         const created = await historyApi.create(payload);
@@ -90,6 +90,9 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
         <Input id="sourceReference" name="sourceReference" maxLength={500} defaultValue={event?.sourceReference ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

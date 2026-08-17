@@ -22,7 +22,7 @@ type Props = {
 
 export function EducationForm({ entry, personOptions }: Props) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(entry?.coverMediaAssetId ?? null);
   const isEdit = !!entry;
 
@@ -49,7 +49,7 @@ export function EducationForm({ entry, personOptions }: Props) {
     try {
       if (isEdit) {
         await educationApi.update(entry.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/tehsil/${entry.id}/redakte?s=${entry.publicationStatus}`);
       } else {
         const created = await educationApi.create(payload);
@@ -140,6 +140,9 @@ export function EducationForm({ entry, personOptions }: Props) {
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={entry?.originalSourceText ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

@@ -17,7 +17,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function VideoForm({ video }: { video?: VideoDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [thumbnailMediaAssetId, setThumbnailMediaAssetId] = useState<string | null>(video?.thumbnailMediaAssetId ?? null);
   const isEdit = !!video;
 
@@ -40,7 +40,7 @@ export function VideoForm({ video }: { video?: VideoDto }) {
     try {
       if (isEdit) {
         await videosApi.update(video.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/videolar/${video.id}/redakte?s=${video.publicationStatus}`);
       } else {
         const created = await videosApi.create(payload);
@@ -103,6 +103,9 @@ export function VideoForm({ video }: { video?: VideoDto }) {
         </Select>
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

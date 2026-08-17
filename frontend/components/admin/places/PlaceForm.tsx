@@ -39,7 +39,7 @@ function isValidLongitude(value: number): boolean {
 
 export function PlaceForm({ place }: { place?: PlaceDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [kind, setKind] = useState<PlaceKind>(place?.kind ?? "Useful");
   const [latitude, setLatitude] = useState(place?.latitude ?? DEFAULT_LATITUDE);
   const [longitude, setLongitude] = useState(place?.longitude ?? DEFAULT_LONGITUDE);
@@ -81,7 +81,7 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
     try {
       if (isEdit) {
         await placesApi.update(place.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/yerler/${place.id}/redakte?s=${place.publicationStatus}`);
       } else {
         const created = await placesApi.create(payload);
@@ -210,6 +210,9 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
         </FormField>
       </div>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

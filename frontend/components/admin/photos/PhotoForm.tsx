@@ -17,7 +17,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function PhotoForm({ photo }: { photo?: PhotoDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [mediaAssetId, setMediaAssetId] = useState<string | null>(photo?.mediaAssetId ?? null);
   const isEdit = !!photo;
 
@@ -48,7 +48,7 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
     try {
       if (isEdit) {
         await photosApi.update(photo.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/fotoalbom/${photo.id}/redakte?s=${photo.publicationStatus}`);
       } else {
         const created = await photosApi.create(payload);
@@ -123,6 +123,9 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
 
       {!mediaAssetId ? (
         <p className="text-sm font-medium text-warning">Davam etmək üçün şəkil yükləyin.</p>
+      ) : null}
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
       ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>

@@ -22,7 +22,7 @@ type Props = {
 
 export function MemorialForm({ record, personOptions }: Props) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(record?.coverMediaAssetId ?? null);
   const isEdit = !!record;
 
@@ -50,7 +50,7 @@ export function MemorialForm({ record, personOptions }: Props) {
     try {
       if (isEdit) {
         await memorialApi.update(record.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/xatire/${record.id}/redakte?s=${record.publicationStatus}`);
       } else {
         const created = await memorialApi.create(payload);
@@ -144,6 +144,9 @@ export function MemorialForm({ record, personOptions }: Props) {
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={record?.originalSourceText ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

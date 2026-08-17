@@ -17,7 +17,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(item?.coverMediaAssetId ?? null);
   const isEdit = !!item;
 
@@ -40,7 +40,7 @@ export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto 
     try {
       if (isEdit) {
         await culturalHeritageApi.update(item.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/medeni-iras/${item.id}/redakte?s=${item.publicationStatus}`);
       } else {
         const created = await culturalHeritageApi.create(payload);
@@ -103,6 +103,9 @@ export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto 
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={item?.originalSourceText ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

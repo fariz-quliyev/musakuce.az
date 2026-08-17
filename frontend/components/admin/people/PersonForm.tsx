@@ -17,7 +17,7 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 
 export function PersonForm({ person }: { person?: PersonDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
   const isEdit = !!person;
 
@@ -42,7 +42,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     try {
       if (isEdit) {
         await peopleApi.update(person.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/insanlar/${person.id}/redakte?s=${person.publicationStatus}`);
       } else {
         const created = await peopleApi.create(payload);
@@ -114,6 +114,9 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         </FormField>
       </div>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}

@@ -16,7 +16,7 @@ const KIND_OPTIONS = Object.entries(localInfoKindLabels) as [LocalInfoKind, stri
 
 export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
   const router = useRouter();
-  const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(entry?.photoMediaAssetId ?? null);
   const isEdit = !!entry;
 
@@ -39,7 +39,7 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
     try {
       if (isEdit) {
         await localInfoApi.update(entry.id, payload);
-        setStatus("idle");
+        setStatus("success");
         router.push(`/admin/faydali-melumatlar/${entry.id}/redakte?s=${entry.publicationStatus}`);
       } else {
         const created = await localInfoApi.create(payload);
@@ -100,6 +100,9 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
         <Input id="attachedToEntryId" name="attachedToEntryId" defaultValue={entry?.attachedToEntryId ?? ""} />
       </FormField>
 
+      {status === "success" ? (
+        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+      ) : null}
       {status === "error" ? (
         <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
       ) : null}
