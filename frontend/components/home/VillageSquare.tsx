@@ -245,10 +245,14 @@ export async function VillageSquare() {
                   {localInfo.map((entry) => (
                     <li
                       key={entry.id}
-                      className="flex items-center justify-between gap-3 border-b border-stone-light pb-3 last:border-0 last:pb-0"
+                      className="flex items-start justify-between gap-3 border-b border-stone-light pb-3 last:border-0 last:pb-0"
                     >
-                      <span className="text-sm font-medium text-ink">{entry.name}</span>
-                      <Badge tone="neutral">{localInfoKindLabels[entry.kind]}</Badge>
+                      <span className="truncate text-sm font-medium text-ink" title={entry.name}>
+                        {entry.name}
+                      </span>
+                      <Badge tone="neutral" className="shrink-0">
+                        {localInfoKindLabels[entry.kind]}
+                      </Badge>
                     </li>
                   ))}
                 </ul>

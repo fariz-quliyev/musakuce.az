@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Navbar } from "@/components/ui/Navbar";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -99,6 +100,14 @@ function Swatch({ name, className }: { name: string; className: string }) {
 }
 
 export default function DesignSystemPage() {
+  // Internal style-guide reference — never meant to be publicly reachable.
+  // `robots: { index: false }` above only keeps it out of search results;
+  // this actually blocks the route. Still builds and runs normally in
+  // development (NODE_ENV is "development" there, never "production").
+  if (process.env.NODE_ENV === "production") {
+    notFound();
+  }
+
   return (
     <>
       <Navbar />

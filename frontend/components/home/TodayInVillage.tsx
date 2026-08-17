@@ -94,7 +94,7 @@ export async function TodayInVillage() {
               <Badge tone="terracotta">{featured.category}</Badge>
               {featuredTime ? <span className="text-xs text-ink-faint">{featuredTime}</span> : null}
             </div>
-            <h3 className="mt-3 font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] text-ink">
+            <h3 className="mt-3 line-clamp-2 font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] text-ink">
               {featured.title}
             </h3>
             <p className="mt-2 max-w-lg text-base leading-relaxed text-ink-soft">{featured.description}</p>
@@ -124,7 +124,7 @@ export async function TodayInVillage() {
                       <Badge tone="neutral">{item.category}</Badge>
                       {itemTime ? <span className="text-[11px] text-ink-faint">{itemTime}</span> : null}
                     </div>
-                    <h4 className="font-display text-[length:var(--text-h4)] leading-snug text-ink">{item.title}</h4>
+                    <h4 className="line-clamp-2 font-display text-[length:var(--text-h4)] leading-snug text-ink">{item.title}</h4>
                     <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-ink-soft">{item.description}</p>
                   </div>
                 </article>

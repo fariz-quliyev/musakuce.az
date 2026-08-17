@@ -21,8 +21,8 @@ export function EventCard({ event }: { event: EventDto }) {
         <Badge tone="neutral" className="mb-1.5">
           {eventCategoryLabels[event.category]}
         </Badge>
-        <h3 className="font-display text-lg text-ink">{event.title}</h3>
-        <p className="mt-1 text-sm text-ink-soft">{event.description}</p>
+        <h3 className="line-clamp-2 font-display text-lg text-ink">{event.title}</h3>
+        <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{event.description}</p>
         <p className="mt-1 text-xs text-ink-faint">
           {date.toLocaleTimeString("az-AZ", { hour: "2-digit", minute: "2-digit" })} · {event.location}
         </p>

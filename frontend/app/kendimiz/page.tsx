@@ -125,10 +125,14 @@ export default async function KendimizPage() {
             {localInfo.items.map((entry) => (
               <li
                 key={entry.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-stone-light bg-paper p-4"
+                className="flex items-start justify-between gap-3 rounded-lg border border-stone-light bg-paper p-4"
               >
-                <span className="text-sm font-medium text-ink">{entry.name}</span>
-                <Badge tone="neutral">{localInfoKindLabels[entry.kind]}</Badge>
+                <span className="truncate text-sm font-medium text-ink" title={entry.name}>
+                  {entry.name}
+                </span>
+                <Badge tone="neutral" className="shrink-0">
+                  {localInfoKindLabels[entry.kind]}
+                </Badge>
               </li>
             ))}
           </ul>

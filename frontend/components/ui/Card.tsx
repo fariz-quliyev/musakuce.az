@@ -25,7 +25,7 @@ export type CardProps = React.HTMLAttributes<HTMLDivElement> &
   VariantProps<typeof cardStyles>;
 
 export function Card({ className, variant, ...props }: CardProps) {
-  return <div className={cn(cardStyles({ variant }), className)} {...props} />;
+  return <div className={cn(cardStyles({ variant }), "flex flex-col", className)} {...props} />;
 }
 
 type CardMediaProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -59,7 +59,7 @@ export function CardBody({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-5", className)} {...props} />;
+  return <div className={cn("flex flex-1 flex-col p-5", className)} {...props} />;
 }
 
 export function CardTitle({
@@ -69,7 +69,7 @@ export function CardTitle({
   return (
     <h3
       className={cn(
-        "font-display text-[length:var(--text-h4)] leading-[var(--text-h4--line-height)] text-ink",
+        "line-clamp-2 font-display text-[length:var(--text-h4)] leading-[var(--text-h4--line-height)] text-ink",
         className,
       )}
       {...props}
@@ -96,7 +96,7 @@ export function CardMeta({
   return (
     <div
       className={cn(
-        "mt-4 flex flex-wrap items-center gap-2 text-xs text-ink-faint",
+        "mt-auto flex flex-wrap items-center gap-2 pt-4 text-xs text-ink-faint",
         className,
       )}
       {...props}

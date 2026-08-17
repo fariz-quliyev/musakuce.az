@@ -13,6 +13,25 @@ import type { PagedResult, VideoDto } from "@/lib/api/types";
 
 const PAGE_SIZE = 18;
 
+/**
+ * `embedUrlOrKey` is free text in the admin form — some entries are a
+ * full URL, others (YouTube/Vimeo especially) are just the bare video
+ * ID. A full URL is always used as-is, unchanged. For YouTube/Vimeo, a
+ * bare key is expanded into a real playable URL using each provider's
+ * well-known, stable link format. SelfHosted has no such known pattern
+ * in this data model (no base-URL field exists), so a bare key there
+ * genuinely can't be turned into a safe link — returns null rather than
+ * guessing one.
+ */
+function resolvePlayableUrl(video: VideoDto): string | null {
+  const value = video.embedUrlOrKey.trim();
+  if (!value) return null;
+  if (value.startsWith("http")) return value;
+  if (video.embedProvider === "YouTube") return `https://www.youtube.com/watch?v=${value}`;
+  if (video.embedProvider === "Vimeo") return `https://vimeo.com/${value}`;
+  return null;
+}
+
 type Props = {
   initialData: PagedResult<VideoDto>;
   initialIsLive: boolean;
@@ -95,12 +114,12 @@ export function VideosBrowser({ initialData, initialIsLive }: Props) {
         <>
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {result.items.map((video) => {
-              const isPlayable = video.embedUrlOrKey.startsWith("http");
-              const Wrapper = isPlayable ? "a" : "div";
+              const playableUrl = resolvePlayableUrl(video);
+              const Wrapper = playableUrl ? "a" : "div";
               return (
                 <Wrapper
                   key={video.id}
-                  {...(isPlayable ? { href: video.embedUrlOrKey, target: "_blank", rel: "noreferrer" } : {})}
+                  {...(playableUrl ? { href: playableUrl, target: "_blank", rel: "noreferrer" } : {})}
                   className="group block"
                 >
                   <div className="aspect-video overflow-hidden rounded-lg">
@@ -116,11 +135,10 @@ export function VideosBrowser({ initialData, initialIsLive }: Props) {
                   {video.description ? (
                     <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{video.description}</p>
                   ) : null}
-                  {video.category ? (
-                    <Badge tone="neutral" className="mt-2">
-                      {video.category}
-                    </Badge>
-                  ) : null}
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    {video.category ? <Badge tone="neutral">{video.category}</Badge> : null}
+                    {!playableUrl ? <Badge tone="neutral">İzləmə keçidi yoxdur</Badge> : null}
+                  </div>
                 </Wrapper>
               );
             })}

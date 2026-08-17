@@ -55,7 +55,7 @@ export async function ThisWeek() {
                   <span className="font-display text-lg leading-none">{startsAt.getDate()}</span>
                 </div>
                 <div>
-                  <h3 className="font-display text-base leading-snug text-ink">{event.title}</h3>
+                  <h3 className="line-clamp-2 font-display text-base leading-snug text-ink">{event.title}</h3>
                   <p className="mt-1 text-xs text-ink-faint">{event.location}</p>
                 </div>
               </article>
