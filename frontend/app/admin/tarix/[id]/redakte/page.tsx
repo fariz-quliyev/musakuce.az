@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { HistoryForm } from "@/components/admin/history/HistoryForm";
+import { HistoryRowActions } from "@/components/admin/history/HistoryRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { historyApi } from "@/lib/api/history";
 import { ApiError } from "@/lib/api/client";
@@ -33,6 +34,7 @@ export default async function AdminEditHistoryPage({ params, searchParams }: Pro
         title="Tarix qeydini redaktə et"
         description={event.title}
         breadcrumb={[{ label: "Tariximiz", href: "/admin/tarix" }, { label: event.title }]}
+        actions={<HistoryRowActions event={event} />}
       />
       <HistoryForm event={event} />
     </div>

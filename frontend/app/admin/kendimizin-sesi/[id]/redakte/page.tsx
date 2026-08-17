@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { InterviewForm } from "@/components/admin/interviews/InterviewForm";
+import { InterviewRowActions } from "@/components/admin/interviews/InterviewRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { interviewsApi } from "@/lib/api/interviews";
 import { getPersonOptions } from "@/lib/admin/personOptions";
@@ -36,6 +37,7 @@ export default async function AdminEditInterviewPage({ params, searchParams }: P
         title="Müsahibəni redaktə et"
         description={interview.personName}
         breadcrumb={[{ label: "Kəndimizin səsi", href: "/admin/kendimizin-sesi" }, { label: interview.personName }]}
+        actions={<InterviewRowActions interview={interview} />}
       />
       <InterviewForm interview={interview} personOptions={personOptions} />
     </div>

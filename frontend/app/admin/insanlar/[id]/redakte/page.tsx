@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { PersonForm } from "@/components/admin/people/PersonForm";
+import { PersonRowActions } from "@/components/admin/people/PersonRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
@@ -33,6 +34,7 @@ export default async function AdminEditPersonPage({ params, searchParams }: Prop
         title="Şəxsi redaktə et"
         description={`${person.firstName} ${person.lastName}`}
         breadcrumb={[{ label: "İnsanlarımız", href: "/admin/insanlar" }, { label: `${person.firstName} ${person.lastName}` }]}
+        actions={<PersonRowActions person={person} />}
       />
       <PersonForm person={person} />
     </div>

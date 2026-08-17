@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { PhotoForm } from "@/components/admin/photos/PhotoForm";
+import { PhotoRowActions } from "@/components/admin/photos/PhotoRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { photosApi } from "@/lib/api/photos";
 import { ApiError } from "@/lib/api/client";
@@ -33,6 +34,7 @@ export default async function AdminEditPhotoPage({ params, searchParams }: Props
         title="Fotonu redaktə et"
         description={photo.title}
         breadcrumb={[{ label: "Fotoalbom", href: "/admin/fotoalbom" }, { label: photo.title }]}
+        actions={<PhotoRowActions photo={photo} />}
       />
       <PhotoForm photo={photo} />
     </div>
