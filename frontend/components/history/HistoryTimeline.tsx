@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
@@ -149,7 +149,7 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-xl">
+      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl">
         <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
       </div>
     );
@@ -159,7 +159,7 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   return (
     <div>
-      <div className="aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
+      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl shadow-md">
         <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 42vw, 100vw" />
       </div>
       {images.length > 1 ? (
@@ -207,7 +207,7 @@ function EventDetailContent({
 }) {
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[0.8fr_1fr] lg:items-start lg:gap-10">
+      <div className="grid gap-5 lg:grid-cols-[0.8fr_1fr] lg:items-start lg:gap-8">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="terracotta">{event.period}</Badge>
@@ -283,6 +283,14 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
   const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
   const desktopRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const mobileRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const panelAnchorRef = useRef<HTMLDivElement>(null);
+  const [caretLeft, setCaretLeft] = useState<number | null>(null);
+  // Stays false through the initial mount so the very first correction
+  // (server-rendered fallback → real measured position) snaps instantly
+  // instead of visibly sliding; enabled one tick later so only genuine
+  // selection changes animate.
+  const [caretTransitionReady, setCaretTransitionReady] = useState(false);
   const activeEvent = events[activeIndex];
   const hasPrev = activeIndex > 0;
   const hasNext = activeIndex < events.length - 1;
@@ -290,6 +298,34 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
   useEffect(() => {
     desktopRefs.current[activeIndex]?.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
   }, [activeIndex]);
+
+  useEffect(() => {
+    setCaretTransitionReady(true);
+  }, []);
+
+  // Keeps the little pointer under the panel aligned with whichever
+  // marker is active, including while the track's own smooth-scroll
+  // animation (above) is still settling — recomputed on every scroll
+  // tick of the track, not just once on selection change.
+  useLayoutEffect(() => {
+    function updateCaret() {
+      const btn = desktopRefs.current[activeIndex];
+      const anchor = panelAnchorRef.current;
+      if (!btn || !anchor) return;
+      const btnRect = btn.getBoundingClientRect();
+      const anchorRect = anchor.getBoundingClientRect();
+      const raw = btnRect.left + btnRect.width / 2 - anchorRect.left;
+      setCaretLeft(Math.min(Math.max(raw, 20), anchorRect.width - 20));
+    }
+    updateCaret();
+    const track = trackRef.current;
+    track?.addEventListener("scroll", updateCaret);
+    window.addEventListener("resize", updateCaret);
+    return () => {
+      track?.removeEventListener("scroll", updateCaret);
+      window.removeEventListener("resize", updateCaret);
+    };
+  }, [activeIndex, events.length]);
 
   function goTo(index: number, focus = false) {
     setActiveIndex(index);
@@ -322,8 +358,9 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
       {/* Desktop / tablet — horizontal museum-wall layout */}
       <div className="hidden sm:block">
         <div className="relative">
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[16.5px] h-[3px] rounded-full bg-forest/70" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[18.5px] h-[3px] rounded-full bg-forest/70" />
           <div
+            ref={trackRef}
             role="tablist"
             aria-label="Zaman xəttində Musaküçə hadisələri"
             className="flex items-start justify-between gap-5 overflow-x-auto pb-2 lg:gap-8"
@@ -349,13 +386,13 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                   <span
                     aria-hidden
                     className={cn(
-                      "relative z-10 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
+                      "relative z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
                       active
                         ? "scale-125 border-forest bg-forest text-cream shadow-md"
                         : "border-stone text-ink-faint group-hover:scale-110 group-hover:border-terracotta group-hover:text-terracotta",
                     )}
                   >
-                    <MarkerGlyph event={event} iconClassName="h-4 w-4" />
+                    <MarkerGlyph event={event} iconClassName="h-5 w-5" />
                   </span>
                   <div
                     className={cn(
@@ -375,17 +412,21 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
           </div>
         </div>
 
-        <div className="relative mt-3">
+        <div ref={panelAnchorRef} className="relative mt-3">
           <div
             aria-hidden
-            className="absolute -top-2 left-1/2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-tl-sm border-t-4 border-l-4 border-forest bg-paper"
+            style={{ left: caretLeft ?? "50%" }}
+            className={cn(
+              "absolute -top-2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-tl-sm border-t-4 border-l-4 border-forest bg-paper",
+              caretTransitionReady && "transition-[left] duration-200",
+            )}
           />
           <div
             id="timeline-panel"
             role="tabpanel"
             aria-labelledby={`timeline-tab-${activeIndex}`}
             tabIndex={-1}
-            className="rounded-2xl border-t-4 border-forest bg-paper p-5 shadow-sm sm:p-7"
+            className="rounded-2xl border-t-4 border-forest bg-paper p-4 shadow-sm sm:p-6"
           >
             <EventDetailContent
               event={activeEvent}
@@ -409,7 +450,7 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
             <li key={event.id} className="relative pl-9">
               <span
                 aria-hidden
-                className={cn("absolute top-9 left-[15px] w-[2px] bg-stone-light", isLast ? "bottom-4" : "bottom-0")}
+                className={cn("absolute top-10 left-[17px] w-[2px] bg-stone-light", isLast ? "bottom-4" : "bottom-0")}
               />
               <button
                 ref={(el) => {
@@ -425,11 +466,11 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute top-2 left-0 z-10 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
+                    "absolute top-2 left-0 z-10 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
                     active ? "scale-110 border-forest bg-forest text-cream shadow-md" : "border-stone text-ink-faint",
                   )}
                 >
-                  <MarkerGlyph event={event} iconClassName="h-3.5 w-3.5" />
+                  <MarkerGlyph event={event} iconClassName="h-4 w-4" />
                 </span>
                 <div className={cn("flex-1 rounded-lg px-2 py-1", active && "bg-forest/10")}>
                   <p className={cn("text-xs font-semibold", active ? "text-forest" : "text-terracotta-dark")}>{event.period}</p>
