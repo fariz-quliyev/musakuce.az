@@ -22,10 +22,23 @@ import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
  * hydration/RSC payloads automatically picks up the nonce from that
  * response header — no manual nonce-threading through every page.
  *
- * script-src has no 'unsafe-inline'/'unsafe-eval' — the nonce +
- * 'strict-dynamic' pair covers every script Next.js itself injects
- * (hydration bootstrap, RSC flight chunks, dynamically-loaded route
- * chunks) without needing to allow-list by URL. style-src keeps
+ * script-src has no 'unsafe-inline'/'unsafe-eval' — 'self' + the nonce
+ * covers every script Next.js itself injects. 'strict-dynamic' was
+ * tried first (nonce-trust propagating to dynamically-inserted scripts
+ * without URL allow-listing) but had to be dropped: on routes with a
+ * `loading.tsx` Suspense boundary whose real content pulls in a chunk
+ * that isn't already part of the fallback's bundle (e.g. /insanlarimiz,
+ * /tariximiz), Next 16.3's streamed second-phase render emits that
+ * chunk's <script> tag without the nonce attribute at all — a framework
+ * gap, not something this app's code controls. Under 'strict-dynamic'
+ * that unnonced same-origin script is simply blocked, which broke
+ * hydration for the whole page (observed as the header's Link clicks
+ * silently doing nothing — Navbar itself is one such late-discovered
+ * chunk on those routes). Root-caused by intercepting the response and
+ * confirming removing 'strict-dynamic' alone fixes it. 'self' still
+ * restricts script-src to same-origin only — this app has no
+ * user-uploaded/served JS, so that remains a real restriction, just not
+ * as strict as 'strict-dynamic'. style-src keeps
  * 'unsafe-inline' deliberately: this codebase uses React inline
  * `style={{...}}` attributes for values that can only be known at
  * render time (e.g. HistoryTimeline's computed caret position,
@@ -58,7 +71,7 @@ export function proxy(request: NextRequest) {
 
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `script-src 'self' 'nonce-${nonce}'`,
     `style-src 'self' 'unsafe-inline'`,
     `img-src 'self' data: blob: ${mediaHost}`.trim(),
     `font-src 'self'`,
