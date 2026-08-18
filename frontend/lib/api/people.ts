@@ -21,4 +21,6 @@ export const peopleApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdatePersonStatusRequest) =>
     apiClient.patch<PersonDto>(`/api/people/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/people/${id}`),
 };

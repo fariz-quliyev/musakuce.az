@@ -11,4 +11,7 @@ public interface IPersonService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<PersonDto> UpdateAsync(Guid id, UpdatePersonRequest request, CancellationToken ct = default);
     Task<PersonDto> UpdateStatusAsync(Guid id, UpdatePersonStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete. Cleans up the cover
+    /// image too, but only if no other content still references it.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

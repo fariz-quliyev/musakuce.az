@@ -9,15 +9,36 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { peopleApi } from "@/lib/api/people";
+import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import type { MediaAssetDto, PersonCategory, PersonDto, SourceStatus } from "@/lib/api/types";
 
 const CATEGORY_OPTIONS = Object.entries(personCategoryLabels) as [PersonCategory, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
 
+/** Surfaces the backend's actual reason instead of a fixed string — a
+ * FluentValidation 400 carries per-field messages in `detail.errors`, the
+ * global exception handler's ProblemDetails carries one in `detail.detail`
+ * (403/404/409 are all client-safe per GlobalExceptionHandler.cs), and a
+ * generic 500 has neither, so it falls back to a still-informative
+ * default rather than a silent, unexplained failure. */
+function describeSaveError(err: unknown): string {
+  if (err instanceof ApiError) {
+    const detail = err.detail as { detail?: string; errors?: Record<string, string[]> } | undefined;
+    if (detail?.errors) {
+      const messages = Object.values(detail.errors).flat();
+      if (messages.length > 0) return messages.join(" ");
+    }
+    if (detail?.detail) return detail.detail;
+    if (err.status === 403) return "Bu əməliyyat üçün icazəniz yoxdur.";
+  }
+  return "Yadda saxlamaq mümkün olmadı. Bir az sonra yenidən cəhd edin.";
+}
+
 export function PersonForm({ person }: { person?: PersonDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
   const isEdit = !!person;
 
@@ -49,8 +70,9 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         router.push(`/admin/insanlar/${created.id}/redakte?s=${created.publicationStatus}`);
       }
       router.refresh();
-    } catch {
+    } catch (err) {
       setStatus("error");
+      setErrorMessage(describeSaveError(err));
     }
   }
 
@@ -118,7 +140,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
       ) : null}
       {status === "error" ? (
-        <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
+        <p className="text-sm font-medium text-danger">{errorMessage}</p>
       ) : null}
 
       <div className="flex gap-2">

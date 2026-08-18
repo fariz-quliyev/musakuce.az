@@ -63,7 +63,7 @@ public class PersonService(IMusakuceDbContext db, IAuditLogService auditLog, IMe
             SourceReference = request.SourceReference,
             EditorialNote = request.EditorialNote,
             OriginalSourceText = request.OriginalSourceText,
-            Slug = SlugGenerator.Generate($"{request.FirstName} {request.LastName}"),
+            Slug = await GenerateUniqueSlugAsync($"{request.FirstName} {request.LastName}", excludeId: null, ct),
         };
 
         if (request.CoverMediaAssetId is { } mediaId)
@@ -98,7 +98,7 @@ public class PersonService(IMusakuceDbContext db, IAuditLogService auditLog, IMe
         person.SourceReference = request.SourceReference;
         person.EditorialNote = request.EditorialNote;
         person.OriginalSourceText = request.OriginalSourceText;
-        person.Slug = SlugGenerator.Generate($"{request.FirstName} {request.LastName}");
+        person.Slug = await GenerateUniqueSlugAsync($"{request.FirstName} {request.LastName}", excludeId: id, ct);
         person.UpdatedAt = DateTimeOffset.UtcNow;
 
         if (request.CoverMediaAssetId != person.CoverMediaAssetId)
@@ -146,6 +146,44 @@ public class PersonService(IMusakuceDbContext db, IAuditLogService auditLog, IMe
         await auditLog.LogAsync(action, nameof(Person), person.Id.ToString(), oldStatus.ToString(), person.PublicationStatus.ToString(), ct);
 
         return ToDto(person, includeEditorial: true);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var person = await db.People.FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Person), id);
+
+        var name = $"{person.FirstName} {person.LastName}";
+        var coverMediaAssetId = person.CoverMediaAssetId;
+
+        db.People.Remove(person);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(Person), id.ToString(), oldValue: name, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            // Same best-effort pattern as UpdateAsync's old-image cleanup —
+            // only removes it if nothing else (another person, a photo,
+            // etc.) still references the same MediaAsset.
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
+    /// <summary>Person.Slug has a unique DB index (PersonConfiguration.cs)
+    /// but nothing previously checked for a collision before saving — two
+    /// people whose name transliterates to the same slug (e.g. two
+    /// "Eyni Adam" entries, or a coincidental name collision) made
+    /// SaveChangesAsync throw an unhandled DbUpdateException, surfacing
+    /// to the admin as an opaque save failure. SlugGenerator already
+    /// supports a `disambiguator` for exactly this case; it just wasn't
+    /// wired up here. Checked with AsNoTracking since this is a read-only
+    /// existence probe, not part of the tracked save.</summary>
+    private async Task<string> GenerateUniqueSlugAsync(string name, Guid? excludeId, CancellationToken ct)
+    {
+        var slug = SlugGenerator.Generate(name);
+        var collides = await db.People.AsNoTracking().AnyAsync(p => p.Slug == slug && p.Id != excludeId, ct);
+        return collides ? SlugGenerator.Generate(name, Guid.NewGuid()) : slug;
     }
 
     private static PersonDto ToDto(Person p, bool includeEditorial) => new(

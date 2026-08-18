@@ -64,22 +64,19 @@ export default async function AdminInsanlarPage({ searchParams }: Props) {
                 {result.items.map((person) => (
                   <tr key={person.id} className="border-b border-stone-light last:border-0 hover:bg-paper-soft">
                     <td className="px-4 py-3 font-medium text-ink">
-                      {person.firstName} {person.lastName}
+                      <Link
+                        href={`/admin/insanlar/${person.id}/redakte?s=${person.publicationStatus}`}
+                        className="hover:underline"
+                      >
+                        {person.firstName} {person.lastName}
+                      </Link>
                     </td>
                     <td className="px-4 py-3 text-ink-soft">{personCategoryLabels[person.category]}</td>
                     <td className="px-4 py-3">
                       <PublicationStatusBadge status={person.publicationStatus} />
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-3">
-                        <Link
-                          href={`/admin/insanlar/${person.id}/redakte?s=${person.publicationStatus}`}
-                          className="font-medium text-forest hover:underline"
-                        >
-                          Redaktə
-                        </Link>
-                        <PersonRowActions person={person} />
-                      </div>
+                      <PersonRowActions person={person} />
                     </td>
                   </tr>
                 ))}

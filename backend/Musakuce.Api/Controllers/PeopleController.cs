@@ -55,4 +55,16 @@ public class PeopleController(IPersonService service, IAuthorizationService auth
     [Authorize(Policy = Permissions.PeopleModerate)]
     public async Task<ActionResult> UpdateStatus(Guid id, UpdatePersonStatusRequest request, CancellationToken ct) =>
         Ok(await service.UpdateStatusAsync(id, request, ct));
+
+    /// <summary>ADMIN-PRIVILEGED — hard delete. Same policy as
+    /// publish/archive (Permissions.PeopleModerate), since deleting is at
+    /// least as destructive as archiving and this codebase has no
+    /// separate "delete" permission tier for any content type.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.PeopleModerate)]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await service.DeleteAsync(id, ct);
+        return NoContent();
+    }
 }
