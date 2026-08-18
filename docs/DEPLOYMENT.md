@@ -274,6 +274,22 @@ existing process for them. Instead:
    config (e.g. `/etc/nginx/sites-available/musakuce.az`), symlink into
    `sites-enabled/`, then `nginx -t` and `systemctl reload nginx` (reload,
    not restart — avoids disturbing the other site's active connections).
+
+   **This has now actually been done** (2026-08-18) — the live file lives
+   at `/etc/nginx/sites-available/musakuce.az` on the VPS, symlinked from
+   `/etc/nginx/sites-enabled/musakuce.az` (`ln -s
+   /etc/nginx/sites-available/musakuce.az
+   /etc/nginx/sites-enabled/musakuce.az`; this is what actually makes
+   Nginx load it — `sites-available/` alone is inert). Since this file
+   lives only on the VPS, not in this repository, a byte-for-byte mirror
+   of it is kept at `infra/nginx/musakuce.az.production-live.conf` for
+   disaster-recovery / VPS-rebuild reference — see that file's own header
+   for the exact restore steps and for how it differs in purpose from the
+   `.example` file referenced above. Re-sync it by hand
+   (`ssh ... cat /etc/nginx/sites-available/musakuce.az`, paste below its
+   marker line) after any future live edit — the VPS remains the source
+   of truth; this mirror is a snapshot, not something a deploy step reads
+   from.
 4. Issue the certificate with **Certbot** (`certbot --nginx -d musakuce.az
    -d www.musakuce.az`), matching this VPS's existing certificate
    convention for its other site, rather than a Cloudflare Origin
@@ -294,15 +310,35 @@ existing process for them. Instead:
    created pointing it at this VPS.
 6. Once Cloudflare is actually proxying traffic here, add the
    Cloudflare-IP-range `set_real_ip_from` / `real_ip_header
-   CF-Connecting-IP` directives (already written out in
-   `infra/nginx/musakuce.conf.template`, reusable verbatim) once, at the
-   shared host Nginx's `http{}` scope — not duplicated per server block,
-   and not needed until Cloudflare is confirmed in front of real traffic.
+   CF-Connecting-IP` directives so `$remote_addr` reflects the real
+   visitor instead of whichever Cloudflare edge node connected.
 
-**Not yet done** (this phase was read-only VPS audit + this
-configuration/documentation update only — no VPS file was touched, no
-container started, no DNS/Cloudflare record created): steps 3–6 above
-all happen on the VPS itself, not in this repository.
+   **Done (2026-08-18), and not quite as originally planned above** — a
+   post-deployment audit found the rate limiter (§Phase 2 of the security
+   remediation) silently keying off Cloudflare's own edge IPs rather than
+   real visitors, confirmed via the audit log recording `104.23.x.x` /
+   `162.158.x.x` / `172.68.x.x` (Cloudflare ranges) instead of actual
+   client IPs. Root cause: this directive had never actually been added
+   to the live config at all. Fixed by adding `set_real_ip_from` (all
+   current Cloudflare IPv4 **and** IPv6 ranges — fetched live from
+   `https://www.cloudflare.com/ips-v4` and `/ips-v6` at fix time, not
+   copied from the template below, since Cloudflare's ranges can drift),
+   `real_ip_header CF-Connecting-IP;`, and `real_ip_recursive on;` —
+   inside the `server_name musakuce.az` block specifically (**not** at a
+   shared `http{}` scope as originally planned above): this shared host's
+   global `http{}` config lives outside this project's ownership
+   entirely, and scoping the change to Musakuce's own `server{}` block
+   keeps it from affecting the other site sharing this Nginx instance.
+   `infra/nginx/musakuce.conf.template`'s own copy of this block predates
+   this fix and is missing both the IPv6 ranges and
+   `real_ip_recursive on;` — treat `infra/nginx/musakuce.az.production-live.conf`
+   (§10b step 3 above) as the current, complete reference instead if you
+   need the exact directive list; that template hasn't been reconciled
+   with it.
+
+**Status**: steps 1–6 above are now all live on the VPS. DNS/Cloudflare
+proxying (step 5) and Certbot (step 4) were completed as part of getting
+the site live at all; nothing about them is still deferred.
 
 ## 11. Public URL / canonical host
 
