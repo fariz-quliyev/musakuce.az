@@ -61,6 +61,13 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
             OriginalSourceText = request.OriginalSourceText,
             DisplayOrder = request.DisplayOrder,
             ShowInTimeline = request.ShowInTimeline,
+            EventIcon = request.EventIcon,
+            // The admin edit form has no separate publish step (only
+            // "Yadda saxla") — saving always publishes immediately, same
+            // simplification already applied to VillageProfile. Archiving
+            // an entry is still possible via the /admin/tarix list row
+            // actions (UpdateStatusAsync below), which this doesn't touch.
+            PublicationStatus = PublicationStatus.Published,
         };
 
         await ApplyCoverMediaAssetAsync(ev, request.CoverMediaAssetId, ct);
@@ -92,7 +99,11 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         ev.OriginalSourceText = request.OriginalSourceText;
         ev.DisplayOrder = request.DisplayOrder;
         ev.ShowInTimeline = request.ShowInTimeline;
+        ev.EventIcon = request.EventIcon;
         ev.UpdatedAt = DateTimeOffset.UtcNow;
+        // Same "Yadda saxla" = publish immediately simplification as
+        // CreateAsync above — see its comment.
+        ev.PublicationStatus = PublicationStatus.Published;
 
         await ApplyCoverMediaAssetAsync(ev, request.CoverMediaAssetId, ct);
         await ApplyAdditionalImagesAsync(ev, request.AdditionalImageMediaAssetIds, ct);
@@ -159,6 +170,6 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
     private static HistoricalEventDto ToDto(HistoricalEvent e, bool includeEditorial) => new(
         e.Id, e.Title, e.Period, e.EventDate, e.Description, e.DetailedText, e.SourceStatus, e.SourceReference,
         includeEditorial ? e.EditorialNote : null, includeEditorial ? e.OriginalSourceText : null,
-        e.DisplayOrder, e.PublicationStatus, e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.ShowInTimeline, e.IsDefault,
+        e.DisplayOrder, e.PublicationStatus, e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.ShowInTimeline, e.IsDefault, e.EventIcon,
         e.AdditionalImages.OrderBy(i => i.SortOrder).Select(i => new HistoricalEventImageDto(i.Id, i.MediaAssetId, i.MediaAsset!.Url, i.SortOrder)).ToList());
 }

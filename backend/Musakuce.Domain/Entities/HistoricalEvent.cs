@@ -46,6 +46,9 @@ public class HistoricalEvent : BaseEntity
     /// used to filter what's shown — purely a provenance marker so the
     /// admin UI can flag "this is sample content, review/replace it."</summary>
     public bool IsDefault { get; set; }
+    /// <summary>Admin-picked timeline marker category — see EventIcon doc
+    /// comment for why this isn't inferred from Title/Description text.</summary>
+    public EventIcon EventIcon { get; set; } = EventIcon.General;
     public ICollection<HistoricalEventImage> AdditionalImages { get; set; } = new List<HistoricalEventImage>();
 }
 

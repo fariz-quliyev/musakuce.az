@@ -32,6 +32,9 @@ public record HistoricalEventDto(
     /// migration seeds — a provenance marker for the admin UI, never used
     /// to filter what's shown publicly.</summary>
     bool IsDefault,
+    /// <summary>Admin-picked timeline marker category (see EventIcon doc
+    /// comment) — never inferred from Title/Description.</summary>
+    EventIcon EventIcon,
     IReadOnlyList<HistoricalEventImageDto> AdditionalImages
 );
 
@@ -54,6 +57,7 @@ public class CreateHistoricalEventRequest
     public int DisplayOrder { get; set; }
     public Guid? CoverMediaAssetId { get; set; }
     public bool ShowInTimeline { get; set; } = true;
+    public EventIcon EventIcon { get; set; } = EventIcon.General;
     /// <summary>Already-uploaded MediaAsset ids, in display order — the
     /// service replaces the event's whole AdditionalImages collection
     /// with this list on every create/update (same "wholesale replace"

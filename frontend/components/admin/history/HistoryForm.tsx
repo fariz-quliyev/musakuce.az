@@ -10,10 +10,11 @@ import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { historyApi } from "@/lib/api/history";
-import { sourceStatusLabels } from "@/lib/api/labels";
-import type { HistoricalEventDto, MediaAssetDto, SourceStatus } from "@/lib/api/types";
+import { sourceStatusLabels, eventIconLabels } from "@/lib/api/labels";
+import type { EventIcon, HistoricalEventDto, MediaAssetDto, SourceStatus } from "@/lib/api/types";
 
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
+const EVENT_ICON_OPTIONS = Object.entries(eventIconLabels) as [EventIcon, string][];
 
 type ImageSlot = { key: string; mediaAssetId: string | null; previewUrl: string | null };
 
@@ -51,6 +52,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
       sourceStatus: form.get("sourceStatus") as SourceStatus,
       sourceReference: String(form.get("sourceReference") ?? "") || null,
       displayOrder: Number(form.get("displayOrder") ?? 0),
+      eventIcon: form.get("eventIcon") as EventIcon,
       coverMediaAssetId,
       showInTimeline: form.get("showInTimeline") === "on",
       additionalImageMediaAssetIds: additionalImages.flatMap((s) => (s.mediaAssetId ? [s.mediaAssetId] : [])),
@@ -114,6 +116,16 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
           <Input id="displayOrder" name="displayOrder" type="number" defaultValue={event?.displayOrder ?? 0} />
         </FormField>
       </div>
+
+      <FormField label="Timeline ikonu" htmlFor="eventIcon" required hint="Hadisənin xarakterinə uyğun marker seçin">
+        <Select id="eventIcon" name="eventIcon" defaultValue={event?.eventIcon ?? "General"} required>
+          {EVENT_ICON_OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </FormField>
 
       <FormField
         label="Mənbə istinadı"

@@ -32,6 +32,7 @@ const FALLBACK: PagedResult<HistoricalEventDto> = {
       coverImageUrl: null,
       showInTimeline: true,
       isDefault: false,
+      eventIcon: "General",
       additionalImages: [],
     },
     {
@@ -51,6 +52,7 @@ const FALLBACK: PagedResult<HistoricalEventDto> = {
       coverImageUrl: null,
       showInTimeline: true,
       isDefault: false,
+      eventIcon: "General",
       additionalImages: [],
     },
     {
@@ -70,6 +72,7 @@ const FALLBACK: PagedResult<HistoricalEventDto> = {
       coverImageUrl: null,
       showInTimeline: true,
       isDefault: false,
+      eventIcon: "General",
       additionalImages: [],
     },
   ],

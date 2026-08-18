@@ -357,8 +357,23 @@ export interface HistoricalEventDto {
   showInTimeline: boolean;
   /** True only for the sample rows seeded by the AddHistoryTimelineFeature migration — a provenance marker for the admin UI, never used to filter what's shown publicly. */
   isDefault: boolean;
+  /** Admin-picked timeline marker category — never inferred from title/description text. */
+  eventIcon: EventIcon;
   additionalImages: HistoricalEventImageDto[];
 }
+
+export type EventIcon =
+  | "Settlement"
+  | "Religion"
+  | "Education"
+  | "People"
+  | "War"
+  | "Agriculture"
+  | "Achievement"
+  | "Flag"
+  | "Culture"
+  | "Document"
+  | "General";
 
 export interface HistoricalEventQuery extends PagedQuery {
   publicationStatus?: PublicationStatus;
@@ -380,6 +395,7 @@ export interface CreateHistoricalEventRequest {
   displayOrder?: number;
   coverMediaAssetId?: string | null;
   showInTimeline?: boolean;
+  eventIcon?: EventIcon;
   /** Already-uploaded MediaAsset ids, in display order — replaces the event's whole additional-images list on every create/update. */
   additionalImageMediaAssetIds?: string[];
 }

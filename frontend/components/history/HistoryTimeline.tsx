@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
-import type { HistoricalEventDto, SourceStatus } from "@/lib/api/types";
+import type { EventIcon, HistoricalEventDto } from "@/lib/api/types";
 
 // Seeded placeholder events (HistoricalEventDto.isDefault) carry an
 // admin-facing "this is sample content" notice in their Description —
@@ -13,19 +13,102 @@ import type { HistoricalEventDto, SourceStatus } from "@/lib/api/types";
 // rows with a "Nümunə" badge instead (see HistoryTable.tsx).
 const DEFAULT_EVENT_NOTICE = "Bu hadisə haqqında məlumat hazırlanır — tezliklə əlavə olunacaq.";
 
-/** Source-status glyphs double as the timeline's "event icon" — a real,
- * already-published classification (see sourceStatusLabels) rather than
- * a fabricated event category the data model doesn't have. */
-function SourceStatusIcon({ status, className }: { status: SourceStatus; className?: string }) {
-  switch (status) {
-    case "Verified":
+/** Admin-picked marker category (HistoricalEvent.eventIcon) — never
+ * inferred from title/description text, which would silently mislabel
+ * an event the moment its wording didn't match an expected keyword. */
+function EventIconGraphic({ icon, className }: { icon: EventIcon; className?: string }) {
+  switch (icon) {
+    case "Settlement":
       return (
         <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
-          <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M8 12.3 10.5 15 16 9" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M4 11 12 4l8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="M6 10v9h12v-9" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
         </svg>
       );
-    case "OfficialSource":
+    case "Religion":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path d="M7 21v-6a5 5 0 0 1 10 0v6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M12 4v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="12" cy="4" r="0.9" fill="currentColor" stroke="none" />
+          <path d="M4 21h16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "Education":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path d="M12 5 3 9l9 4 9-4-9-4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M7 11.2V16c0 1.1 2.2 2 5 2s5-.9 5-2v-4.8" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="M21 9v5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      );
+    case "People":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <circle cx="9" cy="8" r="2.6" stroke="currentColor" strokeWidth="1.5" />
+          <path d="M4 19c0-3 2.2-5 5-5s5 2 5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <circle cx="17" cy="9" r="2" stroke="currentColor" strokeWidth="1.3" opacity="0.75" />
+          <path d="M15 19c.3-2.1 1.7-3.6 3.6-3.6 1.5 0 2.8 1 3.3 2.4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" opacity="0.75" />
+        </svg>
+      );
+    case "War":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path
+            d="M12 3c2 3 3.5 5 3.5 7.5A3.5 3.5 0 0 1 12 14a3.5 3.5 0 0 1-3.5-3.5C8.5 8 10 6 12 3Z"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinejoin="round"
+          />
+          <path d="M8 21h8M10 21v-4a2 2 0 0 1 4 0v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Agriculture":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path d="M12 21V8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path
+            d="M12 8c-2-1-3-2.5-3-4.5C10.5 3.5 12 4.8 12 6.5M12 8c2-1 3-2.5 3-4.5C13.5 3.5 12 4.8 12 6.5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M12 13.5c-1.7-.9-2.6-2.2-2.6-3.9C10.9 10 12 11 12 12.5M12 13.5c1.7-.9 2.6-2.2 2.6-3.9C13.1 10 12 11 12 12.5"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case "Achievement":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <circle cx="12" cy="9" r="4.5" stroke="currentColor" strokeWidth="1.5" />
+          <path d="m9 13-1.5 7 4.5-2.5 4.5 2.5L15 13" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+          <path d="m10 9 1.3 1.3L14 7.8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Flag":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path d="M6 21V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <path d="M6 5h12l-3 3.5L18 12H6" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+        </svg>
+      );
+    case "Culture":
+      return (
+        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
+          <path
+            d="M12 6.2c-1.8-1-4-1.4-6-1.1v13c2-.3 4.2.1 6 1.1 1.8-1 4-1.4 6-1.1v-13c-2-.3-4.2.1-6 1.1Z"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+          <path d="M12 6.2v13" stroke="currentColor" strokeWidth="1.2" opacity="0.6" />
+        </svg>
+      );
+    case "Document":
       return (
         <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
           <path d="M7 3h7l4 4v14H7Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -33,45 +116,63 @@ function SourceStatusIcon({ status, className }: { status: SourceStatus; classNa
           <path d="M9.5 12.5h5M9.5 16h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
       );
-    case "FamilyArchive":
-      return (
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
-          <path d="M4 11 12 4l8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6 10v9h12v-9" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        </svg>
-      );
-    case "OralHistory":
-      return (
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
-          <path d="M4 5h16v10H10l-3.5 3.5V15H4Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-        </svg>
-      );
-    case "LocalResearch":
-      return (
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
-          <circle cx="10.5" cy="10.5" r="6" stroke="currentColor" strokeWidth="1.5" />
-          <path d="m19.5 19.5-4.3-4.3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-        </svg>
-      );
-    case "TraditionalStory":
-      return (
-        <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
-          <path d="M4 6.5c3-1.4 6-1.4 8 0v12c-2-1.4-5-1.4-8 0v-12Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M20 6.5c-3-1.4-6-1.4-8 0v12c2-1.4 5-1.4 8 0v-12Z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
-        </svg>
-      );
-    case "UnderResearch":
+    case "General":
       return (
         <svg aria-hidden viewBox="0 0 24 24" fill="none" className={className}>
           <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M9.7 9.5a2.4 2.4 0 0 1 4.6.9c0 1.5-2.3 1.8-2.3 3.3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          <circle cx="12" cy="17" r="0.7" fill="currentColor" stroke="none" />
+          <path d="M12 7v5l3.5 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       );
   }
 }
 
-type Props = { events: HistoricalEventDto[]; initialActiveIndex?: number };
+/** Cover image + additional images as one clickable gallery — clicking a
+ * thumbnail swaps the main image. Keyed by event id from the caller so
+ * switching events resets the selection back to the cover image. */
+function EventGallery({ event }: { event: HistoricalEventDto }) {
+  const [selected, setSelected] = useState(0);
+  const images = [
+    ...(event.coverImageUrl ? [{ url: event.coverImageUrl, alt: event.title }] : []),
+    ...event.additionalImages.map((img) => ({ url: img.imageUrl, alt: event.title })),
+  ];
+
+  if (images.length === 0) {
+    return (
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-xl">
+        <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
+      </div>
+    );
+  }
+
+  const main = images[Math.min(selected, images.length - 1)];
+
+  return (
+    <div>
+      <div className="aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
+        <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 42vw, 100vw" />
+      </div>
+      {images.length > 1 ? (
+        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+          {images.map((image, i) => (
+            <button
+              key={image.url}
+              type="button"
+              onClick={() => setSelected(i)}
+              aria-label={`Şəkil ${i + 1}`}
+              aria-current={i === selected}
+              className={cn(
+                "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-colors",
+                i === selected ? "border-forest" : "border-transparent opacity-60 hover:opacity-100",
+              )}
+            >
+              <VillagePhoto src={image.url} alt="" tone="warm" sizes="56px" />
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 /** Shared write-up content — rendered once inside the desktop shared
  * panel and once inside each mobile item's inline accordion, so the two
@@ -95,7 +196,7 @@ function EventDetailContent({
 }) {
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-start lg:gap-10">
+      <div className="grid gap-6 lg:grid-cols-[0.8fr_1fr] lg:items-start lg:gap-10">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="terracotta">{event.period}</Badge>
@@ -117,27 +218,7 @@ function EventDetailContent({
             </p>
           ) : null}
         </div>
-        <div>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
-            <VillagePhoto
-              src={event.coverImageUrl ?? undefined}
-              alt={event.title}
-              tone="forest"
-              variant="scene"
-              placeholderLabel={`${event.period} — arxiv fotosu tezliklə əlavə olunacaq`}
-              sizes="(min-width: 1024px) 40vw, 100vw"
-            />
-          </div>
-          {event.additionalImages.length > 0 ? (
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {event.additionalImages.map((image) => (
-                <div key={image.id} className="aspect-square overflow-hidden rounded-lg">
-                  <VillagePhoto src={image.imageUrl} alt={event.title} tone="warm" sizes="120px" />
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
+        <EventGallery key={event.id} event={event} />
       </div>
 
       <div className="mt-5 flex items-center justify-between border-t border-stone-light pt-3">
@@ -167,6 +248,8 @@ function EventDetailContent({
   );
 }
 
+type Props = { events: HistoricalEventDto[]; initialActiveIndex?: number };
+
 /**
  * Museum-wall timeline: a bold horizontal line spans the section, small
  * circular markers sit on it, and clicking one opens a shared write-up
@@ -177,6 +260,13 @@ function EventDetailContent({
  * Both layouts render simultaneously (toggled by Tailwind breakpoints,
  * never JS media-query branching) and share one `activeIndex`/keyboard
  * model so focus/selection stay in sync if the viewport is resized.
+ *
+ * Marker spacing: the desktop track is `flex justify-between` with each
+ * event at a fixed width — with few events the browser distributes the
+ * leftover row width as extra gap between them (spreading them across
+ * the full line); with many events there's no leftover space to
+ * distribute, so they pack at their natural width and the track scrolls.
+ * No JS measurement/ResizeObserver — pure CSS handles both cases.
  */
 export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
   const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
@@ -225,7 +315,7 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
           <div
             role="tablist"
             aria-label="Zaman xəttində Musaküçə hadisələri"
-            className="flex gap-7 overflow-x-auto pb-2 lg:gap-9"
+            className="flex items-start justify-between gap-5 overflow-x-auto pb-2 lg:gap-8"
           >
             {events.map((event, i) => {
               const active = i === activeIndex;
@@ -248,17 +338,17 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                   <span
                     aria-hidden
                     className={cn(
-                      "relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-cream transition-all duration-150",
+                      "relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-cream transition-transform duration-200",
                       active
                         ? "scale-125 border-forest bg-forest text-cream shadow-md"
                         : "border-stone text-ink-faint group-hover:scale-110 group-hover:border-terracotta group-hover:text-terracotta",
                     )}
                   >
-                    <SourceStatusIcon status={event.sourceStatus} className="h-4 w-4" />
+                    <EventIconGraphic icon={event.eventIcon} className="h-4 w-4" />
                   </span>
                   <div
                     className={cn(
-                      "mt-2 w-full rounded-lg px-2 py-1.5 transition-colors",
+                      "mt-2 w-full rounded-lg px-2 py-1.5 transition-colors duration-200",
                       active ? "bg-forest/10" : "group-hover:bg-terracotta/10",
                     )}
                   >
@@ -324,11 +414,11 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute top-2 left-0 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-cream transition-all duration-150",
+                    "absolute top-2 left-0 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-cream transition-transform duration-200",
                     active ? "scale-110 border-forest bg-forest text-cream shadow-md" : "border-stone text-ink-faint",
                   )}
                 >
-                  <SourceStatusIcon status={event.sourceStatus} className="h-3.5 w-3.5" />
+                  <EventIconGraphic icon={event.eventIcon} className="h-3.5 w-3.5" />
                 </span>
                 <div className={cn("flex-1 rounded-lg px-2 py-1", active && "bg-forest/10")}>
                   <p className={cn("text-xs font-semibold", active ? "text-forest" : "text-terracotta-dark")}>{event.period}</p>

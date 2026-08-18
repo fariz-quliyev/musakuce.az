@@ -18,6 +18,7 @@ public class HistoricalEventConfiguration : IEntityTypeConfiguration<HistoricalE
 
         builder.Property(x => x.SourceStatus).HasConversion<string>().HasMaxLength(30);
         builder.Property(x => x.PublicationStatus).HasConversion<string>().HasMaxLength(20);
+        builder.Property(x => x.EventIcon).HasConversion<string>().HasMaxLength(30);
 
         builder.HasIndex(x => x.DisplayOrder);
         builder.HasIndex(x => x.PublicationStatus);

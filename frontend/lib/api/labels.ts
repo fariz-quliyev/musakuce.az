@@ -3,6 +3,7 @@ import type {
   CulturalHeritageKind,
   EducationKind,
   EventCategory,
+  EventIcon,
   ListingStatus,
   LocalInfoKind,
   MemorialCategory,
@@ -182,4 +183,18 @@ export const sourceStatusLabels: Record<SourceStatus, string> = {
   LocalResearch: "Yerli araşdırma",
   TraditionalStory: "Rəvayət",
   UnderResearch: "Araşdırılır",
+};
+
+export const eventIconLabels: Record<EventIcon, string> = {
+  Settlement: "Məskunlaşma",
+  Religion: "Din / məscid",
+  Education: "Təhsil",
+  People: "İnsanlar",
+  War: "Müharibə / xatirə",
+  Agriculture: "Kənd təsərrüfatı",
+  Achievement: "Nailiyyət",
+  Flag: "Bayraq / rəsmi",
+  Culture: "Mədəniyyət",
+  Document: "Sənəd",
+  General: "Ümumi",
 };
