@@ -149,7 +149,7 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl">
+      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl lg:max-w-sm">
         <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
       </div>
     );
@@ -158,9 +158,9 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
   const main = images[Math.min(selected, images.length - 1)];
 
   return (
-    <div>
+    <div className="lg:max-w-sm">
       <div className="aspect-[16/10] w-full overflow-hidden rounded-xl shadow-md">
-        <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 42vw, 100vw" />
+        <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 24rem, 100vw" />
       </div>
       {images.length > 1 ? (
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
@@ -207,7 +207,7 @@ function EventDetailContent({
 }) {
   return (
     <>
-      <div className="grid gap-5 lg:grid-cols-[0.8fr_1fr] lg:items-start lg:gap-8">
+      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-8">
         <div>
           <div className="flex flex-wrap items-center gap-2">
             <Badge tone="terracotta">{event.period}</Badge>
@@ -300,6 +300,11 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
   }, [activeIndex]);
 
   useEffect(() => {
+    // Deliberately deferred to the tick after mount's paint — see the
+    // caretTransitionReady comment above. Enabling this synchronously in
+    // the layout effect that also corrects caretLeft would re-admit the
+    // mid-transition flakiness that fix addressed.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCaretTransitionReady(true);
   }, []);
 
@@ -358,12 +363,20 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
       {/* Desktop / tablet — horizontal museum-wall layout */}
       <div className="hidden sm:block">
         <div className="relative">
-          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[18.5px] h-[3px] rounded-full bg-forest/70" />
+          <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[26.5px] h-[3px] rounded-full bg-forest/70" />
+          <svg
+            aria-hidden
+            viewBox="0 0 24 24"
+            fill="none"
+            className="pointer-events-none absolute top-5 right-0 h-4 w-4 text-forest/70"
+          >
+            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
           <div
             ref={trackRef}
             role="tablist"
             aria-label="Zaman xəttində Musaküçə hadisələri"
-            className="flex items-start justify-between gap-5 overflow-x-auto pb-2 lg:gap-8"
+            className="flex items-start justify-between gap-5 overflow-x-auto pt-2 pb-2 lg:gap-8"
           >
             {events.map((event, i) => {
               const active = i === activeIndex;
