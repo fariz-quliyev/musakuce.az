@@ -5,6 +5,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { HistoryBrowser } from "@/components/history/HistoryBrowser";
 import { historyApi } from "@/lib/api/history";
 import { withFallback } from "@/lib/api/withFallback";
+import { withPublicDescription } from "@/lib/historyDefaults";
 import type { HistoricalEventDto, PagedResult } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -95,7 +96,7 @@ export default async function TariximizPage() {
           className="mb-10"
         />
 
-        <HistoryBrowser initialData={events} initialIsLive={isLive} />
+        <HistoryBrowser initialData={{ ...events, items: events.items.map(withPublicDescription) }} initialIsLive={isLive} />
       </Container>
     </PageShell>
   );

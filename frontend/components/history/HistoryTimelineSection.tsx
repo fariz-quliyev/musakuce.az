@@ -4,6 +4,7 @@ import { HistoryTimeline } from "./HistoryTimeline";
 import { historyApi } from "@/lib/api/history";
 import { timelineSettingsApi } from "@/lib/api/timelineSettings";
 import { withFallback } from "@/lib/api/withFallback";
+import { withPublicDescription } from "@/lib/historyDefaults";
 import type { HistoricalEventDto, TimelineSettingsDto } from "@/lib/api/types";
 
 const FALLBACK_EVENTS: HistoricalEventDto[] = [];
@@ -55,7 +56,7 @@ export async function HistoryTimelineSection() {
     <div className="border-y border-stone-light bg-cream-deep">
       <Container as="section" className="py-10 sm:py-14">
         <SectionHeading eyebrow="Kəndin tarixi" title={settings.title} description={settings.subtitle} className="mb-8" />
-        <HistoryTimeline events={cappedEvents} initialActiveIndex={initialActiveIndex} />
+        <HistoryTimeline events={cappedEvents.map(withPublicDescription)} initialActiveIndex={initialActiveIndex} />
       </Container>
     </div>
   );
