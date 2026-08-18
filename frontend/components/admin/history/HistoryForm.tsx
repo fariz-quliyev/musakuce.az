@@ -23,6 +23,8 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(event?.coverMediaAssetId ?? null);
   const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(event?.coverImageUrl ?? null);
+  const [iconMediaAssetId, setIconMediaAssetId] = useState<string | null>(event?.iconMediaAssetId ?? null);
+  const [iconPreviewUrl, setIconPreviewUrl] = useState<string | null>(event?.iconImageUrl ?? null);
   const [additionalImages, setAdditionalImages] = useState<ImageSlot[]>(
     () => event?.additionalImages.map((img) => ({ key: img.id, mediaAssetId: img.mediaAssetId, previewUrl: img.imageUrl })) ?? [],
   );
@@ -54,6 +56,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
       displayOrder: Number(form.get("displayOrder") ?? 0),
       eventIcon: form.get("eventIcon") as EventIcon,
       coverMediaAssetId,
+      iconMediaAssetId,
       showInTimeline: form.get("showInTimeline") === "on",
       additionalImageMediaAssetIds: additionalImages.flatMap((s) => (s.mediaAssetId ? [s.mediaAssetId] : [])),
     };
@@ -117,7 +120,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
         </FormField>
       </div>
 
-      <FormField label="Timeline ikonu" htmlFor="eventIcon" required hint="Hadisənin xarakterinə uyğun marker seçin">
+      <FormField label="Timeline ikonu" htmlFor="eventIcon" required hint="Hadisənin xarakterinə uyğun marker seçin — aşağıda öz şəklinizi yükləsəniz, o bunun yerinə istifadə olunur">
         <Select id="eventIcon" name="eventIcon" defaultValue={event?.eventIcon ?? "General"} required>
           {EVENT_ICON_OPTIONS.map(([value, label]) => (
             <option key={value} value={value}>
@@ -126,6 +129,31 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
           ))}
         </Select>
       </FormField>
+
+      <div className="grid gap-2">
+        <ImageUploadField
+          key={iconMediaAssetId ?? "empty"}
+          label="Xüsusi marker şəkli"
+          initialPreviewUrl={iconPreviewUrl}
+          onUploaded={(media) => {
+            setIconMediaAssetId(media.id);
+            setIconPreviewUrl(media.url);
+          }}
+          hint="Boş buraxıla bilər — yüklənərsə, yuxarıdakı kateqoriya ikonu əvəzinə bu şəkil kiçik dairəvi marker kimi göstərilir"
+        />
+        {iconMediaAssetId ? (
+          <button
+            type="button"
+            onClick={() => {
+              setIconMediaAssetId(null);
+              setIconPreviewUrl(null);
+            }}
+            className="w-fit text-xs font-medium text-danger hover:underline"
+          >
+            Şəkli sil
+          </button>
+        ) : null}
+      </div>
 
       <FormField
         label="Mənbə istinadı"

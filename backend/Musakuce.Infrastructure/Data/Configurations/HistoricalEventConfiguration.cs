@@ -24,6 +24,7 @@ public class HistoricalEventConfiguration : IEntityTypeConfiguration<HistoricalE
         builder.HasIndex(x => x.PublicationStatus);
 
         builder.HasOne(x => x.CoverMediaAsset).WithMany().HasForeignKey(x => x.CoverMediaAssetId).OnDelete(DeleteBehavior.SetNull);
+        builder.HasOne(x => x.IconMediaAsset).WithMany().HasForeignKey(x => x.IconMediaAssetId).OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(x => x.AdditionalImages)
             .WithOne(x => x.HistoricalEvent)

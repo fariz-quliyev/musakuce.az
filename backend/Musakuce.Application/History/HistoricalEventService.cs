@@ -13,6 +13,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
     {
         var events = db.HistoricalEvents
             .Include(e => e.CoverMediaAsset)
+            .Include(e => e.IconMediaAsset)
             .Include(e => e.AdditionalImages).ThenInclude(i => i.MediaAsset)
             .AsNoTracking()
             .AsQueryable();
@@ -39,6 +40,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
     {
         var ev = await db.HistoricalEvents
             .Include(e => e.CoverMediaAsset)
+            .Include(e => e.IconMediaAsset)
             .Include(e => e.AdditionalImages).ThenInclude(i => i.MediaAsset)
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == id && e.PublicationStatus == (publicationStatus ?? PublicationStatus.Published), ct)
@@ -71,6 +73,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         };
 
         await ApplyCoverMediaAssetAsync(ev, request.CoverMediaAssetId, ct);
+        await ApplyIconMediaAssetAsync(ev, request.IconMediaAssetId, ct);
         await ApplyAdditionalImagesAsync(ev, request.AdditionalImageMediaAssetIds, ct);
 
         db.HistoricalEvents.Add(ev);
@@ -83,6 +86,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
     {
         var ev = await db.HistoricalEvents
             .Include(e => e.CoverMediaAsset)
+            .Include(e => e.IconMediaAsset)
             .Include(e => e.AdditionalImages).ThenInclude(i => i.MediaAsset)
             .FirstOrDefaultAsync(e => e.Id == id, ct)
             ?? throw new NotFoundException(nameof(HistoricalEvent), id);
@@ -106,6 +110,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         ev.PublicationStatus = PublicationStatus.Published;
 
         await ApplyCoverMediaAssetAsync(ev, request.CoverMediaAssetId, ct);
+        await ApplyIconMediaAssetAsync(ev, request.IconMediaAssetId, ct);
         await ApplyAdditionalImagesAsync(ev, request.AdditionalImageMediaAssetIds, ct);
 
         await db.SaveChangesAsync(ct);
@@ -124,6 +129,18 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
             ? await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == id, ct) ?? throw new NotFoundException(nameof(MediaAsset), id)
             : null;
         if (coverMediaAssetId is null) ev.CoverMediaAssetId = null;
+    }
+
+    /// <summary>Same pattern as ApplyCoverMediaAssetAsync — the optional
+    /// custom marker image that overrides EventIcon on the timeline.</summary>
+    private async Task ApplyIconMediaAssetAsync(HistoricalEvent ev, Guid? iconMediaAssetId, CancellationToken ct)
+    {
+        if (iconMediaAssetId == ev.IconMediaAssetId) return;
+
+        ev.IconMediaAsset = iconMediaAssetId is { } id
+            ? await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == id, ct) ?? throw new NotFoundException(nameof(MediaAsset), id)
+            : null;
+        if (iconMediaAssetId is null) ev.IconMediaAssetId = null;
     }
 
     /// <summary>Wholesale replace — same strategy as ListingService's
@@ -147,6 +164,7 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
     {
         var ev = await db.HistoricalEvents
             .Include(e => e.CoverMediaAsset)
+            .Include(e => e.IconMediaAsset)
             .Include(e => e.AdditionalImages).ThenInclude(i => i.MediaAsset)
             .FirstOrDefaultAsync(e => e.Id == id, ct)
             ?? throw new NotFoundException(nameof(HistoricalEvent), id);
@@ -171,5 +189,6 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         e.Id, e.Title, e.Period, e.EventDate, e.Description, e.DetailedText, e.SourceStatus, e.SourceReference,
         includeEditorial ? e.EditorialNote : null, includeEditorial ? e.OriginalSourceText : null,
         e.DisplayOrder, e.PublicationStatus, e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.ShowInTimeline, e.IsDefault, e.EventIcon,
+        e.IconMediaAssetId, e.IconMediaAsset?.Url,
         e.AdditionalImages.OrderBy(i => i.SortOrder).Select(i => new HistoricalEventImageDto(i.Id, i.MediaAssetId, i.MediaAsset!.Url, i.SortOrder)).ToList());
 }

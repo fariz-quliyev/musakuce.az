@@ -47,8 +47,14 @@ public class HistoricalEvent : BaseEntity
     /// admin UI can flag "this is sample content, review/replace it."</summary>
     public bool IsDefault { get; set; }
     /// <summary>Admin-picked timeline marker category — see EventIcon doc
-    /// comment for why this isn't inferred from Title/Description text.</summary>
+    /// comment for why this isn't inferred from Title/Description text.
+    /// Used as the marker glyph only when IconMediaAssetId is null.</summary>
     public EventIcon EventIcon { get; set; } = EventIcon.General;
+    /// <summary>Optional custom marker image, uploaded via the same
+    /// media pipeline as CoverMediaAssetId — takes over the small
+    /// circular timeline marker when set, overriding EventIcon.</summary>
+    public Guid? IconMediaAssetId { get; set; }
+    public MediaAsset? IconMediaAsset { get; set; }
     public ICollection<HistoricalEventImage> AdditionalImages { get; set; } = new List<HistoricalEventImage>();
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { sourceStatusLabels } from "@/lib/api/labels";
@@ -124,6 +125,16 @@ function EventIconGraphic({ icon, className }: { icon: EventIcon; className?: st
         </svg>
       );
   }
+}
+
+/** Marker content: an admin-uploaded custom icon image (fills the whole
+ * circle, edge-to-edge) takes over when present, otherwise the category
+ * glyph from EventIconGraphic. */
+function MarkerGlyph({ event, iconClassName }: { event: HistoricalEventDto; iconClassName?: string }) {
+  if (event.iconImageUrl) {
+    return <Image src={event.iconImageUrl} alt="" fill sizes="40px" className="rounded-full object-cover" />;
+  }
+  return <EventIconGraphic icon={event.eventIcon} className={iconClassName} />;
 }
 
 /** Cover image + additional images as one clickable gallery — clicking a
@@ -338,13 +349,13 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                   <span
                     aria-hidden
                     className={cn(
-                      "relative z-10 flex h-9 w-9 items-center justify-center rounded-full border-2 bg-cream transition-transform duration-200",
+                      "relative z-10 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
                       active
                         ? "scale-125 border-forest bg-forest text-cream shadow-md"
                         : "border-stone text-ink-faint group-hover:scale-110 group-hover:border-terracotta group-hover:text-terracotta",
                     )}
                   >
-                    <EventIconGraphic icon={event.eventIcon} className="h-4 w-4" />
+                    <MarkerGlyph event={event} iconClassName="h-4 w-4" />
                   </span>
                   <div
                     className={cn(
@@ -414,11 +425,11 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute top-2 left-0 z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-cream transition-transform duration-200",
+                    "absolute top-2 left-0 z-10 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border-2 bg-cream transition-transform duration-200",
                     active ? "scale-110 border-forest bg-forest text-cream shadow-md" : "border-stone text-ink-faint",
                   )}
                 >
-                  <EventIconGraphic icon={event.eventIcon} className="h-3.5 w-3.5" />
+                  <MarkerGlyph event={event} iconClassName="h-3.5 w-3.5" />
                 </span>
                 <div className={cn("flex-1 rounded-lg px-2 py-1", active && "bg-forest/10")}>
                   <p className={cn("text-xs font-semibold", active ? "text-forest" : "text-terracotta-dark")}>{event.period}</p>

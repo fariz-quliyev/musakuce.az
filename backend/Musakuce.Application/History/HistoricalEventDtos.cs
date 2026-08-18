@@ -33,8 +33,13 @@ public record HistoricalEventDto(
     /// to filter what's shown publicly.</summary>
     bool IsDefault,
     /// <summary>Admin-picked timeline marker category (see EventIcon doc
-    /// comment) — never inferred from Title/Description.</summary>
+    /// comment) — never inferred from Title/Description. Used as the
+    /// marker glyph only when IconImageUrl is null.</summary>
     EventIcon EventIcon,
+    Guid? IconMediaAssetId,
+    /// <summary>Optional custom marker image — overrides EventIcon on
+    /// the timeline marker when present.</summary>
+    string? IconImageUrl,
     IReadOnlyList<HistoricalEventImageDto> AdditionalImages
 );
 
@@ -58,6 +63,7 @@ public class CreateHistoricalEventRequest
     public Guid? CoverMediaAssetId { get; set; }
     public bool ShowInTimeline { get; set; } = true;
     public EventIcon EventIcon { get; set; } = EventIcon.General;
+    public Guid? IconMediaAssetId { get; set; }
     /// <summary>Already-uploaded MediaAsset ids, in display order — the
     /// service replaces the event's whole AdditionalImages collection
     /// with this list on every create/update (same "wholesale replace"
