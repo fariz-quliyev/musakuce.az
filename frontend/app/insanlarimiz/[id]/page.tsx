@@ -10,6 +10,8 @@ import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
 import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
+import { biographyToPlainText, sanitizeBiographyHtml } from "@/lib/richText";
+import { cn } from "@/lib/cn";
 import type { PersonDto } from "@/lib/api/types";
 
 type Props = { params: Promise<{ id: string }> };
@@ -41,7 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const fullName = `${person.firstName} ${person.lastName}`;
     return buildPageMetadata({
       title: fullName,
-      description: person.occupation ?? personCategoryLabels[person.category],
+      description: person.occupation || biographyToPlainText(person.biography).slice(0, 160) || personCategoryLabels[person.category],
       path: `/insanlarimiz/${person.id}`,
       imageUrl: person.coverImageUrl,
     });
@@ -69,7 +71,7 @@ export default async function PersonDetailPage({ params }: Props) {
             ]),
             articleJsonLd({
               headline: fullName,
-              description: person.occupation ?? person.biography,
+              description: person.occupation || biographyToPlainText(person.biography),
               url: `/insanlarimiz/${person.id}`,
               imageUrl: person.coverImageUrl,
             }),
@@ -108,9 +110,21 @@ export default async function PersonDetailPage({ params }: Props) {
               <p className="mt-2 text-lg leading-relaxed text-ink-soft">{person.occupation}</p>
             ) : null}
 
-            <p className="mt-5 max-w-2xl text-base leading-relaxed whitespace-pre-line text-ink-soft">
-              {person.biography}
-            </p>
+            <div
+              className={cn(
+                "mt-5 max-w-2xl text-base leading-relaxed text-ink-soft",
+                "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
+                "[&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink",
+                "[&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink",
+                "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1",
+                "[&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-forest-dark",
+                "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-stone [&_blockquote]:pl-4 [&_blockquote]:italic",
+              )}
+              // Biography is sanitized (DOMPurify, fixed tag allowlist)
+              // just above — the only safe way to render admin-authored
+              // rich text here; never render person.biography directly.
+              dangerouslySetInnerHTML={{ __html: sanitizeBiographyHtml(person.biography) }}
+            />
 
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
               <Badge tone="neutral">{sourceStatusLabels[person.sourceStatus]}</Badge>

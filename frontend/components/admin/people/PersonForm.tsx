@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
-import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { BiographyEditor } from "@/components/admin/people/BiographyEditor";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
@@ -40,12 +40,33 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
+  const [biographyEmpty, setBiographyEmpty] = useState(!person?.biography?.trim());
   const isEdit = !!person;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus("submitting");
     const form = new FormData(event.currentTarget);
+    const biographyHtml = String(form.get("biography") ?? "");
+
+    // The editor is a contenteditable, not a native input, so the
+    // `required`/`maxLength` HTML5 constraints that used to apply to the
+    // `<textarea>` can't reach it — this replaces both, through the same
+    // error paragraph every other save failure already uses. The 8000
+    // limit is unchanged (PersonValidators.cs/PersonConfiguration.cs) —
+    // it now counts the saved HTML's length, same as what the backend
+    // actually validates against.
+    if (biographyEmpty) {
+      setStatus("error");
+      setErrorMessage("Bioqrafiya tələb olunur.");
+      return;
+    }
+    if (biographyHtml.length > 8000) {
+      setStatus("error");
+      setErrorMessage(`Bioqrafiya çox uzundur (${biographyHtml.length}/8000 simvol, formatlaşdırma daxil). Mətni qısaldın.`);
+      return;
+    }
+
+    setStatus("submitting");
 
     const payload = {
       firstName: String(form.get("firstName") ?? ""),
@@ -55,7 +76,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
       deathDate: String(form.get("deathDate") ?? "") || null,
       category: form.get("category") as PersonCategory,
       occupation: String(form.get("occupation") ?? "") || null,
-      biography: String(form.get("biography") ?? ""),
+      biography: biographyHtml,
       coverMediaAssetId,
       sourceStatus: form.get("sourceStatus") as SourceStatus,
     };
@@ -114,8 +135,29 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         </FormField>
       </div>
 
-      <FormField label="Bioqrafiya" htmlFor="biography" required>
-        <Textarea id="biography" name="biography" required maxLength={8000} defaultValue={person?.biography} />
+      <FormField
+        label="Bioqrafiya"
+        htmlFor="biography"
+        required
+        hint="Maks. 8000 simvol (formatlaşdırma teqləri də daxil olmaqla)"
+        className="min-w-0"
+      >
+        {/* min-w-0: FormField is a direct item of PersonForm's top-level
+            `grid` — a grid/flex item's default min-width is its
+            content's natural (unwrapped) size, which for the toolbar's
+            fixed-width buttons is wider than a 390px viewport. Without
+            this, the toolbar's own overflow-x-auto never gets a chance
+            to activate and the whole page grows to fit it instead
+            (confirmed empirically: removing the toolbar removed the
+            page-level horizontal overflow). Every other FormField in
+            this form is narrow enough that its content never hits this,
+            which is why this is the only one that needs it. */}
+        <BiographyEditor
+          id="biography"
+          name="biography"
+          initialContent={person?.biography ?? ""}
+          onEmptyChange={setBiographyEmpty}
+        />
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">
