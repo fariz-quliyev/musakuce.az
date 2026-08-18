@@ -67,6 +67,14 @@ public class UsersController(
         {
             await userManager.SetLockoutEnabledAsync(user, true);
             await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.MaxValue);
+            // Security-audit fix (§Phase 4) — disabling a user previously
+            // only blocked *new* logins; any token issued before the
+            // disable stayed valid until it naturally expired (up to
+            // 12h). This invalidates it immediately (see
+            // ApplicationUser.TokensValidAfter / Program.cs's
+            // OnTokenValidated).
+            user.TokensValidAfter = DateTimeOffset.UtcNow;
+            await userManager.UpdateAsync(user);
         }
 
         await auditLog.LogAsync(
@@ -90,6 +98,14 @@ public class UsersController(
             await userManager.RemoveFromRolesAsync(user, currentRoles);
         await userManager.AddToRoleAsync(user, request.Role);
 
+        // Security-audit fix (§Phase 4) — roles are baked into the JWT
+        // at login time, so without this, a role *downgrade* wouldn't
+        // actually take effect until the user's existing token expired
+        // (up to 12h) — they'd keep the old, more-privileged role's
+        // access in the meantime. This forces re-authentication.
+        user.TokensValidAfter = DateTimeOffset.UtcNow;
+        await userManager.UpdateAsync(user);
+
         await auditLog.LogAsync(
             "RoleChange", entityType: "ApplicationUser", entityId: user.Id.ToString(),
             oldValue: oldRole, newValue: request.Role, ct: ct);
@@ -110,6 +126,13 @@ public class UsersController(
         var result = await userManager.ResetPasswordAsync(user, token, request.NewPassword);
         if (!result.Succeeded)
             return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+
+        // Security-audit fix (§Phase 4) — a password reset (e.g. because
+        // the account was compromised) should also kill any session
+        // that was issued before the attacker was locked out, not just
+        // block future logins with the old password.
+        user.TokensValidAfter = DateTimeOffset.UtcNow;
+        await userManager.UpdateAsync(user);
 
         await auditLog.LogAsync("PasswordReset", entityType: "ApplicationUser", entityId: user.Id.ToString(), ct: ct);
         return NoContent();

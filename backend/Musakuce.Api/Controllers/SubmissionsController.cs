@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Musakuce.Api.Authorization;
 using Musakuce.Application.Submissions;
 
@@ -30,6 +31,7 @@ public class SubmissionsController(ISubmissionService service) : ControllerBase
     /// <summary>The one genuinely public, anonymous write endpoint on this controller.</summary>
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting("anonymous-write")]
     public async Task<ActionResult> Create(CreateSubmissionRequest request, CancellationToken ct)
     {
         var result = await service.CreateAsync(request, ct);

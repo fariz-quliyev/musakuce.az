@@ -28,11 +28,34 @@ const productionMediaPattern = (() => {
   }
 })();
 
+// Security-audit fix (§Phase 1 / §Phase 6) — every header here is
+// static (same value on every response), so it belongs in config
+// rather than middleware.ts, which exists solely for the per-request
+// CSP nonce (see middleware.ts's own doc comment). CSP itself is set
+// there, not here, so it isn't duplicated/overridden between the two.
+const securityHeaders = [
+  // 1 year + subdomains — no `preload` yet: submitting to the browser
+  // HSTS preload list is a separate, effectively one-way decision for
+  // whoever owns the domain, not something to opt into from a code change.
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains" },
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Deny every powerful feature this site has no legitimate use for;
+  // the map (Xerite) needs no browser geolocation API — it renders
+  // fixed, admin-entered coordinates, never the visitor's own location.
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()" },
+  // Belt-and-suspenders alongside the CSP frame-ancestors 'none' set in
+  // middleware.ts — X-Frame-Options is what pre-CSP3 browsers honor.
+  { key: "X-Frame-Options", value: "DENY" },
+];
+
 const nextConfig: NextConfig = {
   // Phase 15 §11 — produces a minimal self-contained server bundle
   // (.next/standalone) that frontend/Dockerfile copies into the runtime
   // image, instead of shipping the full node_modules tree in production.
   output: "standalone",
+  // Security-audit fix (§Phase 6) — stop disclosing "X-Powered-By: Next.js".
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       // MinIO in local Docker dev (infra/docker-compose.yml) — public
@@ -47,6 +70,9 @@ const nextConfig: NextConfig = {
       },
       ...(productionMediaPattern ? [productionMediaPattern] : []),
     ],
+  },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
   },
 };
 

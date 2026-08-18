@@ -85,7 +85,10 @@ services:
       minio:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      # Security-audit fix (§Phase 10) — readiness (DB-connectivity
+      # checked), not just liveness; see Program.cs's /health/ready and
+      # docker-compose.prod.yml's identical change for the full rationale.
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 5

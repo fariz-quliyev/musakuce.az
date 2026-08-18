@@ -20,7 +20,8 @@ public class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
         if (string.IsNullOrWhiteSpace(opts.Secret))
             throw new InvalidOperationException("Jwt:Secret is not configured.");
 
-        var expiresAt = DateTimeOffset.UtcNow.AddHours(opts.ExpiryHours);
+        var issuedAt = DateTimeOffset.UtcNow;
+        var expiresAt = issuedAt.AddHours(opts.ExpiryHours);
 
         var claims = new List<Claim>
         {
@@ -29,6 +30,11 @@ public class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenService
             new(ClaimTypes.Email, user.Email ?? ""),
             new(ClaimTypes.Name, user.DisplayName),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // Security-audit fix (§Phase 4) — explicit rather than relying
+            // on JwtPayload's implicit default, so the revocation check in
+            // Program.cs's OnTokenValidated has a claim it can trust
+            // regardless of library-version defaults.
+            new(JwtRegisteredClaimNames.Iat, issuedAt.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
         };
         claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
 

@@ -2,26 +2,99 @@ import { NextRequest, NextResponse } from "next/server";
 import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
 
 /**
- * First line of defense for /admin/* — presence-only check (this is
- * Edge middleware, no JWT verification library here). This is a UX
- * convenience, not the security boundary: every API call independently
- * re-validates the token server-side (Program.cs JWT bearer + policy
- * checks), so a bypassed/spoofed cookie still can't reach real data —
- * see Phase 7 report §7 "Do not rely on client-side checks alone".
+ * Security-audit fix (§Phase 1) — this file already existed for one
+ * narrow purpose (the admin cookie-presence redirect below, scoped to
+ * /admin/* only); it's now also where the CSP nonce is generated, since
+ * that needs to run on every route, not just /admin. Merging both
+ * concerns into this one file — rather than adding a second
+ * middleware.ts — is required, not a style choice: Next.js 16 only
+ * allows one proxy/middleware file per app and errors the build if it
+ * finds both `middleware.ts` and `proxy.ts` (confirmed by hitting that
+ * exact build error while first attempting the CSP fix as a separate
+ * file).
  *
- * Named/exported as `proxy` per the Next.js 16 convention (renamed from
- * `middleware.ts`/`export function middleware` in Phase 7).
+ * CSP-nonce half (all routes matched below): follows Next.js's own
+ * documented App Router CSP pattern
+ * (https://nextjs.org/docs/app/guides/content-security-policy) — the
+ * nonce is threaded through both the outgoing request headers (so
+ * Server Components could read it via `headers()` if ever needed) and
+ * the response's CSP header, and Next's own script injection for
+ * hydration/RSC payloads automatically picks up the nonce from that
+ * response header — no manual nonce-threading through every page.
+ *
+ * script-src has no 'unsafe-inline'/'unsafe-eval' — the nonce +
+ * 'strict-dynamic' pair covers every script Next.js itself injects
+ * (hydration bootstrap, RSC flight chunks, dynamically-loaded route
+ * chunks) without needing to allow-list by URL. style-src keeps
+ * 'unsafe-inline' deliberately: this codebase uses React inline
+ * `style={{...}}` attributes for values that can only be known at
+ * render time (e.g. HistoryTimeline's computed caret position,
+ * map-picker pin coordinates) — CSP has no nonce/hash mechanism for
+ * style *attributes* (only for <style> block elements), so there is no
+ * script-src-equivalent strict option here without rewriting every
+ * dynamic-position component to inject a <style> tag instead. This is
+ * the standard, well-understood tradeoff for React apps — style-src
+ * 'unsafe-inline' cannot execute JavaScript, only apply CSS.
+ *
+ * Admin-gate half (only when the path is under /admin, excluding
+ * /admin/login): unchanged from before this fix — presence-only check,
+ * Edge middleware has no JWT verification library here, so this is a
+ * UX convenience/first line of defense, not the security boundary
+ * (every API call independently re-validates the token server-side —
+ * see Program.cs's JWT bearer + policy checks).
  */
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  if (!token) {
+  const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
+
+  const mediaHost = (() => {
+    const raw = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
+    if (!raw) return "";
+    try {
+      return new URL(raw).origin;
+    } catch {
+      return "";
+    }
+  })();
+
+  const csp = [
+    `default-src 'self'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `style-src 'self' 'unsafe-inline'`,
+    `img-src 'self' data: blob: ${mediaHost}`.trim(),
+    `font-src 'self'`,
+    `connect-src 'self'`,
+    `object-src 'none'`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `frame-ancestors 'none'`,
+    `upgrade-insecure-requests`,
+  ].join("; ");
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+
+  const isAdminRoute = request.nextUrl.pathname.startsWith("/admin") && request.nextUrl.pathname !== "/admin/login";
+  if (isAdminRoute && !request.cookies.get(AUTH_COOKIE_NAME)?.value) {
     const loginUrl = new URL("/admin/login", request.url);
     loginUrl.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
-    return NextResponse.redirect(loginUrl);
+    const redirect = NextResponse.redirect(loginUrl);
+    redirect.headers.set("Content-Security-Policy", csp);
+    return redirect;
   }
-  return NextResponse.next();
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
+  return response;
 }
 
 export const config = {
-  matcher: ["/admin", "/admin/((?!login).*)"],
+  matcher: [
+    // Every route except static assets and the image optimizer, which
+    // don't need a fresh nonce and shouldn't pay the middleware cost.
+    // Broadened from the pre-existing /admin-only matcher (kept as the
+    // in-function `isAdminRoute` check above instead) so the CSP nonce
+    // covers the whole site, not just /admin.
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|webp|avif|ico)$).*)",
+  ],
 };

@@ -91,7 +91,14 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      # Security-audit fix (§Phase 10) — readiness (confirms Postgres is
+      # actually reachable), not just liveness. This is what gates
+      # `frontend`'s own `depends_on: condition: service_healthy` below
+      # — previously that only meant "the api process didn't crash," not
+      # "the api can serve real data." /health (liveness, DB-independent
+      # by design) still exists unchanged for anything that wants a pure
+      # process-alive check.
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
       interval: 10s
       timeout: 5s
       retries: 5

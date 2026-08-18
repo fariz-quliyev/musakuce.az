@@ -331,24 +331,33 @@ directly (redirected before that).
 
 ## 12. Health checks
 
-- `GET /health` (API) — `{"status":"ok"}`, no auth, no sensitive info
-  (confirmed by reading `Program.cs`: it's a single hardcoded literal,
-  not derived from any internal state). Used by `api`'s own Docker
-  healthcheck and can be used for an external uptime monitor.
+- `GET /health` (API) — liveness: `{"status":"ok"}`, no auth, no
+  sensitive info, deliberately independent of Postgres/R2/anything
+  external (confirmed by reading `Program.cs`: it's a single hardcoded
+  literal, not derived from any internal state) — a database outage
+  must never make an otherwise-healthy process look dead.
+- `GET /health/ready` (API) — readiness (security-audit fix, Phase 10):
+  additionally confirms Postgres is reachable via
+  `Database.CanConnectAsync()`, no auth, returns `503` (not `200`) when
+  the database can't be reached. This is what `api`'s Docker healthcheck
+  now uses in both `docker-compose.yml` and `docker-compose.prod.yml` —
+  `/health` still exists unchanged for anything that specifically wants
+  the pure liveness check.
 - `GET /` (frontend) — used by the frontend's own Docker healthcheck
   (200 = healthy).
 - Nginx — healthcheck added this phase (`wget --spider` against
   `https://localhost/`).
 - Postgres — `pg_isready`, already existed.
 
-This project doesn't distinguish liveness from readiness as separate
-endpoints — `/health` conflates both (matching Phase 14's assessment: a
-minimal container/orchestration check, not a product feature). Adding a
-true readiness probe (e.g. checking DB connectivity from inside the
-handler) would be a reasonable future enhancement but isn't required for
-a single-instance Compose deployment, where Compose's own
-`depends_on: condition: service_healthy` already sequences startup
-correctly using the existing check.
+Previously this project didn't distinguish liveness from readiness as
+separate endpoints — `/health` conflated both (matching Phase 14's
+original assessment: a minimal container/orchestration check, not a
+product feature). The security audit that added `/health/ready` above
+is exactly the "reasonable future enhancement" this section used to
+describe as optional; it's no longer optional now that it exists.
+`depends_on: condition: service_healthy` (the `frontend` service, gated
+on `api`) now means "the API can reach its database," not just "the API
+process didn't crash."
 
 ## 13. Logging
 

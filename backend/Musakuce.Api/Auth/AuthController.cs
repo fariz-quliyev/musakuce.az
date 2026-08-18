@@ -57,14 +57,29 @@ public class AuthController(
         return Ok(new LoginResponse(token, expiresAt, ToDto(user, roles)));
     }
 
-    /// <summary>No server-side session to invalidate for a stateless JWT
-    /// — this just records the audit event. The client (Next.js login
-    /// route) is responsible for discarding the token cookie.</summary>
+    /// <summary>Security-audit fix (§Phase 4) — this used to just record
+    /// the audit event, since a stateless JWT has no server-side session
+    /// to invalidate. It now also bumps TokensValidAfter, so the token
+    /// this very request was authenticated with (and anything issued
+    /// before it) stops being accepted on its next use — the closest
+    /// this architecture gets to a real server-side logout without a
+    /// session store. The client (Next.js login route) is still
+    /// responsible for discarding the token cookie for this device.</summary>
     [HttpPost("logout")]
     [Authorize]
     public async Task<ActionResult> Logout(CancellationToken ct)
     {
         var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userId, out var id))
+        {
+            var user = await userManager.FindByIdAsync(id.ToString());
+            if (user is not null)
+            {
+                user.TokensValidAfter = DateTimeOffset.UtcNow;
+                await userManager.UpdateAsync(user);
+            }
+        }
+
         await auditLog.LogAsync("Logout", entityType: "ApplicationUser", entityId: userId, ct: ct);
         return NoContent();
     }

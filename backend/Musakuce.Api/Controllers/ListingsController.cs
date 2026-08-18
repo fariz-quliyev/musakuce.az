@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Musakuce.Api.Authorization;
 using Musakuce.Application.Listings;
 using Musakuce.Domain.Enums;
@@ -38,6 +39,7 @@ public class ListingsController(IListingService service, IAuthorizationService a
     /// <summary>Public, anonymous submission — always created Pending/Active.</summary>
     [HttpPost]
     [AllowAnonymous]
+    [EnableRateLimiting("anonymous-write")]
     public async Task<ActionResult> Create(CreateListingRequest request, CancellationToken ct)
     {
         var result = await service.CreateAsync(request, ct);

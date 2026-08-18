@@ -23,6 +23,17 @@ public class S3MediaStorage(IAmazonS3 client, IOptions<MediaStorageOptions> opti
             // R2 doesn't implement and rejects. Disabling it sends a single,
             // normally-signed request body instead; verified against real R2.
             UseChunkEncoding = false,
+            // Security-audit fix (§Phase 8) — every key this method is
+            // ever called with is content-addressed by construction: a
+            // fresh GUID+date prefix per upload (see
+            // MediaUploadService.UploadImageAsync's `prefix`), never
+            // reused for different content. A long, immutable cache
+            // lifetime is therefore safe — there is no "this URL's
+            // content changed, the cache needs to expire" case to guard
+            // against, unlike a typical mutable API response. The audit
+            // measured the previous behavior at 4h (Cloudflare's own
+            // default, since no Cache-Control was ever set here).
+            Headers = { CacheControl = "public, max-age=31536000, immutable" },
         };
         await client.PutObjectAsync(request, ct);
     }

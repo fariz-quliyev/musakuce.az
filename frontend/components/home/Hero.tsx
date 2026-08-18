@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { Button } from "@/components/ui/Button";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { HeroWeather } from "@/components/home/HeroWeather";
+import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { withFallback } from "@/lib/api/withFallback";
 import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
@@ -27,7 +28,7 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * 4) weather — a useful secondary element, not the hero's focal point.
  */
 export async function Hero() {
-  const { data: profile } = await withFallback(
+  const { data: profile, isLive } = await withFallback(
     () => villageProfileApi.get(undefined, HOMEPAGE_REVALIDATE_SECONDS),
     VILLAGE_PROFILE_FALLBACK,
   );
@@ -56,6 +57,7 @@ export async function Hero() {
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-5 pb-10 sm:px-8 sm:pb-14">
+        <DataSourceNote isLive={isLive} />
         <p className="mb-4 text-[length:var(--text-eyebrow)] font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-cream/80">
           Musaküçə — bizim kənd
         </p>

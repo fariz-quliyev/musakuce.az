@@ -1,7 +1,12 @@
 # syntax=docker/dockerfile:1
 
 # ---- build ------------------------------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# Security-audit fix (§Phase 7) — pinned to the digest current as of
+# 2026-08-18 so a future `docker build` can't silently pull a newer,
+# unreviewed image under the same ":10.0" tag. Repin deliberately (new
+# `docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:10.0`)
+# when intentionally taking a base-image update, not automatically.
+FROM mcr.microsoft.com/dotnet/sdk:10.0@sha256:e1ffd2a92ae84c1291bc1b6887501f8af98e6331e7af6d4c8d37168c5e87a64c AS build
 WORKDIR /src
 
 # Copy project files first so `dotnet restore` is cached independently
@@ -17,7 +22,9 @@ COPY . .
 RUN dotnet publish Musakuce.Api/Musakuce.Api.csproj -c Release -o /app/publish --no-restore
 
 # ---- final (runtime-only, no SDK) --------------------------------------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
+# Security-audit fix (§Phase 7) — same digest-pinning rationale as the
+# build stage above.
+FROM mcr.microsoft.com/dotnet/aspnet:10.0@sha256:a4556ed033fa96f984bb7a8d348851cb2d36b1281dd2420070045f664fbb5f94 AS final
 WORKDIR /app
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
