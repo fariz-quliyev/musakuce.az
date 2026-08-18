@@ -13,6 +13,12 @@ import type { HistoricalEventDto, PagedResult } from "@/lib/api/types";
 
 const PAGE_SIZE = 20;
 
+// Seeded placeholder events (HistoricalEventDto.isDefault) carry an
+// admin-facing "this is sample content" notice in their Description —
+// never shown verbatim to a public visitor; the admin list flags these
+// rows with a "Nümunə" badge instead (see HistoryTable.tsx).
+const DEFAULT_EVENT_NOTICE = "Bu hadisə haqqında məlumat hazırlanır — tezliklə əlavə olunacaq.";
+
 type Props = {
   initialData: PagedResult<HistoricalEventDto>;
   initialIsLive: boolean;
@@ -102,7 +108,9 @@ export function HistoryBrowser({ initialData, initialIsLive }: Props) {
                 />
                 <p className="font-display text-xl text-forest">{event.period}</p>
                 <h3 className="mt-1 font-display text-lg text-ink">{event.title}</h3>
-                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">{event.description}</p>
+                <p className="mt-1 max-w-2xl text-sm leading-relaxed text-ink-soft">
+                  {event.isDefault ? DEFAULT_EVENT_NOTICE : event.description}
+                </p>
                 <Badge tone="terracotta" className="mt-2">
                   {sourceStatusLabels[event.sourceStatus]}
                 </Badge>

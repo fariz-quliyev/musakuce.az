@@ -18,6 +18,7 @@ public interface IMusakuceDbContext
     DbSet<LocalInfoEntry> LocalInfoEntries { get; }
     DbSet<Person> People { get; }
     DbSet<HistoricalEvent> HistoricalEvents { get; }
+    DbSet<HistoricalEventImage> HistoricalEventImages { get; }
     DbSet<Photo> Photos { get; }
     DbSet<Video> Videos { get; }
     DbSet<CommunitySubmission> CommunitySubmissions { get; }
@@ -28,6 +29,7 @@ public interface IMusakuceDbContext
     DbSet<CulturalHeritageItem> CulturalHeritageItems { get; }
     DbSet<Interview> Interviews { get; }
     DbSet<EducationEntry> EducationEntries { get; }
+    DbSet<TimelineSettings> TimelineSettings { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

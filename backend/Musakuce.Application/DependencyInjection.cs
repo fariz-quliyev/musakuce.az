@@ -15,6 +15,7 @@ using Musakuce.Application.Photos;
 using Musakuce.Application.Places;
 using Musakuce.Application.Search;
 using Musakuce.Application.Submissions;
+using Musakuce.Application.Timeline;
 using Musakuce.Application.Videos;
 using Musakuce.Application.VillageProfiles;
 
@@ -59,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<IValidator<Submissions.UpdateSubmissionStatusRequest>, Submissions.UpdateSubmissionStatusRequestValidator>();
         services.AddScoped<IValidator<UpsertVillageProfileRequest>, UpsertVillageProfileRequestValidator>();
         services.AddScoped<IValidator<UpdateVillageProfileStatusRequest>, UpdateVillageProfileStatusRequestValidator>();
+        services.AddScoped<IValidator<UpsertTimelineSettingsRequest>, UpsertTimelineSettingsRequestValidator>();
         services.AddScoped<IValidator<CreateMemorialRecordRequest>, CreateMemorialRecordRequestValidator>();
         services.AddScoped<IValidator<UpdateMemorialRecordRequest>, UpdateMemorialRecordRequestValidator>();
         services.AddScoped<IValidator<UpdateMemorialRecordStatusRequest>, UpdateMemorialRecordStatusRequestValidator>();
@@ -85,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IMediaUploadService, MediaUploadService>();
         services.AddScoped<IVillageProfileService, VillageProfileService>();
+        services.AddScoped<ITimelineSettingsService, TimelineSettingsService>();
         services.AddScoped<IMemorialRecordService, MemorialRecordService>();
         services.AddScoped<ICulturalHeritageItemService, CulturalHeritageItemService>();
         services.AddScoped<IInterviewService, InterviewService>();

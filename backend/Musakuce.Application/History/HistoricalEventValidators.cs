@@ -9,6 +9,7 @@ public class CreateHistoricalEventRequestValidator : AbstractValidator<CreateHis
         RuleFor(x => x.Title).NotEmpty().MaximumLength(150);
         RuleFor(x => x.Period).NotEmpty().MaximumLength(50);
         RuleFor(x => x.Description).NotEmpty().MaximumLength(4000);
+        RuleFor(x => x.DetailedText).MaximumLength(8000);
         RuleFor(x => x.SourceStatus).IsInEnum();
         RuleFor(x => x.SourceReference).MaximumLength(500);
         RuleFor(x => x.EditorialNote).MaximumLength(2000);

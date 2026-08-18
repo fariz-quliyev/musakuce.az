@@ -18,6 +18,7 @@ public class MusakuceDbContext(DbContextOptions<MusakuceDbContext> options)
     public DbSet<LocalInfoEntry> LocalInfoEntries => Set<LocalInfoEntry>();
     public DbSet<Person> People => Set<Person>();
     public DbSet<HistoricalEvent> HistoricalEvents => Set<HistoricalEvent>();
+    public DbSet<HistoricalEventImage> HistoricalEventImages => Set<HistoricalEventImage>();
     public DbSet<Photo> Photos => Set<Photo>();
     public DbSet<Video> Videos => Set<Video>();
     public DbSet<CommunitySubmission> CommunitySubmissions => Set<CommunitySubmission>();
@@ -28,6 +29,7 @@ public class MusakuceDbContext(DbContextOptions<MusakuceDbContext> options)
     public DbSet<CulturalHeritageItem> CulturalHeritageItems => Set<CulturalHeritageItem>();
     public DbSet<Interview> Interviews => Set<Interview>();
     public DbSet<EducationEntry> EducationEntries => Set<EducationEntry>();
+    public DbSet<TimelineSettings> TimelineSettings => Set<TimelineSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

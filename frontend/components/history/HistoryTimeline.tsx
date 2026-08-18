@@ -7,6 +7,12 @@ import { sourceStatusLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
 import type { HistoricalEventDto, SourceStatus } from "@/lib/api/types";
 
+// Seeded placeholder events (HistoricalEventDto.isDefault) carry an
+// admin-facing "this is sample content" notice in their Description —
+// never shown verbatim to a public visitor; the admin list flags these
+// rows with a "Nümunə" badge instead (see HistoryTable.tsx).
+const DEFAULT_EVENT_NOTICE = "Bu hadisə haqqında məlumat hazırlanır — tezliklə əlavə olunacaq.";
+
 /** Source-status glyphs double as the timeline's "event icon" — a real,
  * already-published classification (see sourceStatusLabels) rather than
  * a fabricated event category the data model doesn't have. */
@@ -65,7 +71,7 @@ function SourceStatusIcon({ status, className }: { status: SourceStatus; classNa
   }
 }
 
-type Props = { events: HistoricalEventDto[] };
+type Props = { events: HistoricalEventDto[]; initialActiveIndex?: number };
 
 /**
  * Interactive horizontal timeline (tablist pattern): each mini-card is a
@@ -79,8 +85,8 @@ type Props = { events: HistoricalEventDto[] };
  * VillagePhoto's placeholder rather than borrowing an unrelated real
  * photo, which would misrepresent it as depicting that specific event.
  */
-export function HistoryTimeline({ events }: Props) {
-  const [activeIndex, setActiveIndex] = useState(0);
+export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
+  const [activeIndex, setActiveIndex] = useState(initialActiveIndex);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const activeEvent = events[activeIndex];
   const hasPrev = activeIndex > 0;
@@ -160,11 +166,19 @@ export function HistoryTimeline({ events }: Props) {
                   )}
                 >
                   <div className="aspect-[4/3] w-full overflow-hidden rounded-lg">
-                    <VillagePhoto alt={event.title} tone={active ? "forest" : "warm"} placeholderLabel={event.period} sizes="220px" />
+                    <VillagePhoto
+                      src={event.coverImageUrl ?? undefined}
+                      alt={event.title}
+                      tone={active ? "forest" : "warm"}
+                      placeholderLabel={event.period}
+                      sizes="220px"
+                    />
                   </div>
                   <p className="mt-2.5 font-display text-sm text-forest">{event.period}</p>
                   <h3 className="mt-0.5 line-clamp-2 font-display text-base leading-snug text-ink">{event.title}</h3>
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-soft">{event.description}</p>
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-soft">
+                    {event.isDefault ? DEFAULT_EVENT_NOTICE : event.description}
+                  </p>
                 </div>
               </button>
             );
@@ -188,7 +202,12 @@ export function HistoryTimeline({ events }: Props) {
             <h3 className="mt-3 font-display text-[length:var(--text-h3)] leading-[var(--text-h3--line-height)] text-ink">
               {activeEvent.title}
             </h3>
-            <p className="mt-3 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">{activeEvent.description}</p>
+            <p className="mt-3 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">
+              {activeEvent.isDefault ? DEFAULT_EVENT_NOTICE : activeEvent.description}
+            </p>
+            {activeEvent.detailedText ? (
+              <p className="mt-3 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">{activeEvent.detailedText}</p>
+            ) : null}
             {activeEvent.sourceReference ? (
               <p className="mt-4 text-xs text-ink-faint">
                 <span className="font-semibold text-ink">Mənbə: </span>
@@ -196,14 +215,26 @@ export function HistoryTimeline({ events }: Props) {
               </p>
             ) : null}
           </div>
-          <div className="aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
-            <VillagePhoto
-              alt={activeEvent.title}
-              tone="forest"
-              variant="scene"
-              placeholderLabel={`${activeEvent.period} — arxiv fotosu tezliklə əlavə olunacaq`}
-              sizes="(min-width: 1024px) 40vw, 100vw"
-            />
+          <div>
+            <div className="aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
+              <VillagePhoto
+                src={activeEvent.coverImageUrl ?? undefined}
+                alt={activeEvent.title}
+                tone="forest"
+                variant="scene"
+                placeholderLabel={`${activeEvent.period} — arxiv fotosu tezliklə əlavə olunacaq`}
+                sizes="(min-width: 1024px) 40vw, 100vw"
+              />
+            </div>
+            {activeEvent.additionalImages.length > 0 ? (
+              <div className="mt-3 grid grid-cols-3 gap-2">
+                {activeEvent.additionalImages.map((image) => (
+                  <div key={image.id} className="aspect-square overflow-hidden rounded-lg">
+                    <VillagePhoto src={image.imageUrl} alt={activeEvent.title} tone="warm" sizes="120px" />
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
 

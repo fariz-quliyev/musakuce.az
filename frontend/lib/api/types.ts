@@ -327,12 +327,21 @@ export interface UpdatePersonStatusRequest {
 
 // ---- History (Kəndimizin tarixi) ------------------------------------------
 
+export interface HistoricalEventImageDto {
+  id: string;
+  mediaAssetId: string;
+  imageUrl: string;
+  sortOrder: number;
+}
+
 export interface HistoricalEventDto {
   id: string;
   title: string;
   period: string;
   eventDate: string | null;
   description: string;
+  /** Optional expanded write-up, shown in the timeline's detail panel below `description` when present. */
+  detailedText: string | null;
   sourceStatus: SourceStatus;
   /** Free-text citation — e.g. "Ailə arxivi, Səlim baba ilə söhbət, 2020". */
   sourceReference: string | null;
@@ -342,6 +351,13 @@ export interface HistoricalEventDto {
   originalSourceText: string | null;
   displayOrder: number;
   publicationStatus: PublicationStatus;
+  coverMediaAssetId: string | null;
+  coverImageUrl: string | null;
+  /** Distinct from publicationStatus — a Published event can still be excluded from the curated /kendimiz timeline without unpublishing it. */
+  showInTimeline: boolean;
+  /** True only for the sample rows seeded by the AddHistoryTimelineFeature migration — a provenance marker for the admin UI, never used to filter what's shown publicly. */
+  isDefault: boolean;
+  additionalImages: HistoricalEventImageDto[];
 }
 
 export interface HistoricalEventQuery extends PagedQuery {
@@ -354,6 +370,7 @@ export interface CreateHistoricalEventRequest {
   period: string;
   eventDate?: string | null;
   description: string;
+  detailedText?: string | null;
   sourceStatus?: SourceStatus;
   sourceReference?: string | null;
   /** ADMIN-ONLY editorial working note — never public. */
@@ -361,6 +378,10 @@ export interface CreateHistoricalEventRequest {
   /** ADMIN-ONLY original source wording — never public. */
   originalSourceText?: string | null;
   displayOrder?: number;
+  coverMediaAssetId?: string | null;
+  showInTimeline?: boolean;
+  /** Already-uploaded MediaAsset ids, in display order — replaces the event's whole additional-images list on every create/update. */
+  additionalImageMediaAssetIds?: string[];
 }
 
 /** ADMIN-PRIVILEGED — full field edit. */
@@ -369,6 +390,31 @@ export type UpdateHistoricalEventRequest = CreateHistoricalEventRequest;
 /** ADMIN-PRIVILEGED. */
 export interface UpdateHistoricalEventStatusRequest {
   publicationStatus: PublicationStatus;
+}
+
+// ---- Timeline settings (Kəndin tarixi — "Zaman xəttində Musaküçə") --------
+
+export interface TimelineSettingsDto {
+  id: string;
+  title: string;
+  subtitle: string;
+  isActive: boolean;
+  /** Null = show every active/published event, no cap. */
+  maxEventsDesktop: number | null;
+  /** "First" or "Last" — which event is pre-selected on first render. */
+  defaultSelection: "First" | "Last";
+  /** Reserved for a future alternate mobile layout — only "HorizontalScroll" is implemented today. */
+  mobileBehavior: string;
+}
+
+/** ADMIN-PRIVILEGED — always upserts the single timeline-settings row. */
+export interface UpsertTimelineSettingsRequest {
+  title: string;
+  subtitle: string;
+  isActive: boolean;
+  maxEventsDesktop?: number | null;
+  defaultSelection: "First" | "Last";
+  mobileBehavior: string;
 }
 
 // ---- Photos (Fotoarxiv) ----------------------------------------------------

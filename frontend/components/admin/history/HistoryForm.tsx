@@ -7,16 +7,35 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { Checkbox } from "@/components/ui/Checkbox";
+import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { historyApi } from "@/lib/api/history";
 import { sourceStatusLabels } from "@/lib/api/labels";
-import type { HistoricalEventDto, SourceStatus } from "@/lib/api/types";
+import type { HistoricalEventDto, MediaAssetDto, SourceStatus } from "@/lib/api/types";
 
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
+
+type ImageSlot = { key: string; mediaAssetId: string | null; previewUrl: string | null };
 
 export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(event?.coverMediaAssetId ?? null);
+  const [coverPreviewUrl, setCoverPreviewUrl] = useState<string | null>(event?.coverImageUrl ?? null);
+  const [additionalImages, setAdditionalImages] = useState<ImageSlot[]>(
+    () => event?.additionalImages.map((img) => ({ key: img.id, mediaAssetId: img.mediaAssetId, previewUrl: img.imageUrl })) ?? [],
+  );
   const isEdit = !!event;
+
+  function addImageSlot() {
+    setAdditionalImages((slots) => [...slots, { key: crypto.randomUUID(), mediaAssetId: null, previewUrl: null }]);
+  }
+  function removeImageSlot(key: string) {
+    setAdditionalImages((slots) => slots.filter((s) => s.key !== key));
+  }
+  function setSlotMedia(key: string, media: MediaAssetDto) {
+    setAdditionalImages((slots) => slots.map((s) => (s.key === key ? { ...s, mediaAssetId: media.id, previewUrl: media.url } : s)));
+  }
 
   async function handleSubmit(formEvent: React.FormEvent<HTMLFormElement>) {
     formEvent.preventDefault();
@@ -28,9 +47,13 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
       period: String(form.get("period") ?? ""),
       eventDate: String(form.get("eventDate") ?? "") || null,
       description: String(form.get("description") ?? ""),
+      detailedText: String(form.get("detailedText") ?? "") || null,
       sourceStatus: form.get("sourceStatus") as SourceStatus,
       sourceReference: String(form.get("sourceReference") ?? "") || null,
       displayOrder: Number(form.get("displayOrder") ?? 0),
+      coverMediaAssetId,
+      showInTimeline: form.get("showInTimeline") === "on",
+      additionalImageMediaAssetIds: additionalImages.flatMap((s) => (s.mediaAssetId ? [s.mediaAssetId] : [])),
     };
 
     try {
@@ -50,6 +73,12 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
 
   return (
     <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+      {event?.isDefault ? (
+        <p className="rounded-md bg-info-bg px-3 py-2 text-sm text-info">
+          Bu, timeline-ın nümunə (default) məzmunudur — real məlumatla əvəz edin və ya bu formada redaktə edin.
+        </p>
+      ) : null}
+
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Başlıq" htmlFor="title" required>
           <Input id="title" name="title" required maxLength={150} defaultValue={event?.title} />
@@ -63,8 +92,12 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
         <Input id="eventDate" name="eventDate" type="date" defaultValue={event?.eventDate ?? ""} />
       </FormField>
 
-      <FormField label="Təsvir" htmlFor="description" required>
+      <FormField label="Qısa təsvir" htmlFor="description" required hint="Timeline kartında və ətraflı panelin giriş sətrində göstərilir">
         <Textarea id="description" name="description" required maxLength={4000} defaultValue={event?.description} />
+      </FormField>
+
+      <FormField label="Ətraflı mətn" htmlFor="detailedText" hint="Boş buraxıla bilər — yalnız ətraflı paneldə, qısa təsvirdən sonra göstərilir">
+        <Textarea id="detailedText" name="detailedText" maxLength={8000} defaultValue={event?.detailedText ?? ""} />
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">
@@ -89,6 +122,54 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
       >
         <Input id="sourceReference" name="sourceReference" maxLength={500} defaultValue={event?.sourceReference ?? ""} />
       </FormField>
+
+      <div className="grid gap-2">
+        <ImageUploadField
+          key={coverMediaAssetId ?? "empty"}
+          label="Əsas şəkil"
+          initialPreviewUrl={coverPreviewUrl}
+          onUploaded={(media) => {
+            setCoverMediaAssetId(media.id);
+            setCoverPreviewUrl(media.url);
+          }}
+          hint="Boş buraxıla bilər — timeline kartında və ətraflı paneldə göstərilir"
+        />
+        {coverMediaAssetId ? (
+          <button
+            type="button"
+            onClick={() => {
+              setCoverMediaAssetId(null);
+              setCoverPreviewUrl(null);
+            }}
+            className="w-fit text-xs font-medium text-danger hover:underline"
+          >
+            Şəkli sil
+          </button>
+        ) : null}
+      </div>
+
+      <div className="grid gap-4">
+        <p className="text-sm font-semibold text-ink">Əlavə şəkillər</p>
+        {additionalImages.map((slot, i) => (
+          <div key={slot.key} className="grid gap-2 rounded-lg border border-stone-light bg-paper-soft p-3">
+            <ImageUploadField label={`Əlavə şəkil ${i + 1}`} initialPreviewUrl={slot.previewUrl} onUploaded={(media) => setSlotMedia(slot.key, media)} />
+            <button type="button" onClick={() => removeImageSlot(slot.key)} className="w-fit text-xs font-medium text-danger hover:underline">
+              Sil
+            </button>
+          </div>
+        ))}
+        <Button type="button" variant="outline" size="sm" onClick={addImageSlot} className="w-fit">
+          + Şəkil əlavə et
+        </Button>
+      </div>
+
+      <Checkbox
+        id="showInTimeline"
+        name="showInTimeline"
+        label="Zaman xəttində göstər"
+        description="Söndürsəniz, bu hadisə Tariximiz siyahısında qalır, amma /kendimiz-dəki timeline-da görünmür"
+        defaultChecked={event?.showInTimeline ?? true}
+      />
 
       {status === "success" ? (
         <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
