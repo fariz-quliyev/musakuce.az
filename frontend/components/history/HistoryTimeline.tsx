@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
@@ -13,6 +12,24 @@ import type { EventIcon, HistoricalEventDto } from "@/lib/api/types";
 // never shown verbatim to a public visitor; the admin list flags these
 // rows with a "Nümunə" badge instead (see HistoryTable.tsx).
 const DEFAULT_EVENT_NOTICE = "Bu hadisə haqqında məlumat hazırlanır — tezliklə əlavə olunacaq.";
+
+/** Very faint paper-grain, generated inline (an SVG feTurbulence filter as
+ * a data URI) rather than shipped as an image asset — a few hundred bytes
+ * inlined in the JS bundle instead of a network request, and tunable to
+ * stay subtle (opacity 0.045) without ever competing with text contrast.
+ * Layered under two soft corner-darkening gradients in the panel's own
+ * inline style below for the "aged document" edge effect. */
+const PARCHMENT_GRAIN =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.045'/%3E%3C/svg%3E";
+
+const PARCHMENT_BACKGROUND_STYLE: React.CSSProperties = {
+  backgroundColor: "var(--color-parchment)",
+  backgroundImage: [
+    "radial-gradient(circle at 10% 6%, rgba(31,52,56,0.06), transparent 40%)",
+    "radial-gradient(circle at 92% 96%, rgba(31,52,56,0.07), transparent 42%)",
+    `url("${PARCHMENT_GRAIN}")`,
+  ].join(", "),
+};
 
 /** Admin-picked marker category (HistoricalEvent.eventIcon) — never
  * inferred from title/description text, which would silently mislabel
@@ -139,7 +156,12 @@ function MarkerGlyph({ event, iconClassName }: { event: HistoricalEventDto; icon
 
 /** Cover image + additional images as one clickable gallery — clicking a
  * thumbnail swaps the main image. Keyed by event id from the caller so
- * switching events resets the selection back to the cover image. */
+ * switching events resets the selection back to the cover image.
+ *
+ * Deliberately small and secondary within the card (§Timeline parchment
+ * redesign) — a supporting archival photo/document, not the card's main
+ * visual event, with a thin double-rule frame evoking a mounted print
+ * rather than a modern full-bleed hero image. */
 function EventGallery({ event }: { event: HistoricalEventDto }) {
   const [selected, setSelected] = useState(0);
   const images = [
@@ -149,8 +171,12 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl lg:max-w-sm">
-        <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
+      <div className="max-w-[190px] lg:w-[190px] lg:shrink-0">
+        <div className="aspect-[4/5] w-full overflow-hidden rounded-md border border-parchment-line/80 p-1 shadow-sm ring-1 ring-inset ring-white/40">
+          <div className="h-full w-full overflow-hidden rounded-[3px]">
+            <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -158,12 +184,14 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
   const main = images[Math.min(selected, images.length - 1)];
 
   return (
-    <div className="lg:max-w-sm">
-      <div className="aspect-[16/10] w-full overflow-hidden rounded-xl shadow-md">
-        <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 24rem, 100vw" />
+    <div className="max-w-[190px] lg:w-[190px] lg:shrink-0">
+      <div className="aspect-[4/5] w-full overflow-hidden rounded-md border border-parchment-line/80 p-1 shadow-sm ring-1 ring-inset ring-white/40">
+        <div className="h-full w-full overflow-hidden rounded-[3px]">
+          <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 190px, 45vw" />
+        </div>
       </div>
       {images.length > 1 ? (
-        <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
           {images.map((image, i) => (
             <button
               key={image.url}
@@ -172,11 +200,11 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
               aria-label={`Şəkil ${i + 1}`}
               aria-current={i === selected}
               className={cn(
-                "h-14 w-14 shrink-0 overflow-hidden rounded-lg border-2 transition-colors",
-                i === selected ? "border-forest" : "border-transparent opacity-60 hover:opacity-100",
+                "h-10 w-10 shrink-0 overflow-hidden rounded border transition-colors",
+                i === selected ? "border-parchment-accent-ink" : "border-parchment-line/60 opacity-60 hover:opacity-100",
               )}
             >
-              <VillagePhoto src={image.url} alt="" tone="warm" sizes="56px" />
+              <VillagePhoto src={image.url} alt="" tone="warm" sizes="40px" />
             </button>
           ))}
         </div>
@@ -187,7 +215,15 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
 /** Shared write-up content — rendered once inside the desktop shared
  * panel and once inside each mobile item's inline accordion, so the two
- * layouts never drift out of sync. */
+ * layouts never drift out of sync.
+ *
+ * Restyled (§Timeline parchment redesign) as an archival-document write-up
+ * rather than a CMS content card: period/status read as a small caption
+ * line (not pill badges), a hairline rule stands in for the old heavy
+ * accent bar, and the gallery moves to a compact side position. Text stays
+ * plain HTML throughout — no content is rendered into the background
+ * image, so SEO/selection/accessibility/responsive reflow are all
+ * unaffected by the visual treatment. */
 function EventDetailContent({
   event,
   onPrev,
@@ -206,24 +242,28 @@ function EventDetailContent({
   total: number;
 }) {
   return (
-    <>
-      <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-8">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge tone="terracotta">{event.period}</Badge>
-            <Badge tone="neutral">{sourceStatusLabels[event.sourceStatus]}</Badge>
-          </div>
-          <h3 className="mt-3 font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] text-ink">
+    <div className="motion-safe:animate-[parchment-reveal_380ms_ease-out]">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-baseline gap-x-2 text-[13px] font-semibold tracking-[0.05em] text-parchment-accent-ink uppercase">
+            <span>{event.period}</span>
+            <span aria-hidden className="text-parchment-line">
+              ·
+            </span>
+            <span className="text-parchment-accent normal-case">{sourceStatusLabels[event.sourceStatus]}</span>
+          </p>
+          <h3 className="mt-2 font-display text-[length:var(--text-h3)] leading-[var(--text-h3--line-height)] text-ink">
             {event.title}
           </h3>
-          <p className="mt-3 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">
+          <div aria-hidden className="mt-3 h-px w-14 bg-parchment-line" />
+          <p className="mt-4 max-w-xl text-[15px] leading-relaxed whitespace-pre-line text-ink-soft">
             {event.isDefault ? DEFAULT_EVENT_NOTICE : event.description}
           </p>
           {event.detailedText ? (
-            <p className="mt-3 max-w-xl text-base leading-relaxed whitespace-pre-line text-ink-soft">{event.detailedText}</p>
+            <p className="mt-3 max-w-xl text-[15px] leading-relaxed whitespace-pre-line text-ink-soft">{event.detailedText}</p>
           ) : null}
           {event.sourceReference ? (
-            <p className="mt-4 text-xs text-ink-faint">
+            <p className="mt-3 text-xs text-ink-faint">
               <span className="font-semibold text-ink">Mənbə: </span>
               {event.sourceReference}
             </p>
@@ -232,17 +272,17 @@ function EventDetailContent({
         <EventGallery key={event.id} event={event} />
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-stone-light pt-3">
+      <div className="mt-5 flex items-center justify-between border-t border-parchment-line/70 pt-3">
         <button
           type="button"
           onClick={onPrev}
           disabled={!hasPrev}
           aria-label="Əvvəlki hadisə"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-forest transition-colors hover:text-forest-dark disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-parchment-accent-ink disabled:pointer-events-none disabled:opacity-40"
         >
           <span aria-hidden>←</span> Əvvəlki
         </button>
-        <span className="text-xs text-ink-faint tabular-nums">
+        <span className="text-[11px] text-ink-faint tabular-nums">
           {index + 1} / {total}
         </span>
         <button
@@ -250,12 +290,12 @@ function EventDetailContent({
           onClick={onNext}
           disabled={!hasNext}
           aria-label="Növbəti hadisə"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-forest transition-colors hover:text-forest-dark disabled:pointer-events-none disabled:opacity-40"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-parchment-accent-ink transition-colors hover:text-ink disabled:pointer-events-none disabled:opacity-40"
         >
           Növbəti <span aria-hidden>→</span>
         </button>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -430,7 +470,7 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
             aria-hidden
             style={{ left: caretLeft ?? "50%" }}
             className={cn(
-              "absolute -top-2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-tl-sm border-t-4 border-l-4 border-forest bg-paper",
+              "absolute -top-2 h-4 w-4 -translate-x-1/2 rotate-45 rounded-tl-sm border-t border-l border-parchment-line bg-parchment",
               caretTransitionReady && "transition-[left] duration-200",
             )}
           />
@@ -439,17 +479,21 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
             role="tabpanel"
             aria-labelledby={`timeline-tab-${activeIndex}`}
             tabIndex={-1}
-            className="rounded-2xl border-t-4 border-forest bg-paper p-4 shadow-sm sm:p-6"
+            style={PARCHMENT_BACKGROUND_STYLE}
+            className="overflow-hidden rounded-lg border border-parchment-line shadow-md sm:rounded-xl"
           >
-            <EventDetailContent
-              event={activeEvent}
-              onPrev={() => hasPrev && goTo(activeIndex - 1, true)}
-              onNext={() => hasNext && goTo(activeIndex + 1, true)}
-              hasPrev={hasPrev}
-              hasNext={hasNext}
-              index={activeIndex}
-              total={events.length}
-            />
+            <div className="p-6 sm:p-8 lg:p-12">
+              <EventDetailContent
+                key={activeEvent.id}
+                event={activeEvent}
+                onPrev={() => hasPrev && goTo(activeIndex - 1, true)}
+                onNext={() => hasNext && goTo(activeIndex + 1, true)}
+                hasPrev={hasPrev}
+                hasNext={hasNext}
+                index={activeIndex}
+                total={events.length}
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -501,7 +545,8 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
                   id={`timeline-mobile-panel-${i}`}
                   role="region"
                   aria-label={event.title}
-                  className="mb-4 rounded-2xl border-t-4 border-forest bg-paper p-4 shadow-sm"
+                  style={PARCHMENT_BACKGROUND_STYLE}
+                  className="mb-4 overflow-hidden rounded-lg border border-parchment-line p-5 shadow-md"
                 >
                   <EventDetailContent
                     event={event}

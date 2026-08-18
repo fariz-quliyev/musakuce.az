@@ -57,6 +57,18 @@
   --color-memorial-accent: #7c8a82;
   --color-memorial-line: #dcd7ca;
 
+  /* --- Parchment / archival-document palette (Tariximiz event card) -------
+     Own dedicated palette, same reasoning as Memorial above: the History
+     Timeline's event card is meant to feel like a preserved document, not
+     another CMS card, so it gets its own restrained accent pair rather than
+     the everyday --color-forest/terracotta. Used only within that one card
+     — never spread across the surrounding page. */
+  --color-parchment: #f6ecd9;             /* card base — warm, light aged paper */
+  --color-parchment-deep: #ead8b4;        /* faint corner-aging tone */
+  --color-parchment-accent-ink: #1f3438;  /* deep teal — rules, small accents, active states */
+  --color-parchment-accent: #6e9c90;      /* sage — secondary accent, used sparingly */
+  --color-parchment-line: #cdbb95;        /* hairline divider/border tone */
+
   /* --- Status (muted — no news-red, no corporate blue) -------------------- */
   --color-success: #4c7a52;
   --color-success-bg: #e7f0e3;
@@ -129,6 +141,12 @@
   --color-memorial-ink: var(--color-memorial-ink);
   --color-memorial-accent: var(--color-memorial-accent);
   --color-memorial-line: var(--color-memorial-line);
+
+  --color-parchment: var(--color-parchment);
+  --color-parchment-deep: var(--color-parchment-deep);
+  --color-parchment-accent-ink: var(--color-parchment-accent-ink);
+  --color-parchment-accent: var(--color-parchment-accent);
+  --color-parchment-line: var(--color-parchment-line);
 
   --color-success: var(--color-success);
   --color-success-bg: var(--color-success-bg);
@@ -205,4 +223,21 @@ h3,
 ::selection {
   background: var(--color-gold-light);
   color: var(--color-ink);
+}
+
+/* History Timeline's event card fades/lifts in when the selected event
+   changes (see HistoryTimeline.tsx — applied via a `key`-forced remount,
+   not a JS animation library, using Tailwind's arbitrary-value animate-[]
+   utility + motion-safe:/motion-reduce: variants, so reduced-motion
+   handling lives with the rest of that utility rather than a separate
+   override rule here). */
+@keyframes parchment-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
