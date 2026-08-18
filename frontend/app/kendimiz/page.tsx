@@ -179,6 +179,8 @@ export default async function KendimizPage() {
 
   return (
     <PageShell>
+      <HistoryTimelineSection />
+
       {/* Kəndimiz — qısa giriş + əsas fotoalbom */}
       <Container as="section" className="pt-10 pb-8 sm:pt-14">
         {!profileIsLive ? <DataSourceNote isLive={profileIsLive} /> : null}
@@ -345,8 +347,6 @@ export default async function KendimizPage() {
           </div>
         </Container>
       ) : null}
-
-      <HistoryTimelineSection />
 
       {/* Kəndin yaddaşı */}
       <Container as="section" className="pb-10 sm:pb-14">

@@ -1,4 +1,3 @@
-import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { HistoryTimeline } from "./HistoryTimeline";
 import { historyApi } from "@/lib/api/history";
@@ -24,18 +23,22 @@ const FALLBACK_SETTINGS: TimelineSettingsDto = {
 };
 
 /**
- * "Zaman xəttində Musaküçə" — /kendimiz's interactive history timeline,
- * sourced from the same real, admin-managed HistoricalEvent records as
- * /tariximiz (already ordered by DisplayOrder server-side, so no
- * client-side re-sorting is needed) plus the singleton TimelineSettings
- * row (/admin/tarix/timeline) for the section's title/subtitle/on-off/
- * event cap/default selection. Renders nothing when settings.isActive is
- * false, or when there are no Published events with showInTimeline set —
- * same "hide rather than invent" convention as the homepage's OurHistory
- * teaser: sample/example history is exactly the kind of content that
- * must never be mistaken for a verified fact about the village. (In
- * practice this never renders empty: the AddHistoryTimelineFeature
- * migration seeds 6 placeholder events precisely so it doesn't.)
+ * "Zaman xəttində Musaküçə" — /kendimiz's primary top-of-page visual
+ * (rendered immediately after the site header, before the rest of the
+ * page's own intro), sourced from the same real, admin-managed
+ * HistoricalEvent records as /tariximiz (already ordered by DisplayOrder
+ * server-side, so no client-side re-sorting is needed) plus the singleton
+ * TimelineSettings row (/admin/tarix/timeline) for the section's
+ * title/subtitle/on-off/event cap/default selection. Deliberately wider
+ * than the site's standard `Container` (max-w-6xl) — a "museum wall"
+ * band is the whole point here — but keeps the same safe side padding.
+ * Renders nothing when settings.isActive is false, or when there are no
+ * Published events with showInTimeline set — same "hide rather than
+ * invent" convention as the homepage's OurHistory teaser: sample/example
+ * history is exactly the kind of content that must never be mistaken
+ * for a verified fact about the village. (In practice this never renders
+ * empty: the AddHistoryTimelineFeature migration seeds 6 placeholder
+ * events precisely so it doesn't.)
  */
 export async function HistoryTimelineSection() {
   const [{ data: events }, { data: settings }] = await Promise.all([
@@ -53,11 +56,11 @@ export async function HistoryTimelineSection() {
   const initialActiveIndex = settings.defaultSelection === "Last" ? cappedEvents.length - 1 : 0;
 
   return (
-    <div className="border-y border-stone-light bg-cream-deep">
-      <Container as="section" className="py-10 sm:py-14">
-        <SectionHeading eyebrow="Kəndin tarixi" title={settings.title} description={settings.subtitle} className="mb-8" />
+    <div className="border-b border-stone-light bg-cream-deep">
+      <section className="mx-auto w-full max-w-[100rem] px-5 pt-6 pb-8 sm:px-8 sm:pt-8 sm:pb-10 lg:px-12">
+        <SectionHeading eyebrow="Kəndin tarixi" title={settings.title} description={settings.subtitle} className="mb-6" />
         <HistoryTimeline events={cappedEvents.map(withPublicDescription)} initialActiveIndex={initialActiveIndex} />
-      </Container>
+      </section>
     </div>
   );
 }
