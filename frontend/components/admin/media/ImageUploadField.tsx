@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { mediaApi } from "@/lib/api/media";
+import { cn } from "@/lib/cn";
 import type { MediaAssetDto } from "@/lib/api/types";
 
 type Props = {
@@ -27,6 +28,14 @@ type Props = {
    * the parent's coverMediaAssetId — only arrives after it resolves).
    * Every existing caller that doesn't pass it is unaffected. */
   onUploadingChange?: (uploading: boolean) => void;
+  /** Opt-in: overrides the preview box's aspect ratio (Tailwind class,
+   * e.g. "aspect-[3/4]"). Defaults to the original "aspect-video" (16:9)
+   * every existing caller already renders at. Without this, a caller
+   * whose final public display crops to a different ratio than 16:9
+   * (e.g. the People form's portrait 3:4 cards) shows the admin a
+   * preview crop that doesn't match what actually ends up on the site —
+   * this lets that caller's preview match its real target ratio. */
+  previewAspectClassName?: string;
 };
 
 /**
@@ -45,6 +54,7 @@ export function ImageUploadField({
   hint,
   onRemove,
   onUploadingChange,
+  previewAspectClassName,
 }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl ?? null);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
@@ -103,7 +113,10 @@ export function ImageUploadField({
         <img
           src={previewUrl}
           alt=""
-          className="aspect-video w-full max-w-sm rounded-md border border-stone-light bg-paper-soft object-cover"
+          className={cn(
+            previewAspectClassName ?? "aspect-video",
+            "w-full max-w-sm rounded-md border border-stone-light bg-paper-soft object-cover",
+          )}
         />
       ) : null}
 

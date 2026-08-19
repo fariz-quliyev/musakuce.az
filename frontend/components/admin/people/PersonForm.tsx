@@ -254,7 +254,15 @@ export function PersonForm({ person }: { person?: PersonDto }) {
           onUploaded={(media: MediaAssetDto) => setCoverMediaAssetId(media.id)}
           onRemove={() => setCoverMediaAssetId(null)}
           onUploadingChange={setPhotoUploading}
-          hint="JPEG, PNG, WebP və ya AVIF, maks. 15 MB — boş buraxıla bilər"
+          // Matches the actual crop used everywhere this photo is shown
+          // publicly (person detail page's aspect-[3/4], the /insanlarimiz
+          // grid's CardMedia aspect="portrait") — without this the preview
+          // defaulted to a 16:9 box, so admins were approving a crop that
+          // had nothing to do with what visitors would actually see,
+          // which is exactly why photos of different source dimensions
+          // ended up looking inconsistent on the public site.
+          previewAspectClassName="aspect-[3/4]"
+          hint="JPEG, PNG, WebP və ya AVIF, maks. 15 MB — boş buraxıla bilər. Portret (şaquli, 3:4) kadrlaşdırılacaq."
         />
       </FormSection>
 
