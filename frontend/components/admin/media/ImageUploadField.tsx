@@ -125,7 +125,16 @@ export function ImageUploadField({
   const showRemove = !!onRemove && !!previewUrl && status !== "uploading";
 
   return (
-    <div className="grid gap-2">
+    // min-w-0: same grid-item overflow pattern seen elsewhere in this
+    // codebase (RichTextEditor's toolbar, FormSection's inner grid) —
+    // without it, this field takes its content's natural (unwrapped)
+    // width when nested inside a narrow grid column (e.g. PersonForm's
+    // Fotoalbom slots), instead of shrinking to fit and wrapping/
+    // clipping normally. Every other caller's layout is unaffected —
+    // this only matters once a caller nests the field in a track
+    // narrower than its natural content width, which none of the other
+    // 13 callers currently do.
+    <div className="grid min-w-0 gap-2">
       <label className="text-sm font-semibold text-ink">
         {label}
         {required ? <span className="ml-1 text-terracotta">*</span> : null}
@@ -164,13 +173,23 @@ export function ImageUploadField({
             />
           ) : null}
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            {/* min-w-0 max-w-full on the input itself: a native file
+                input's own rendered width (file-selector button + "No
+                file chosen" text) doesn't shrink to its container on
+                its own — min-w-0 on ancestors only stops the grid/flex
+                TRACK from being forced wide, it doesn't make an
+                individual element's intrinsic content narrower. Confirmed
+                this was the actual remaining overflow source once nested
+                narrowly enough (PersonForm's Fotoalbom slots) — every
+                other, wider caller of this field was never narrow enough
+                to expose it. */}
             <input
               ref={inputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp,image/avif"
               onChange={handleFileChange}
-              className="text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-forest file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-on-dark file:transition-colors hover:file:bg-forest-dark"
+              className="min-w-0 max-w-full text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-forest file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-on-dark file:transition-colors hover:file:bg-forest-dark"
             />
             {showRemove ? (
               <button type="button" onClick={handleRemove} className="text-xs font-medium text-danger hover:underline">

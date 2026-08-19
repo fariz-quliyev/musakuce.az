@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { PersonPhotoAlbum } from "@/components/people/PersonPhotoAlbum";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
@@ -102,12 +103,20 @@ export default async function PersonDetailPage({ params }: Props) {
                 "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1",
                 "[&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-forest-dark",
                 "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-stone [&_blockquote]:pl-4 [&_blockquote]:italic",
+                "[&_img]:my-3 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
               )}
               // Biography is sanitized (DOMPurify, fixed tag allowlist)
               // just above — the only safe way to render admin-authored
               // rich text here; never render person.biography directly.
               dangerouslySetInnerHTML={{ __html: sanitizeRichText(person.biography) }}
             />
+
+            {person.additionalImages.length > 0 ? (
+              <div className="mt-8 max-w-2xl">
+                <h2 className="mb-3 font-display text-lg font-semibold text-ink">Fotoalbom</h2>
+                <PersonPhotoAlbum images={person.additionalImages} personName={fullName} />
+              </div>
+            ) : null}
 
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
               <Badge tone="neutral">{sourceStatusLabels[person.sourceStatus]}</Badge>

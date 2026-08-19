@@ -44,7 +44,17 @@ function Divider() {
  * hand-drawn icon paths — clearer at 16px and instantly recognizable
  * (the same convention most minimal rich text toolbars use). Structural
  * icons (lists, link, quote, undo/redo) use small geometric SVGs. */
-export function RichTextToolbar({ editor }: { editor: Editor }) {
+type RichTextToolbarProps = {
+  editor: Editor;
+  /** Opt-in: renders a "Şəkil əlavə et" button that calls this instead
+   * of an editor command directly — image insertion needs an async
+   * upload step first (owned by RichTextEditor), unlike every other
+   * button here which just dispatches a synchronous editor.chain()
+   * call. Omitted entirely by callers that don't pass `allowImages`. */
+  onInsertImageClick?: () => void;
+};
+
+export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarProps) {
   return (
     <div
       role="toolbar"
@@ -157,6 +167,15 @@ export function RichTextToolbar({ editor }: { editor: Editor }) {
           <line x1="8.5" y1="14" x2="13" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </ToolbarButton>
+      {onInsertImageClick ? (
+        <ToolbarButton label="Şəkil əlavə et" onClick={onInsertImageClick}>
+          <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+            <rect x="2.5" y="4" width="15" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+            <circle cx="7" cy="8.5" r="1.4" stroke="currentColor" strokeWidth="1.3" />
+            <path d="M3.5 14.5 8 10.5l2.5 2.3 3-3 3 3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </ToolbarButton>
+      ) : null}
 
       <Divider />
 

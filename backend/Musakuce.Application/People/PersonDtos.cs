@@ -3,6 +3,8 @@ using Musakuce.Domain.Enums;
 
 namespace Musakuce.Application.People;
 
+public record PersonImageDto(Guid Id, Guid MediaAssetId, string ImageUrl, int SortOrder);
+
 public record PersonDto(
     Guid Id,
     string FirstName,
@@ -24,7 +26,8 @@ public record PersonDto(
     /// viewer (Phase 12 §7) — never sent to the public site.</summary>
     string? OriginalSourceText,
     string Slug,
-    PublicationStatus PublicationStatus
+    PublicationStatus PublicationStatus,
+    IReadOnlyList<PersonImageDto> AdditionalImages
 );
 
 public class CreatePersonRequest
@@ -47,6 +50,11 @@ public class CreatePersonRequest
     public string? EditorialNote { get; set; }
     /// <summary>ADMIN-ONLY original source wording — never public.</summary>
     public string? OriginalSourceText { get; set; }
+    /// <summary>Already-uploaded MediaAsset ids, in display order — the
+    /// service replaces the person's whole AdditionalImages collection
+    /// with this list on every create/update (same "wholesale replace"
+    /// strategy as HistoricalEvent's additional images).</summary>
+    public List<Guid> AdditionalImageMediaAssetIds { get; set; } = [];
 }
 
 /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>

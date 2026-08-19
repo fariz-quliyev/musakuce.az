@@ -271,6 +271,13 @@ export type PersonCategory =
   | "Entrepreneur"
   | "Other";
 
+export interface PersonImageDto {
+  id: string;
+  mediaAssetId: string;
+  imageUrl: string;
+  sortOrder: number;
+}
+
 export interface PersonDto {
   id: string;
   firstName: string;
@@ -291,6 +298,7 @@ export interface PersonDto {
   originalSourceText: string | null;
   slug: string;
   publicationStatus: PublicationStatus;
+  additionalImages: PersonImageDto[];
 }
 
 export interface PersonQuery extends PagedQuery {
@@ -315,6 +323,8 @@ export interface CreatePersonRequest {
   editorialNote?: string | null;
   /** ADMIN-ONLY original source wording — never public. */
   originalSourceText?: string | null;
+  /** Already-uploaded MediaAsset ids, in display order — replaces the person's whole additional-images list on every create/update. */
+  additionalImageMediaAssetIds?: string[];
 }
 
 /** ADMIN-PRIVILEGED — full field edit. */

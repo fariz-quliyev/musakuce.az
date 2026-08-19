@@ -74,9 +74,14 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
 
         await ApplyCoverMediaAssetAsync(ev, request.CoverMediaAssetId, ct);
         await ApplyIconMediaAssetAsync(ev, request.IconMediaAssetId, ct);
+
+        // Added before ApplyAdditionalImagesAsync (not after, as it used
+        // to be) — that method needs ev already tracked so its own
+        // intermediate SaveChangesAsync (see its doc comment) has
+        // something valid to flush.
+        db.HistoricalEvents.Add(ev);
         await ApplyAdditionalImagesAsync(ev, request.AdditionalImageMediaAssetIds, ct);
 
-        db.HistoricalEvents.Add(ev);
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Create", nameof(HistoricalEvent), ev.Id.ToString(), newValue: ev.Title, ct: ct);
         return ToDto(ev, includeEditorial: true);
@@ -143,20 +148,66 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         if (iconMediaAssetId is null) ev.IconMediaAssetId = null;
     }
 
-    /// <summary>Wholesale replace — same strategy as ListingService's
-    /// image-list handling: not a high-frequency operation, so the
-    /// simplest correct approach (clear, then re-add in order) beats a
-    /// diff.</summary>
+    /// <summary>Wholesale replace — with two corrections, both confirmed
+    /// by actually reproducing the failure against a real save, not just
+    /// code review. Mirrors the identical fix already applied to
+    /// PersonService.ApplyAdditionalImagesAsync for Person's own
+    /// AdditionalImages (same root cause, same shape of bug, found there
+    /// first):
+    ///
+    /// 1. The original version did a blind clear-then-recreate (remove
+    /// every existing row, re-add one row per incoming id), which throws
+    /// a DbUpdateConcurrencyException whenever the new list is a STRICT
+    /// SUBSET of the old one (e.g. removing 1 of 3 images while keeping
+    /// the other 2). Diffing instead — only remove rows whose
+    /// MediaAssetId truly isn't in the new list, only insert rows for
+    /// MediaAssetIds not already present, and just update SortOrder in
+    /// place for ones that persist — is also less work for the common
+    /// case where most images are unchanged between saves.
+    ///
+    /// 2. Even with that diff in place, removing+updating existing rows
+    /// and inserting new ones for the SAME table in a single
+    /// SaveChangesAsync batch still throws the same
+    /// DbUpdateConcurrencyException (an EF Core + Npgsql provider
+    /// batching limitation, not something fixable from LINQ-level code)
+    /// — a brand-new INSERT-shaped entity gets emitted as an UPDATE
+    /// against its own (never-before-persisted) id, hitting 0 matching
+    /// rows. Flushing the delete/update phase in its own
+    /// SaveChangesAsync before the insert phase avoids the mixed batch
+    /// entirely. Callers must ensure `ev` is already tracked (Added or
+    /// loaded from the DB) before calling this, since the intermediate
+    /// save needs something valid to flush.</summary>
     private async Task ApplyAdditionalImagesAsync(HistoricalEvent ev, List<Guid> mediaAssetIds, CancellationToken ct)
     {
-        foreach (var image in ev.AdditionalImages.ToList())
+        var toRemove = ev.AdditionalImages.Where(image => !mediaAssetIds.Contains(image.MediaAssetId)).ToList();
+        foreach (var image in toRemove)
             ev.AdditionalImages.Remove(image);
 
-        foreach (var (mediaAssetId, index) in mediaAssetIds.Select((id, i) => (id, i)))
+        for (var index = 0; index < mediaAssetIds.Count; index++)
         {
+            var existing = ev.AdditionalImages.FirstOrDefault(image => image.MediaAssetId == mediaAssetIds[index]);
+            if (existing is not null) existing.SortOrder = index;
+        }
+
+        await db.SaveChangesAsync(ct);
+
+        for (var index = 0; index < mediaAssetIds.Count; index++)
+        {
+            var mediaAssetId = mediaAssetIds[index];
+            if (ev.AdditionalImages.Any(image => image.MediaAssetId == mediaAssetId)) continue;
+
             var media = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == mediaAssetId, ct)
                 ?? throw new NotFoundException(nameof(MediaAsset), mediaAssetId);
-            ev.AdditionalImages.Add(new HistoricalEventImage { MediaAsset = media, SortOrder = index });
+            var newImage = new HistoricalEventImage { HistoricalEventId = ev.Id, MediaAssetId = mediaAssetId, MediaAsset = media, SortOrder = index };
+            // db.HistoricalEventImages.Add (not ev.AdditionalImages.Add):
+            // adding via the navigation collection left EF's change
+            // tracker guessing this brand-new entity's state from its
+            // (non-default, client-generated) Guid key instead of
+            // trusting that it's genuinely new, which produced an UPDATE
+            // against a row that never existed. DbSet.Add is the
+            // unambiguous, explicit way to mark an entity Added
+            // regardless of its key value.
+            db.HistoricalEventImages.Add(newImage);
         }
     }
 

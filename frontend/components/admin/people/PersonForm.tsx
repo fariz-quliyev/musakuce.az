@@ -17,6 +17,8 @@ import type { MediaAssetDto, PersonCategory, PersonDto, PublicationStatus, Sourc
 const CATEGORY_OPTIONS = Object.entries(personCategoryLabels) as [PersonCategory, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
 
+type ImageSlot = { key: string; mediaAssetId: string | null; previewUrl: string | null };
+
 /** Groups the form into the labeled sections a long profile-editing
  * form needs (spec: Şəxsi məlumatlar / Bioqrafiya / Foto / Mənbə və
  * status / Əməliyyatlar) — same `rounded-lg border border-stone-light
@@ -70,6 +72,33 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   // coverMediaAssetId was null). Blocking submit while this is true
   // closes that window.
   const [photoUploading, setPhotoUploading] = useState(false);
+  const [additionalImages, setAdditionalImages] = useState<ImageSlot[]>(
+    () => person?.additionalImages.map((img) => ({ key: img.id, mediaAssetId: img.mediaAssetId, previewUrl: img.imageUrl })) ?? [],
+  );
+  // Same race condition as the cover photo (photoUploading above) can
+  // happen per album slot — a Set (not a single boolean) because
+  // several slots can be mid-upload at once, and clearing the guard
+  // must wait for ALL of them, not just whichever one finishes first.
+  const [uploadingSlotKeys, setUploadingSlotKeys] = useState<Set<string>>(new Set());
+  const albumUploading = uploadingSlotKeys.size > 0;
+  function setSlotUploading(key: string, uploading: boolean) {
+    setUploadingSlotKeys((prev) => {
+      const next = new Set(prev);
+      if (uploading) next.add(key);
+      else next.delete(key);
+      return next;
+    });
+  }
+  function addImageSlot() {
+    setAdditionalImages((slots) => [...slots, { key: crypto.randomUUID(), mediaAssetId: null, previewUrl: null }]);
+  }
+  function removeImageSlot(key: string) {
+    setAdditionalImages((slots) => slots.filter((s) => s.key !== key));
+    setSlotUploading(key, false);
+  }
+  function setSlotMedia(key: string, media: MediaAssetDto) {
+    setAdditionalImages((slots) => slots.map((s) => (s.key === key ? { ...s, mediaAssetId: media.id, previewUrl: media.url } : s)));
+  }
   const [biographyEmpty, setBiographyEmpty] = useState(!person?.biography?.trim());
   // A brand-new person is always created as Draft (Person.PublicationStatus's
   // domain default) — an existing Archived person defaults to "Draft" here
@@ -88,7 +117,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     // Defense in depth alongside the disabled Save button below — a
     // keyboard Enter-to-submit doesn't go through the button's own
     // `disabled` state, so this is the one guard that can't be bypassed.
-    if (photoUploading) {
+    if (photoUploading || albumUploading) {
       setStatus("error");
       setErrorMessage("Şəkil hələ yüklənir. Yükləmə bitənə qədər gözləyin.");
       return;
@@ -97,18 +126,21 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     // The editor is a contenteditable, not a native input, so the
     // `required`/`maxLength` HTML5 constraints that used to apply to the
     // `<textarea>` can't reach it — this replaces both, through the same
-    // error paragraph every other save failure already uses. The 8000
-    // limit is unchanged (PersonValidators.cs/PersonConfiguration.cs) —
-    // it now counts the saved HTML's length, same as what the backend
-    // actually validates against.
+    // error paragraph every other save failure already uses. The limit
+    // (PersonValidators.cs/PersonConfiguration.cs) — it now counts the
+    // saved HTML's length, same as what the backend actually validates
+    // against. Raised from 8000 to 16000 alongside the inline-image
+    // button: an <img src="..." alt="..."> tag alone costs ~120-170
+    // chars (R2 URL + alt text), which ate into the old limit fast for
+    // a biography with even a few images.
     if (biographyEmpty) {
       setStatus("error");
       setErrorMessage("Bioqrafiya tələb olunur.");
       return;
     }
-    if (biographyHtml.length > 8000) {
+    if (biographyHtml.length > 16000) {
       setStatus("error");
-      setErrorMessage(`Bioqrafiya çox uzundur (${biographyHtml.length}/8000 simvol, formatlaşdırma daxil). Mətni qısaldın.`);
+      setErrorMessage(`Bioqrafiya çox uzundur (${biographyHtml.length}/16000 simvol, formatlaşdırma və şəkillər daxil). Mətni qısaldın.`);
       return;
     }
 
@@ -125,6 +157,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
       biography: biographyHtml,
       coverMediaAssetId,
       sourceStatus: form.get("sourceStatus") as SourceStatus,
+      additionalImageMediaAssetIds: additionalImages.flatMap((s) => (s.mediaAssetId ? [s.mediaAssetId] : [])),
     };
 
     try {
@@ -225,7 +258,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
           label="Bioqrafiya"
           htmlFor="biography"
           required
-          hint="Maks. 8000 simvol (formatlaşdırma teqləri də daxil olmaqla)"
+          hint="Maks. 16000 simvol (formatlaşdırma teqləri və şəkillər daxil olmaqla)"
           className="min-w-0"
         >
           {/* min-w-0: FormField is a grid item — a grid/flex item's
@@ -243,6 +276,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
             name="biography"
             initialContent={person?.biography ?? ""}
             onEmptyChange={setBiographyEmpty}
+            allowImages
           />
         </FormField>
       </FormSection>
@@ -270,6 +304,40 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         />
       </FormSection>
 
+      <FormSection title="Fotoalbom">
+        {/* min-w-0: same grid-item overflow pattern as FormSection's own
+            inner grid and the Bioqrafiya toolbar — this div is a grid
+            item of FormSection's grid, and without this it takes the
+            hint paragraph's natural (unwrapped) width instead of
+            wrapping within the viewport. */}
+        <div className="grid min-w-0 gap-4">
+          <p className="text-xs text-ink-faint">
+            Əsas şəkildən ayrı, bir neçə əlavə foto — şəxsin ictimai səhifəsində bioqrafiyadan sonra qalereya kimi göstərilir.
+          </p>
+          {additionalImages.map((slot, i) => (
+            <div key={slot.key} className="grid min-w-0 gap-2 rounded-lg border border-stone-light bg-paper-soft p-3">
+              <ImageUploadField
+                label={`Əlavə şəkil ${i + 1}`}
+                initialPreviewUrl={slot.previewUrl}
+                onUploaded={(media) => setSlotMedia(slot.key, media)}
+                onUploadingChange={(uploading) => setSlotUploading(slot.key, uploading)}
+                previewAspectClassName="aspect-square"
+              />
+              <button
+                type="button"
+                onClick={() => removeImageSlot(slot.key)}
+                className="w-fit text-xs font-medium text-danger hover:underline"
+              >
+                Sil
+              </button>
+            </div>
+          ))}
+          <Button type="button" variant="outline" size="sm" onClick={addImageSlot} className="w-fit">
+            + Şəkil əlavə et
+          </Button>
+        </div>
+      </FormSection>
+
       <FormSection title="Mənbə və status">
         <FormField label="Mənbə statusu" htmlFor="sourceStatus" required>
           <Select id="sourceStatus" name="sourceStatus" defaultValue={person?.sourceStatus ?? "UnderResearch"} required>
@@ -292,11 +360,11 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         {status === "error" ? (
           <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
         ) : null}
-        {photoUploading ? (
+        {photoUploading || albumUploading ? (
           <p className="mb-3 text-sm font-medium text-ink-soft">Şəkil yüklənir, bir az gözləyin…</p>
         ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" loading={status === "submitting"} disabled={photoUploading}>
+          <Button type="submit" loading={status === "submitting"} disabled={photoUploading || albumUploading}>
             Yadda saxla
           </Button>
 

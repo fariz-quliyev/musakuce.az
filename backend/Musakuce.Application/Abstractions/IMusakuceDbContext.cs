@@ -17,6 +17,7 @@ public interface IMusakuceDbContext
     DbSet<VillageEvent> VillageEvents { get; }
     DbSet<LocalInfoEntry> LocalInfoEntries { get; }
     DbSet<Person> People { get; }
+    DbSet<PersonImage> PersonImages { get; }
     DbSet<HistoricalEvent> HistoricalEvents { get; }
     DbSet<HistoricalEventImage> HistoricalEventImages { get; }
     DbSet<Photo> Photos { get; }

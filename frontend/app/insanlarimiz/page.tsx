@@ -32,6 +32,7 @@ const FALLBACK: PagedResult<PersonDto> = {
       originalSourceText: null,
       slug: "zeyneb-muellime",
       publicationStatus: "Published",
+      additionalImages: [],
     },
     {
       id: "mock-2",
@@ -51,6 +52,7 @@ const FALLBACK: PagedResult<PersonDto> = {
       originalSourceText: null,
       slug: "kerim-baba",
       publicationStatus: "Published",
+      additionalImages: [],
     },
   ],
   page: 1,

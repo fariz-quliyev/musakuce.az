@@ -76,6 +76,7 @@ public class MediaUploadService(
     public async Task<bool> IsReferencedAsync(Guid mediaAssetId, CancellationToken ct = default) =>
         await db.Photos.AnyAsync(p => p.MediaAssetId == mediaAssetId, ct)
         || await db.People.AnyAsync(p => p.CoverMediaAssetId == mediaAssetId, ct)
+        || await db.PersonImages.AnyAsync(i => i.MediaAssetId == mediaAssetId, ct)
         || await db.VillageEvents.AnyAsync(e => e.CoverMediaAssetId == mediaAssetId, ct)
         || await db.LocalInfoEntries.AnyAsync(l => l.PhotoMediaAssetId == mediaAssetId, ct)
         || await db.Videos.AnyAsync(v => v.ThumbnailMediaAssetId == mediaAssetId, ct)

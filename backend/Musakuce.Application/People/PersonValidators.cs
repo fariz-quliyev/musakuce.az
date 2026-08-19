@@ -9,7 +9,7 @@ public class CreatePersonRequestValidator : AbstractValidator<CreatePersonReques
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Category).IsInEnum();
-        RuleFor(x => x.Biography).NotEmpty().MaximumLength(8000);
+        RuleFor(x => x.Biography).NotEmpty().MaximumLength(16000);
         RuleFor(x => x.SourceStatus).IsInEnum();
         RuleFor(x => x.SourceReference).MaximumLength(500);
         RuleFor(x => x.EditorialNote).MaximumLength(2000);

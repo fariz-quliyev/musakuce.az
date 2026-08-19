@@ -17,6 +17,7 @@ public class MusakuceDbContext(DbContextOptions<MusakuceDbContext> options)
     public DbSet<VillageEvent> VillageEvents => Set<VillageEvent>();
     public DbSet<LocalInfoEntry> LocalInfoEntries => Set<LocalInfoEntry>();
     public DbSet<Person> People => Set<Person>();
+    public DbSet<PersonImage> PersonImages => Set<PersonImage>();
     public DbSet<HistoricalEvent> HistoricalEvents => Set<HistoricalEvent>();
     public DbSet<HistoricalEventImage> HistoricalEventImages => Set<HistoricalEventImage>();
     public DbSet<Photo> Photos => Set<Photo>();

@@ -25,4 +25,16 @@ public class Person : BaseEntity
     public string? OriginalSourceText { get; set; }
     public required string Slug { get; set; }
     public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
+    public ICollection<PersonImage> AdditionalImages { get; set; } = new List<PersonImage>();
+}
+
+/// <summary>Join table — a person can carry a few supporting photos beyond
+/// their single CoverMediaAsset (the "Fotoalbom" section).</summary>
+public class PersonImage : BaseEntity
+{
+    public Guid PersonId { get; set; }
+    public Person? Person { get; set; }
+    public Guid MediaAssetId { get; set; }
+    public MediaAsset? MediaAsset { get; set; }
+    public int SortOrder { get; set; }
 }

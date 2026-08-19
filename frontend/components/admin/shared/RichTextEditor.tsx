@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
 import { cn } from "@/lib/cn";
 import { toEditableHtml } from "@/lib/richText";
+import { mediaApi } from "@/lib/api/media";
 import { RichTextToolbar } from "./RichTextToolbar";
 
 type Props = {
@@ -23,6 +25,13 @@ type Props = {
    * parent does its own pre-submit check with this instead. Only worth
    * wiring up for fields the parent actually treats as required. */
   onEmptyChange?: (isEmpty: boolean) => void;
+  /** Opt-in: adds a "Şəkil əlavə et" toolbar button that uploads an
+   * image (same `mediaApi.uploadAdmin` pipeline as `ImageUploadField`)
+   * and inserts it at the cursor. Defaults to `false` so the other
+   * caller of this shared editor (HistoricalEvent.detailedText) is
+   * completely unaffected — inline images were only requested for
+   * Person.biography. */
+  allowImages?: boolean;
 };
 
 /** Shared rich text editor (Tiptap) for any long-form text field backed
@@ -34,8 +43,11 @@ type Props = {
  * page's sanitize-before-render step. A hidden `<input>` mirrors the
  * editor's HTML so the surrounding `<form>`'s existing
  * `FormData`-based submit needs no changes at all. */
-export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyChange }: Props) {
+export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyChange, allowImages }: Props) {
   const [initialHtml] = useState(() => toEditableHtml(initialContent));
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const [imageStatus, setImageStatus] = useState<"idle" | "uploading" | "error">("idle");
+  const [imageError, setImageError] = useState<string | null>(null);
   // Held in state (not just mirrored onto a ref-mutated hidden input) so
   // it survives the parent form re-rendering for unrelated reasons
   // (e.g. a publish-status picker, an upload-disable flag elsewhere in
@@ -70,6 +82,10 @@ export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyC
         autolink: true,
         HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
       }),
+      // Block-level, default config — no resize handles/inline mode,
+      // since nothing in the spec asked for manual resizing and the
+      // [&_img] rule below already keeps it from ever overflowing.
+      ...(allowImages ? [Image] : []),
     ],
     content: initialHtml,
     onUpdate: ({ editor }) => {
@@ -87,6 +103,7 @@ export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyC
           "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5",
           "[&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2",
           "[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-stone [&_blockquote]:pl-3 [&_blockquote]:text-ink-soft [&_blockquote]:italic",
+          "[&_img]:my-2 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
         ),
         id,
         // Tiptap's `attributes` map is `{[name]: string}` — plain DOM
@@ -100,6 +117,29 @@ export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyC
     },
   });
 
+  async function handleImageFileChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    // Without this, re-selecting the exact same file right after an
+    // earlier insert wouldn't fire another change event.
+    event.target.value = "";
+    if (!file || !editor) return;
+
+    setImageStatus("uploading");
+    setImageError(null);
+    try {
+      const media = await mediaApi.uploadAdmin(file);
+      // Same window.prompt pattern the link button above already uses —
+      // no dialog primitive exists in this design system yet. Alt text
+      // is optional, so Cancel (null) just means "no alt", not "abort".
+      const alt = window.prompt("Şəkil üçün alt mətn (istəyə bağlı):", "") ?? "";
+      editor.chain().focus().setImage({ src: media.url, alt }).run();
+      setImageStatus("idle");
+    } catch (err) {
+      setImageStatus("error");
+      setImageError(err instanceof Error ? err.message : "Şəkil yüklənə bilmədi.");
+    }
+  }
+
   return (
     // min-w-0: this sits inside FormField's flex column, where a flex
     // item's default min-width is its content's natural (unwrapped)
@@ -108,7 +148,23 @@ export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyC
     // (confirmed by removing the toolbar and watching the page-level
     // horizontal overflow disappear).
     <div className="min-w-0">
-      {editor ? <RichTextToolbar editor={editor} /> : null}
+      {editor ? (
+        <RichTextToolbar
+          editor={editor}
+          onInsertImageClick={allowImages ? () => imageInputRef.current?.click() : undefined}
+        />
+      ) : null}
+      {allowImages ? (
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          onChange={handleImageFileChange}
+          className="hidden"
+        />
+      ) : null}
+      {imageStatus === "uploading" ? <p className="mt-1 text-xs text-ink-faint">Şəkil yüklənir…</p> : null}
+      {imageStatus === "error" ? <p className="mt-1 text-xs font-medium text-danger">{imageError}</p> : null}
       <EditorContent editor={editor} />
       {/* readOnly: this is never user-edited directly (only via the
           editor above, through setHtml), so there's no missing-onChange
