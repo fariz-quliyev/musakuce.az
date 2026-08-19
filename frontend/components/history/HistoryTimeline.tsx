@@ -258,23 +258,25 @@ function EventDetailContent({
   return (
     <div className="motion-safe:animate-[parchment-reveal_380ms_ease-out]">
       {/* Explicit two-column editorial grid on desktop (§editorial
-          two-column redesign) — text ~43%, gallery ~57%, both sharing
+          two-column redesign) — text ~60%, gallery ~40%, both sharing
           one row so the gallery naturally stretches (CSS Grid's default
           stretch alignment) to match however tall the write-up ends up
-          being; no JS measurement needed. `min-h-[380px]` is a floor,
+          being; no JS measurement needed. `min-h-[280px]` is a floor,
           not a fixed height — events with only a line or two of text
           (most of them, in practice) would otherwise collapse the row
           short enough that the image shrank to a small letterboxed
-          thumbnail instead of reading as the dominant element the
-          design calls for; a long write-up still grows the row past
-          this floor exactly as before. Replaces an earlier float-based
-          attempt (text wrapping beside the image, then reflowing to
-          full width below it) — that made "the gallery column" a
-          moving target tied to each event's own text length instead of
-          a fixed, predictable fraction of the card. Stacks (text, then
-          image) below `lg`, where there's no shared row to stretch
-          against anyway. */}
-      <div className="grid gap-6 lg:grid-cols-[43%_1fr] lg:min-h-[380px] lg:gap-8">
+          thumbnail; a long write-up still grows the row past this floor
+          exactly as before. (An earlier pass at ~57%/min-h-380 read as
+          too dominant in production — this is a deliberate step back
+          toward a supporting-photo scale, not a return to the original
+          fixed-190px column.) Replaces an earlier float-based attempt
+          (text wrapping beside the image, then reflowing to full width
+          below it) — that made "the gallery column" a moving target
+          tied to each event's own text length instead of a fixed,
+          predictable fraction of the card. Stacks (text, then image)
+          below `lg`, where there's no shared row to stretch against
+          anyway. */}
+      <div className="grid gap-6 lg:grid-cols-[60%_1fr] lg:min-h-[280px] lg:gap-8">
         <div className="min-w-0">
           <p className="flex flex-wrap items-baseline gap-x-2 text-[13px] font-semibold tracking-[0.05em] text-parchment-accent-ink uppercase">
             <span>{event.period}</span>
