@@ -63,7 +63,7 @@ export function InterviewForm({ interview, personOptions }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Müsahibin adı" htmlFor="personName" required>
           <Input id="personName" name="personName" required maxLength={150} defaultValue={interview?.personName} />

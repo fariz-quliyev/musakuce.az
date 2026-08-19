@@ -66,7 +66,7 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Kənd adı" htmlFor="villageName" hint="Boş buraxıla bilər">
           <Input id="villageName" name="villageName" maxLength={150} defaultValue={profile?.villageName ?? "Musaküçə"} />

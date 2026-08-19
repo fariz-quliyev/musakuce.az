@@ -41,7 +41,7 @@ export function TimelineSettingsForm({ settings }: { settings?: TimelineSettings
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <FormField label="Bölmə başlığı" htmlFor="title" required>
         <Input id="title" name="title" required maxLength={150} defaultValue={settings?.title ?? "Zaman xəttində Musaküçə"} />
       </FormField>

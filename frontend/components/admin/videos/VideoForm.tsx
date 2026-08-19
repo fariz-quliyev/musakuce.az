@@ -53,7 +53,7 @@ export function VideoForm({ video }: { video?: VideoDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <FormField label="Başlıq" htmlFor="title" required>
         <Input id="title" name="title" required maxLength={150} defaultValue={video?.title} />
       </FormField>

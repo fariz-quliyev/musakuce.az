@@ -62,7 +62,7 @@ export function EducationForm({ entry, personOptions }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Başlıq" htmlFor="title" required>
           <Input id="title" name="title" required maxLength={150} defaultValue={entry?.title} />

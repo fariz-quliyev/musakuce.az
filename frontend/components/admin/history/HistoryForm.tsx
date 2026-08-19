@@ -78,7 +78,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       {event?.isDefault ? (
         <p className="rounded-md bg-info-bg px-3 py-2 text-sm text-info">
           Bu, timeline-ın nümunə (default) məzmunudur — real məlumatla əvəz edin və ya bu formada redaktə edin.

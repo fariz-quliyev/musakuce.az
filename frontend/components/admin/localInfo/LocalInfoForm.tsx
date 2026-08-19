@@ -52,7 +52,7 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Ad" htmlFor="name" required>
           <Input id="name" name="name" required maxLength={150} defaultValue={entry?.name} />

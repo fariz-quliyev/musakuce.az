@@ -181,7 +181,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-2xl gap-5 pb-2">
+    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5 pb-2">
       <FormSection title="Şəxsi məlumatlar">
         <div className="grid gap-5 sm:grid-cols-3">
           <FormField label="Ad" htmlFor="firstName" required>
