@@ -200,7 +200,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         <AccountFooter user={user} />
       </aside>
 
-      <div className="flex min-h-screen flex-1 flex-col">
+      {/* min-w-0: this is a flex item of the outer row flex container
+          (`aside` + this column) with flex-1 — without min-w-0 a flex
+          item's default min-width is its content's natural (unwrapped)
+          size, so the warning banner's text below never got a chance to
+          wrap on narrow screens and pushed the whole page wider than the
+          viewport instead. Below md, `aside` is `hidden`, so this column
+          is the row's only visible child, making its own min-width the
+          entire row's floor. Desktop is unaffected — there's already
+          enough room, so this constraint never actually engages there. */}
+      <div className="flex min-w-0 min-h-screen flex-1 flex-col">
         {/* Mobile-only top bar — below md the sidebar is hidden entirely, so
             this is the only way to reach navigation/logout on a phone. */}
         <div className="flex items-center justify-between border-b border-stone-light bg-paper px-4 py-3 md:hidden">
