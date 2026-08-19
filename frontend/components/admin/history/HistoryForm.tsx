@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { RichTextEditor } from "@/components/admin/shared/RichTextEditor";
 import { historyApi } from "@/lib/api/history";
 import { sourceStatusLabels, eventIconLabels } from "@/lib/api/labels";
 import type { EventIcon, HistoricalEventDto, MediaAssetDto, SourceStatus } from "@/lib/api/types";
@@ -101,8 +102,13 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
         <Textarea id="description" name="description" required maxLength={4000} defaultValue={event?.description} />
       </FormField>
 
-      <FormField label="Ətraflı mətn" htmlFor="detailedText" hint="Boş buraxıla bilər — yalnız ətraflı paneldə, qısa təsvirdən sonra göstərilir">
-        <Textarea id="detailedText" name="detailedText" maxLength={8000} defaultValue={event?.detailedText ?? ""} />
+      <FormField
+        label="Ətraflı mətn"
+        htmlFor="detailedText"
+        hint="Boş buraxıla bilər — yalnız ətraflı paneldə, qısa təsvirdən sonra göstərilir"
+        className="min-w-0"
+      >
+        <RichTextEditor id="detailedText" name="detailedText" initialContent={event?.detailedText ?? ""} />
       </FormField>
 
       <div className="grid gap-5 sm:grid-cols-2">

@@ -10,7 +10,7 @@ import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
 import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
-import { biographyToPlainText, sanitizeBiographyHtml } from "@/lib/richText";
+import { richTextToPlainText, sanitizeRichText } from "@/lib/richText";
 import { cn } from "@/lib/cn";
 import type { PersonDto } from "@/lib/api/types";
 
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const fullName = `${person.firstName} ${person.lastName}`;
     return buildPageMetadata({
       title: fullName,
-      description: person.occupation || biographyToPlainText(person.biography).slice(0, 160) || personCategoryLabels[person.category],
+      description: person.occupation || richTextToPlainText(person.biography).slice(0, 160) || personCategoryLabels[person.category],
       path: `/insanlarimiz/${person.id}`,
       imageUrl: person.coverImageUrl,
     });
@@ -59,7 +59,7 @@ export default async function PersonDetailPage({ params }: Props) {
             ]),
             articleJsonLd({
               headline: fullName,
-              description: person.occupation || biographyToPlainText(person.biography),
+              description: person.occupation || richTextToPlainText(person.biography),
               url: `/insanlarimiz/${person.id}`,
               imageUrl: person.coverImageUrl,
             }),
@@ -106,7 +106,7 @@ export default async function PersonDetailPage({ params }: Props) {
               // Biography is sanitized (DOMPurify, fixed tag allowlist)
               // just above — the only safe way to render admin-authored
               // rich text here; never render person.biography directly.
-              dangerouslySetInnerHTML={{ __html: sanitizeBiographyHtml(person.biography) }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(person.biography) }}
             />
 
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">

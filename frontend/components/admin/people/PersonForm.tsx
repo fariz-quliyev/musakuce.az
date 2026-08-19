@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
-import { BiographyEditor } from "@/components/admin/people/BiographyEditor";
+import { RichTextEditor } from "@/components/admin/shared/RichTextEditor";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
@@ -29,7 +29,7 @@ function FormSection({ title, children }: { title: string; children: React.React
     // form grid, and its own inner grid item in turn — the Bioqrafiya
     // section's toolbar has a wide natural (unwrapped) content width, and
     // a grid item's default min-width is that natural width unless
-    // overridden, at every level of nesting. See BiographyEditor.tsx's
+    // overridden, at every level of nesting. See RichTextEditor.tsx's
     // own min-w-0 note for the original (single-layer) version of this.
     <section className="min-w-0 rounded-lg border border-stone-light bg-paper p-5 sm:p-6">
       <h2 className="mb-4 text-xs font-semibold tracking-wide text-ink-faint uppercase">{title}</h2>
@@ -238,7 +238,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
               overflow). Every other FormField in this form is narrow
               enough that its content never hits this, which is why this
               is the only one that needs it. */}
-          <BiographyEditor
+          <RichTextEditor
             id="biography"
             name="biography"
             initialContent={person?.biography ?? ""}

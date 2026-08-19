@@ -12,38 +12,40 @@ import { RichTextToolbar } from "./RichTextToolbar";
 type Props = {
   id: string;
   name: string;
-  /** Raw `Person.biography` — either HTML from a previous editor save,
-   * or legacy plain text from before the editor existed. */
+  /** Raw stored value — either HTML from a previous editor save, or
+   * legacy plain text from before this field had an editor. */
   initialContent: string;
   error?: string;
   hint?: string;
   /** Mirrors the field's emptiness up to the parent form, the same way
    * `ImageUploadField`'s `onUploaded` already lifts its own result —
    * `<textarea required>` can't apply to a contenteditable, so the
-   * parent does its own pre-submit check with this instead. */
+   * parent does its own pre-submit check with this instead. Only worth
+   * wiring up for fields the parent actually treats as required. */
   onEmptyChange?: (isEmpty: boolean) => void;
 };
 
-/** Person.biography rich text editor (Tiptap). Storage stays exactly
- * what it already was — the same plain `Biography` string column/API
+/** Shared rich text editor (Tiptap) for any long-form text field backed
+ * by a plain string column — originally built for Person.biography,
+ * reused as-is for HistoricalEvent.detailedText. Storage stays exactly
+ * what it already was for each field — the same string column/API
  * field, now holding sanitized HTML instead of plain text; see
- * `lib/richText.ts` for the legacy-content upgrade path and the public
+ * `lib/richText.ts` for the legacy-content upgrade path and each public
  * page's sanitize-before-render step. A hidden `<input>` mirrors the
  * editor's HTML so the surrounding `<form>`'s existing
- * `FormData`-based submit in PersonForm.tsx needs no changes at all. */
-export function BiographyEditor({ id, name, initialContent, error, hint, onEmptyChange }: Props) {
+ * `FormData`-based submit needs no changes at all. */
+export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyChange }: Props) {
   const [initialHtml] = useState(() => toEditableHtml(initialContent));
   // Held in state (not just mirrored onto a ref-mutated hidden input) so
-  // it survives PersonForm re-renders triggered by unrelated state
-  // elsewhere in the form (e.g. the publish-status picker, or this same
-  // upload-disable fix's onUploadingChange) — an <input type="hidden">
-  // whose value is set only imperatively via a ref, with `defaultValue`
-  // for the initial render, gets reset back to that defaultValue by
-  // React on the next re-render of this component (confirmed: hidden
-  // inputs don't get the same "dirty value" exemption typed inputs do).
-  // A genuinely controlled `value` doesn't have that problem — React
-  // reapplies the current state on every render, which is exactly what's
-  // needed here.
+  // it survives the parent form re-rendering for unrelated reasons
+  // (e.g. a publish-status picker, an upload-disable flag elsewhere in
+  // the form) — an <input type="hidden"> whose value is set only
+  // imperatively via a ref, with `defaultValue` for the initial render,
+  // gets reset back to that defaultValue by React on the component's
+  // next re-render (confirmed: hidden inputs don't get the same "dirty
+  // value" exemption typed inputs do). A genuinely controlled `value`
+  // doesn't have that problem — React reapplies the current state on
+  // every render, which is exactly what's needed here.
   const [html, setHtml] = useState(initialHtml);
 
   const editor = useEditor({

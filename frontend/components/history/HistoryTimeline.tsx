@@ -5,6 +5,7 @@ import Image from "next/image";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
+import { sanitizeRichText } from "@/lib/richText";
 import type { EventIcon, HistoricalEventDto } from "@/lib/api/types";
 
 // Seeded placeholder events (HistoricalEventDto.isDefault) carry an
@@ -260,7 +261,21 @@ function EventDetailContent({
             {event.isDefault ? DEFAULT_EVENT_NOTICE : event.description}
           </p>
           {event.detailedText ? (
-            <p className="mt-3 max-w-xl text-[15px] leading-relaxed whitespace-pre-line text-ink-soft">{event.detailedText}</p>
+            <div
+              className={cn(
+                "mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft",
+                "[&_p]:my-2 first:[&_p]:mt-0 last:[&_p]:mb-0",
+                "[&_h2]:mt-4 [&_h2]:mb-1.5 [&_h2]:font-display [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-ink",
+                "[&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-display [&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-ink",
+                "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5",
+                "[&_a]:text-parchment-accent-ink [&_a]:underline [&_a]:underline-offset-2",
+                "[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-parchment-line [&_blockquote]:pl-3 [&_blockquote]:italic",
+              )}
+              // detailedText is admin-authored rich text (RichTextEditor,
+              // same fixed tag allowlist as Person.biography) — sanitized
+              // just like that field, never rendered raw.
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(event.detailedText) }}
+            />
           ) : null}
           {event.sourceReference ? (
             <p className="mt-3 text-xs text-ink-faint">
