@@ -6,12 +6,13 @@ import { Button } from "@/components/ui/Button";
 import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { Badge } from "@/components/ui/Badge";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
 import { BiographyEditor } from "@/components/admin/people/BiographyEditor";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
-import type { MediaAssetDto, PersonCategory, PersonDto, SourceStatus } from "@/lib/api/types";
+import type { MediaAssetDto, PersonCategory, PersonDto, PublicationStatus, SourceStatus } from "@/lib/api/types";
 
 const CATEGORY_OPTIONS = Object.entries(personCategoryLabels) as [PersonCategory, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
@@ -62,6 +63,13 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
   const [biographyEmpty, setBiographyEmpty] = useState(!person?.biography?.trim());
+  // A brand-new person is always created as Draft (Person.PublicationStatus's
+  // domain default) — an existing Archived person defaults to "Draft" here
+  // too, since Archived isn't one of this picker's two choices; picking
+  // either option still moves it to a real, intentional state.
+  const [publicationChoice, setPublicationChoice] = useState<Extract<PublicationStatus, "Draft" | "Published">>(
+    person?.publicationStatus === "Published" ? "Published" : "Draft",
+  );
   const isEdit = !!person;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -103,14 +111,51 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     };
 
     try {
+      // Content (this PUT/POST) and publication status (the existing
+      // PATCH .../status endpoint, already used by the list's
+      // publish/archive actions and gated by the same Permissions.
+      // PeopleModerate every role that can reach this form already has)
+      // stay two separate backend calls — reusing exactly what's there
+      // instead of teaching Create/UpdatePersonRequest a new field.
+      let personId: string;
+      let currentStatus: PublicationStatus;
       if (isEdit) {
         await peopleApi.update(person.id, payload);
-        setStatus("success");
-        router.push(`/admin/insanlar/${person.id}/redakte?s=${person.publicationStatus}`);
+        personId = person.id;
+        currentStatus = person.publicationStatus;
       } else {
         const created = await peopleApi.create(payload);
-        router.push(`/admin/insanlar/${created.id}/redakte?s=${created.publicationStatus}`);
+        personId = created.id;
+        currentStatus = created.publicationStatus;
       }
+
+      // Content is safely saved from here on regardless of what happens
+      // next — only call the status endpoint when the choice actually
+      // differs, so an unchanged Draft/Published doesn't get a spurious
+      // audit-log entry or a wasted request.
+      let finalStatus = currentStatus;
+      let statusErrorMessage: string | null = null;
+      if (publicationChoice !== currentStatus) {
+        try {
+          const updated = await peopleApi.updateStatus(personId, { publicationStatus: publicationChoice });
+          finalStatus = updated.publicationStatus;
+        } catch (statusErr) {
+          statusErrorMessage = describeSaveError(statusErr);
+        }
+      }
+
+      if (statusErrorMessage) {
+        setStatus("error");
+        setErrorMessage(`Məlumat saxlanıldı, lakin status yenilənmədi: ${statusErrorMessage}`);
+      } else {
+        setStatus("success");
+      }
+      // Navigate even when only the status call failed — the content was
+      // genuinely saved (for a new person, already created in the
+      // database), so staying on an empty "yeni şəxs" form would risk a
+      // duplicate on retry. The redirect's own ?s= reflects what's
+      // actually true (finalStatus), not what was requested.
+      router.push(`/admin/insanlar/${personId}/redakte?s=${finalStatus}`);
       router.refresh();
     } catch (err) {
       setStatus("error");
@@ -217,10 +262,35 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         {status === "error" ? (
           <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
         ) : null}
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" loading={status === "submitting"}>
             Yadda saxla
           </Button>
+
+          <div className="flex items-center gap-2">
+            <Select
+              aria-label="Nəşr statusu"
+              value={publicationChoice}
+              onChange={(event) => setPublicationChoice(event.target.value as "Draft" | "Published")}
+              className="w-auto py-2"
+            >
+              <option value="Draft">Qaralama</option>
+              <option value="Published">Yayımla</option>
+            </Select>
+            {/* Every save applies whichever of these two is currently
+                selected — "Yadda saxla" never silently decides the status
+                on its own (spec requirement). */}
+            {publicationChoice === "Published" ? (
+              <Badge tone="success" dot>
+                Saytda dərhal görünəcək
+              </Badge>
+            ) : (
+              <Badge tone="neutral" dot>
+                Saytda görünməyəcək
+              </Badge>
+            )}
+          </div>
+
           <Button type="button" variant="outline" href="/admin/insanlar">
             Ləğv et
           </Button>
