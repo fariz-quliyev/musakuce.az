@@ -53,6 +53,12 @@ export function ImageCropper({ file, aspectRatio, onConfirm, onCancel, onError }
   // second (real) invocation mints its own URL correctly.
   useEffect(() => {
     const url = URL.createObjectURL(file);
+    // Must set state here, not compute during render: a render-phase
+    // ref guard wouldn't get re-invoked by Strict Mode's phantom
+    // cleanup+re-setup, since that doesn't trigger a new render — the
+    // <img> would keep the dead URL from the first commit. One extra
+    // render on file-select is negligible for an admin crop tool.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setObjectUrl(url);
     return () => URL.revokeObjectURL(url);
   }, [file]);

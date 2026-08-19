@@ -25,17 +25,6 @@ async function loadPerson(id: string): Promise<PersonDto> {
   }
 }
 
-/** "1930 – 2005" / "1930" / "v. 2005" — only ever built from fields that
- * are actually present, never invented. */
-function lifeSpan(person: PersonDto): string | null {
-  const birthYear = person.birthDate ? new Date(person.birthDate).getFullYear() : null;
-  const deathYear = person.deathDate ? new Date(person.deathDate).getFullYear() : null;
-  if (birthYear && deathYear) return `${birthYear} – ${deathYear}`;
-  if (birthYear) return `${birthYear}`;
-  if (deathYear) return `v. ${deathYear}`;
-  return null;
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   try {
@@ -56,7 +45,6 @@ export default async function PersonDetailPage({ params }: Props) {
   const { id } = await params;
   const person = await loadPerson(id);
   const fullName = [person.firstName, person.fatherName, person.lastName].filter(Boolean).join(" ");
-  const span = lifeSpan(person);
 
   return (
     <PageShell>
@@ -97,12 +85,7 @@ export default async function PersonDetailPage({ params }: Props) {
           </div>
 
           <div className="lg:col-span-8">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <Badge tone="forest">{personCategoryLabels[person.category]}</Badge>
-              {span ? <Badge tone="neutral">{span}</Badge> : null}
-            </div>
-
-            <h1 className="mt-3 font-display text-[length:var(--text-h1)] leading-[var(--text-h1--line-height)] text-ink">
+            <h1 className="font-display text-[length:var(--text-h1)] leading-[var(--text-h1--line-height)] text-ink">
               {fullName}
             </h1>
 
