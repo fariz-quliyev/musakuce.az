@@ -159,24 +159,31 @@ function MarkerGlyph({ event, iconClassName }: { event: HistoricalEventDto; icon
  * thumbnail swaps the main image. Keyed by event id from the caller so
  * switching events resets the selection back to the cover image.
  *
- * Deliberately small and secondary within the card (§Timeline parchment
- * redesign) — a supporting archival photo/document, not the card's main
- * visual event, with a thin double-rule frame evoking a mounted print
- * rather than a modern full-bleed hero image. */
+ * The dominant visual element of its column (§editorial two-column
+ * redesign) — sized to fill the gallery column's full height on
+ * desktop (`lg:h-full`, stretching to match whatever height the
+ * write-up text next to it naturally takes), a fixed landscape box on
+ * narrower viewports where there's no shared row height to match.
+ * `object-contain` (not the site's usual `object-cover`) is
+ * deliberate: these are often archival illustrations/documents where
+ * cropping any part would lose real content, unlike an ordinary scenic
+ * photo where a center-crop is harmless — letterboxing inside the
+ * frame is the correct trade-off here. The `bg-paper-soft` on the
+ * inner frame is what that letterboxing sits on. */
 function EventGallery({ event }: { event: HistoricalEventDto }) {
   const [selected, setSelected] = useState(0);
   const images = [
     ...(event.coverImageUrl ? [{ url: event.coverImageUrl, alt: event.title }] : []),
     ...event.additionalImages.map((img) => ({ url: img.imageUrl, alt: event.title })),
   ];
+  const frameClass =
+    "aspect-[4/3] w-full overflow-hidden rounded-md border border-parchment-line/80 bg-paper-soft p-1 shadow-sm ring-1 ring-inset ring-white/40 lg:aspect-auto lg:h-full";
 
   if (images.length === 0) {
     return (
-      <div className="max-w-[190px] lg:w-[190px] lg:shrink-0">
-        <div className="aspect-[4/5] w-full overflow-hidden rounded-md border border-parchment-line/80 p-1 shadow-sm ring-1 ring-inset ring-white/40">
-          <div className="h-full w-full overflow-hidden rounded-[3px]">
-            <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
-          </div>
+      <div className={frameClass}>
+        <div className="h-full w-full overflow-hidden rounded-[3px]">
+          <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
         </div>
       </div>
     );
@@ -185,10 +192,16 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
   const main = images[Math.min(selected, images.length - 1)];
 
   return (
-    <div className="max-w-[190px] lg:w-[190px] lg:shrink-0">
-      <div className="aspect-[4/5] w-full overflow-hidden rounded-md border border-parchment-line/80 p-1 shadow-sm ring-1 ring-inset ring-white/40">
-        <div className="h-full w-full overflow-hidden rounded-[3px]">
-          <VillagePhoto src={main.url} alt={main.alt} tone="forest" sizes="(min-width: 1024px) 190px, 45vw" />
+    <div>
+      <div className={frameClass}>
+        <div className="h-full w-full overflow-hidden rounded-[3px] bg-paper-soft">
+          <VillagePhoto
+            src={main.url}
+            alt={main.alt}
+            tone="forest"
+            sizes="(min-width: 1024px) 55vw, 100vw"
+            imageClassName="object-contain"
+          />
         </div>
       </div>
       {images.length > 1 ? (
@@ -244,8 +257,25 @@ function EventDetailContent({
 }) {
   return (
     <div className="motion-safe:animate-[parchment-reveal_380ms_ease-out]">
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:gap-8">
-        <div className="min-w-0 flex-1">
+      {/* Explicit two-column editorial grid on desktop (§editorial
+          two-column redesign) — text ~43%, gallery ~57%, both sharing
+          one row so the gallery naturally stretches (CSS Grid's default
+          stretch alignment) to match however tall the write-up ends up
+          being; no JS measurement needed. `min-h-[380px]` is a floor,
+          not a fixed height — events with only a line or two of text
+          (most of them, in practice) would otherwise collapse the row
+          short enough that the image shrank to a small letterboxed
+          thumbnail instead of reading as the dominant element the
+          design calls for; a long write-up still grows the row past
+          this floor exactly as before. Replaces an earlier float-based
+          attempt (text wrapping beside the image, then reflowing to
+          full width below it) — that made "the gallery column" a
+          moving target tied to each event's own text length instead of
+          a fixed, predictable fraction of the card. Stacks (text, then
+          image) below `lg`, where there's no shared row to stretch
+          against anyway. */}
+      <div className="grid gap-6 lg:grid-cols-[43%_1fr] lg:min-h-[380px] lg:gap-8">
+        <div className="min-w-0">
           <p className="flex flex-wrap items-baseline gap-x-2 text-[13px] font-semibold tracking-[0.05em] text-parchment-accent-ink uppercase">
             <span>{event.period}</span>
             <span aria-hidden className="text-parchment-line">
@@ -257,13 +287,13 @@ function EventDetailContent({
             {event.title}
           </h3>
           <div aria-hidden className="mt-3 h-px w-14 bg-parchment-line" />
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed whitespace-pre-line text-ink-soft">
+          <p className="mt-4 text-[15px] leading-relaxed whitespace-pre-line text-ink-soft">
             {event.isDefault ? DEFAULT_EVENT_NOTICE : event.description}
           </p>
           {event.detailedText ? (
             <div
               className={cn(
-                "mt-3 max-w-xl text-[15px] leading-relaxed text-ink-soft",
+                "mt-3 text-[15px] leading-relaxed text-ink-soft",
                 "[&_p]:my-2 first:[&_p]:mt-0 last:[&_p]:mb-0",
                 "[&_h2]:mt-4 [&_h2]:mb-1.5 [&_h2]:font-display [&_h2]:text-base [&_h2]:font-semibold [&_h2]:text-ink",
                 "[&_h3]:mt-3 [&_h3]:mb-1 [&_h3]:font-display [&_h3]:text-[15px] [&_h3]:font-semibold [&_h3]:text-ink",
