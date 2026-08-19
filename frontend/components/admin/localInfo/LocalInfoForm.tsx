@@ -8,21 +8,28 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
+import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { localInfoKindLabels } from "@/lib/api/labels";
-import type { LocalInfoEntryDto, LocalInfoKind, MediaAssetDto } from "@/lib/api/types";
+import type { LocalInfoEntryDto, LocalInfoKind, MediaAssetDto, PublicationStatus } from "@/lib/api/types";
 
 const KIND_OPTIONS = Object.entries(localInfoKindLabels) as [LocalInfoKind, string][];
 
 export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [photoMediaAssetId, setPhotoMediaAssetId] = useState<string | null>(entry?.photoMediaAssetId ?? null);
+  const [publicationChoice, setPublicationChoice] = useState<PublicationChoice>(
+    entry?.publicationStatus === "Published" ? "Published" : "Draft",
+  );
   const isEdit = !!entry;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
+    setErrorMessage(null);
     const form = new FormData(event.currentTarget);
 
     const payload = {
@@ -37,17 +44,40 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
     };
 
     try {
+      let entryId: string;
+      let currentStatus: PublicationStatus;
       if (isEdit) {
         await localInfoApi.update(entry.id, payload);
-        setStatus("success");
-        router.push(`/admin/faydali-melumatlar/${entry.id}/redakte?s=${entry.publicationStatus}`);
+        entryId = entry.id;
+        currentStatus = entry.publicationStatus;
       } else {
         const created = await localInfoApi.create(payload);
-        router.push(`/admin/faydali-melumatlar/${created.id}/redakte?s=${created.publicationStatus}`);
+        entryId = created.id;
+        currentStatus = created.publicationStatus;
       }
+
+      let finalStatus = currentStatus;
+      let statusErrorMessage: string | null = null;
+      if (publicationChoice !== currentStatus) {
+        try {
+          const updated = await localInfoApi.updateStatus(entryId, { publicationStatus: publicationChoice });
+          finalStatus = updated.publicationStatus;
+        } catch (statusErr) {
+          statusErrorMessage = describeSaveError(statusErr);
+        }
+      }
+
+      if (statusErrorMessage) {
+        setStatus("error");
+        setErrorMessage(`Məlumat saxlanıldı, lakin status yenilənmədi: ${statusErrorMessage}`);
+      } else {
+        setStatus("success");
+      }
+      router.push(`/admin/faydali-melumatlar/${entryId}/redakte?s=${finalStatus}`);
       router.refresh();
-    } catch {
+    } catch (err) {
       setStatus("error");
+      setErrorMessage(describeSaveError(err));
     }
   }
 
@@ -100,20 +130,24 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
         <Input id="attachedToEntryId" name="attachedToEntryId" defaultValue={entry?.attachedToEntryId ?? ""} />
       </FormField>
 
-      {status === "success" ? (
-        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
-      ) : null}
-      {status === "error" ? (
-        <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
-      ) : null}
+      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
+        {status === "success" ? (
+          <p className="mb-3 text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+        ) : null}
+        {status === "error" ? (
+          <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" loading={status === "submitting"}>
+            Yadda saxla
+          </Button>
 
-      <div className="flex gap-2">
-        <Button type="submit" loading={status === "submitting"}>
-          Yadda saxla
-        </Button>
-        <Button type="button" variant="outline" href="/admin/faydali-melumatlar">
-          Ləğv et
-        </Button>
+          <PublicationStatusPicker value={publicationChoice} onChange={setPublicationChoice} />
+
+          <Button type="button" variant="outline" href="/admin/faydali-melumatlar">
+            Ləğv et
+          </Button>
+        </div>
       </div>
     </form>
   );

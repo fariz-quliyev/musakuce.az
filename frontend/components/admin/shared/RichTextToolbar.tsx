@@ -52,14 +52,16 @@ type RichTextToolbarProps = {
    * button here which just dispatches a synchronous editor.chain()
    * call. Omitted entirely by callers that don't pass `allowImages`. */
   onInsertImageClick?: () => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
 };
 
-export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarProps) {
+export function RichTextToolbar({ editor, onInsertImageClick, isFullscreen, onToggleFullscreen }: RichTextToolbarProps) {
   return (
     <div
       role="toolbar"
       aria-label="Mətn formatlaşdırma"
-      className="flex w-full min-w-0 items-center gap-0.5 overflow-x-auto rounded-t-md border border-b-0 border-stone-light bg-paper-soft px-2 py-1.5"
+      className="flex w-full min-w-0 shrink-0 items-center gap-0.5 overflow-x-auto rounded-t-md border border-b-0 border-stone-light bg-paper-soft px-2 py-1.5"
     >
       <ToolbarButton
         label="Qalın (Ctrl+B)"
@@ -82,6 +84,13 @@ export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarP
       >
         <span className="underline">U</span>
       </ToolbarButton>
+      <ToolbarButton
+        label="Üstündən xətt"
+        active={editor.isActive("strike")}
+        onClick={() => editor.chain().focus().toggleStrike().run()}
+      >
+        <span className="line-through">S</span>
+      </ToolbarButton>
 
       <Divider />
 
@@ -98,6 +107,57 @@ export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarP
         onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
       >
         H3
+      </ToolbarButton>
+
+      <Divider />
+
+      <ToolbarButton
+        label="Sola düzləndir"
+        active={editor.isActive({ textAlign: "left" })}
+        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+      >
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+          <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="9" x2="12" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="13" x2="17" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="17" x2="12" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </ToolbarButton>
+      <ToolbarButton
+        label="Mərkəzə düzləndir"
+        active={editor.isActive({ textAlign: "center" })}
+        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+      >
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+          <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="5.5" y1="9" x2="14.5" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="13" x2="17" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="5.5" y1="17" x2="14.5" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </ToolbarButton>
+      <ToolbarButton
+        label="Sağa düzləndir"
+        active={editor.isActive({ textAlign: "right" })}
+        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+      >
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+          <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="8" y1="9" x2="17" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="13" x2="17" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="8" y1="17" x2="17" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </ToolbarButton>
+      <ToolbarButton
+        label="İki tərəfə düzləndir"
+        active={editor.isActive({ textAlign: "justify" })}
+        onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+      >
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+          <line x1="3" y1="5" x2="17" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="9" x2="17" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="13" x2="17" y2="13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          <line x1="3" y1="17" x2="17" y2="17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
       </ToolbarButton>
 
       <Divider />
@@ -180,6 +240,30 @@ export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarP
       <Divider />
 
       <ToolbarButton
+        label="Cədvəl əlavə et"
+        active={editor.isActive("table")}
+        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+      >
+        <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+          <rect x="2.5" y="3.5" width="15" height="13" rx="1" stroke="currentColor" strokeWidth="1.5" />
+          <line x1="2.5" y1="8" x2="17.5" y2="8" stroke="currentColor" strokeWidth="1.3" />
+          <line x1="2.5" y1="12.3" x2="17.5" y2="12.3" stroke="currentColor" strokeWidth="1.3" />
+          <line x1="10" y1="3.5" x2="10" y2="16.5" stroke="currentColor" strokeWidth="1.3" />
+        </svg>
+      </ToolbarButton>
+      {editor.isActive("table") ? (
+        <ToolbarButton label="Cədvəli sil" onClick={() => editor.chain().focus().deleteTable().run()}>
+          <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+            <rect x="2.5" y="3.5" width="15" height="13" rx="1" stroke="currentColor" strokeWidth="1.5" />
+            <line x1="6.5" y1="7.5" x2="13.5" y2="12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+            <line x1="13.5" y1="7.5" x2="6.5" y2="12.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+          </svg>
+        </ToolbarButton>
+      ) : null}
+
+      <Divider />
+
+      <ToolbarButton
         label="Geri al (Ctrl+Z)"
         disabled={!editor.can().undo()}
         onClick={() => editor.chain().focus().undo().run()}
@@ -198,6 +282,30 @@ export function RichTextToolbar({ editor, onInsertImageClick }: RichTextToolbarP
           <path d="M13 5l3.5 3.5L13 12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
           <path d="M16.5 8.5h-8a4.5 4.5 0 1 0 0 9H11" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
+      </ToolbarButton>
+
+      <Divider />
+
+      <ToolbarButton
+        label={isFullscreen ? "Tam ekrandan çıx (Esc)" : "Tam ekran"}
+        active={isFullscreen}
+        onClick={onToggleFullscreen}
+      >
+        {isFullscreen ? (
+          <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+            <path d="M8 3.5H3.5V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 3.5h4.5V8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M8 16.5H3.5V12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M12 16.5h4.5V12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        ) : (
+          <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+            <path d="M3.5 8V3.5H8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M16.5 8V3.5H12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M3.5 12v4.5H8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M16.5 12v4.5H12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        )}
       </ToolbarButton>
     </div>
   );

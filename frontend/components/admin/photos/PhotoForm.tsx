@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
+import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { photosApi } from "@/lib/api/photos";
 import { photoCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
-import type { MediaAssetDto, PhotoCategory, PhotoDto, SourceStatus } from "@/lib/api/types";
+import type { MediaAssetDto, PhotoCategory, PhotoDto, PublicationStatus, SourceStatus } from "@/lib/api/types";
 
 const CATEGORY_OPTIONS = Object.entries(photoCategoryLabels) as [PhotoCategory, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
@@ -18,7 +20,11 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 export function PhotoForm({ photo }: { photo?: PhotoDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mediaAssetId, setMediaAssetId] = useState<string | null>(photo?.mediaAssetId ?? null);
+  const [publicationChoice, setPublicationChoice] = useState<PublicationChoice>(
+    photo?.publicationStatus === "Published" ? "Published" : "Draft",
+  );
   const isEdit = !!photo;
 
   function handleUploaded(media: MediaAssetDto) {
@@ -30,6 +36,7 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
     if (!mediaAssetId) return;
 
     setStatus("submitting");
+    setErrorMessage(null);
     const form = new FormData(event.currentTarget);
 
     const payload = {
@@ -46,17 +53,40 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
     };
 
     try {
+      let photoId: string;
+      let currentStatus: PublicationStatus;
       if (isEdit) {
         await photosApi.update(photo.id, payload);
-        setStatus("success");
-        router.push(`/admin/fotoalbom/${photo.id}/redakte?s=${photo.publicationStatus}`);
+        photoId = photo.id;
+        currentStatus = photo.publicationStatus;
       } else {
         const created = await photosApi.create(payload);
-        router.push(`/admin/fotoalbom/${created.id}/redakte?s=${created.publicationStatus}`);
+        photoId = created.id;
+        currentStatus = created.publicationStatus;
       }
+
+      let finalStatus = currentStatus;
+      let statusErrorMessage: string | null = null;
+      if (publicationChoice !== currentStatus) {
+        try {
+          const updated = await photosApi.updateStatus(photoId, { publicationStatus: publicationChoice });
+          finalStatus = updated.publicationStatus;
+        } catch (statusErr) {
+          statusErrorMessage = describeSaveError(statusErr);
+        }
+      }
+
+      if (statusErrorMessage) {
+        setStatus("error");
+        setErrorMessage(`Məlumat saxlanıldı, lakin status yenilənmədi: ${statusErrorMessage}`);
+      } else {
+        setStatus("success");
+      }
+      router.push(`/admin/fotoalbom/${photoId}/redakte?s=${finalStatus}`);
       router.refresh();
-    } catch {
+    } catch (err) {
       setStatus("error");
+      setErrorMessage(describeSaveError(err));
     }
   }
 
@@ -124,20 +154,25 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
       {!mediaAssetId ? (
         <p className="text-sm font-medium text-warning">Davam etmək üçün şəkil yükləyin.</p>
       ) : null}
-      {status === "success" ? (
-        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
-      ) : null}
-      {status === "error" ? (
-        <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
-      ) : null}
 
-      <div className="flex gap-2">
-        <Button type="submit" loading={status === "submitting"} disabled={!mediaAssetId}>
-          Yadda saxla
-        </Button>
-        <Button type="button" variant="outline" href="/admin/fotoalbom">
-          Ləğv et
-        </Button>
+      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
+        {status === "success" ? (
+          <p className="mb-3 text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+        ) : null}
+        {status === "error" ? (
+          <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" loading={status === "submitting"} disabled={!mediaAssetId}>
+            Yadda saxla
+          </Button>
+
+          <PublicationStatusPicker value={publicationChoice} onChange={setPublicationChoice} />
+
+          <Button type="button" variant="outline" href="/admin/fotoalbom">
+            Ləğv et
+          </Button>
+        </div>
       </div>
     </form>
   );

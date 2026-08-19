@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { LocalInfoForm } from "@/components/admin/localInfo/LocalInfoForm";
-import { LocalInfoRowActions } from "@/components/admin/localInfo/LocalInfoRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { ApiError } from "@/lib/api/client";
@@ -34,7 +33,6 @@ export default async function AdminEditLocalInfoPage({ params, searchParams }: P
         title="Qeydi redaktə et"
         description={entry.name}
         breadcrumb={[{ label: "Faydalı məlumatlar", href: "/admin/faydali-melumatlar" }, { label: entry.name }]}
-        actions={<LocalInfoRowActions entry={entry} />}
       />
       <LocalInfoForm entry={entry} />
     </div>

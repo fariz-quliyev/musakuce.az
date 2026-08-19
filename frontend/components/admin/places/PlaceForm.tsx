@@ -10,9 +10,11 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
+import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { placesApi } from "@/lib/api/places";
 import { placeCategoryLabels, placeKindLabels, sourceStatusLabels } from "@/lib/api/labels";
-import type { MediaAssetDto, PlaceCategory, PlaceDto, PlaceKind, SourceStatus } from "@/lib/api/types";
+import type { MediaAssetDto, PlaceCategory, PlaceDto, PlaceKind, PublicationStatus, SourceStatus } from "@/lib/api/types";
 
 const KIND_OPTIONS = Object.entries(placeKindLabels) as [PlaceKind, string][];
 const CATEGORY_OPTIONS = Object.entries(placeCategoryLabels) as [PlaceCategory, string][];
@@ -44,6 +46,10 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
   const [latitude, setLatitude] = useState(place?.latitude ?? DEFAULT_LATITUDE);
   const [longitude, setLongitude] = useState(place?.longitude ?? DEFAULT_LONGITUDE);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(place?.coverMediaAssetId ?? null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [publicationChoice, setPublicationChoice] = useState<PublicationChoice>(
+    place?.publicationStatus === "Published" ? "Published" : "Draft",
+  );
   const isEdit = !!place;
 
   const latitudeError = !isValidLatitude(latitude) ? "-90 ilə 90 arasında olmalıdır" : undefined;
@@ -63,6 +69,7 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
     if (!isValidLatitude(latitude) || !isValidLongitude(longitude)) return;
 
     setStatus("submitting");
+    setErrorMessage(null);
     const form = new FormData(event.currentTarget);
 
     const payload = {
@@ -79,17 +86,40 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
     };
 
     try {
+      let placeId: string;
+      let currentStatus: PublicationStatus;
       if (isEdit) {
         await placesApi.update(place.id, payload);
-        setStatus("success");
-        router.push(`/admin/yerler/${place.id}/redakte?s=${place.publicationStatus}`);
+        placeId = place.id;
+        currentStatus = place.publicationStatus;
       } else {
         const created = await placesApi.create(payload);
-        router.push(`/admin/yerler/${created.id}/redakte?s=${created.publicationStatus}`);
+        placeId = created.id;
+        currentStatus = created.publicationStatus;
       }
+
+      let finalStatus = currentStatus;
+      let statusErrorMessage: string | null = null;
+      if (publicationChoice !== currentStatus) {
+        try {
+          const updated = await placesApi.updateStatus(placeId, { publicationStatus: publicationChoice });
+          finalStatus = updated.publicationStatus;
+        } catch (statusErr) {
+          statusErrorMessage = describeSaveError(statusErr);
+        }
+      }
+
+      if (statusErrorMessage) {
+        setStatus("error");
+        setErrorMessage(`Məlumat saxlanıldı, lakin status yenilənmədi: ${statusErrorMessage}`);
+      } else {
+        setStatus("success");
+      }
+      router.push(`/admin/yerler/${placeId}/redakte?s=${finalStatus}`);
       router.refresh();
-    } catch {
+    } catch (err) {
       setStatus("error");
+      setErrorMessage(describeSaveError(err));
     }
   }
 
@@ -210,20 +240,24 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
         </FormField>
       </div>
 
-      {status === "success" ? (
-        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
-      ) : null}
-      {status === "error" ? (
-        <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
-      ) : null}
+      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
+        {status === "success" ? (
+          <p className="mb-3 text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+        ) : null}
+        {status === "error" ? (
+          <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" loading={status === "submitting"}>
+            Yadda saxla
+          </Button>
 
-      <div className="flex gap-2">
-        <Button type="submit" loading={status === "submitting"}>
-          Yadda saxla
-        </Button>
-        <Button type="button" variant="outline" href="/admin/yerler">
-          Ləğv et
-        </Button>
+          <PublicationStatusPicker value={publicationChoice} onChange={setPublicationChoice} />
+
+          <Button type="button" variant="outline" href="/admin/yerler">
+            Ləğv et
+          </Button>
+        </div>
       </div>
     </form>
   );

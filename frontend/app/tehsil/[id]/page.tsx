@@ -11,6 +11,8 @@ import { ApiError } from "@/lib/api/client";
 import { educationKindLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
 import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
+import { richTextToPlainText, sanitizeRichText } from "@/lib/richText";
+import { cn } from "@/lib/cn";
 import type { EducationEntryDto, PersonDto } from "@/lib/api/types";
 
 type Props = { params: Promise<{ id: string }> };
@@ -65,7 +67,7 @@ export default async function EducationDetailPage({ params }: Props) {
             ]),
             articleJsonLd({
               headline: entry.title,
-              description: entry.summary ?? entry.content ?? educationKindLabels[entry.kind],
+              description: entry.summary ?? (entry.content ? richTextToPlainText(entry.content) : educationKindLabels[entry.kind]),
               url: `/tehsil/${entry.id}`,
               imageUrl: entry.coverImageUrl,
             }),
@@ -97,7 +99,27 @@ export default async function EducationDetailPage({ params }: Props) {
             </h1>
 
             {entry.summary ? <p className="mt-5 text-base leading-relaxed text-ink-soft">{entry.summary}</p> : null}
-            {entry.content ? <p className="mt-4 whitespace-pre-line text-base leading-relaxed text-ink-soft">{entry.content}</p> : null}
+            {entry.content ? (
+              <div
+                className={cn(
+                  "mt-4 text-base leading-relaxed text-ink-soft",
+                  "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
+                  "[&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink",
+                  "[&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink",
+                  "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1",
+                  "[&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-forest-dark",
+                  "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-stone [&_blockquote]:pl-4 [&_blockquote]:italic",
+                  "[&_img]:my-3 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
+                  "[&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse",
+                  "[&_th]:border [&_th]:border-stone-light [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold",
+                  "[&_td]:border [&_td]:border-stone-light [&_td]:px-2 [&_td]:py-1 [&_td]:align-top",
+                )}
+                // Content is sanitized (DOMPurify, fixed tag allowlist)
+                // just above — the only safe way to render admin-authored
+                // rich text here; never render entry.content directly.
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(entry.content) }}
+              />
+            ) : null}
 
             {relatedPerson ? (
               <div className="mt-6 rounded-lg border border-stone-light bg-paper-soft p-4">

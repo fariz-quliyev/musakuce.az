@@ -47,3 +47,40 @@ test("sanitizeRichText keeps existing link sanitization behavior intact (regress
   assert.equal(html.includes("javascript:"), false);
   assert.match(html, /<a href="https:\/\/example\.com" target="_blank" rel="noopener">ok<\/a>/);
 });
+
+// Regression coverage for adding strikethrough/text-align/table support
+// to the shared RichTextEditor (Education.content, and — since the
+// allowlist is shared — Person.biography/HistoricalEvent.detailedText).
+
+test("sanitizeRichText keeps <s> (strikethrough) intact", () => {
+  const html = sanitizeRichText("<p><s>silinmiş</s> mətn</p>");
+  assert.match(html, /<s>silinmiş<\/s>/);
+});
+
+test("sanitizeRichText keeps a table with header/body rows intact", () => {
+  const html = sanitizeRichText(
+    "<table><thead><tr><th>Ad</th></tr></thead><tbody><tr><td>Dəyər</td></tr></tbody></table>",
+  );
+  assert.match(html, /<table><thead><tr><th>Ad<\/th><\/tr><\/thead><tbody><tr><td>Dəyər<\/td><\/tr><\/tbody><\/table>/);
+});
+
+test("sanitizeRichText keeps a valid text-align style value", () => {
+  for (const value of ["left", "center", "right", "justify"]) {
+    const html = sanitizeRichText(`<p style="text-align: ${value}">mətn</p>`);
+    assert.match(html, new RegExp(`style="text-align: ${value}"`));
+  }
+});
+
+test("sanitizeRichText strips a style value that isn't exactly text-align", () => {
+  const cases = [
+    'color:red',
+    'text-align: center; background: url(javascript:alert(1))',
+    'expression(alert(1))',
+    'behavior:url(xss.htc)',
+    '-moz-binding:url(xss.xml)',
+  ];
+  for (const value of cases) {
+    const html = sanitizeRichText(`<p style="${value}">mətn</p>`);
+    assert.equal(html.includes("style"), false, `style="${value}" must be stripped`);
+  }
+});

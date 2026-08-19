@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { EventForm } from "@/components/admin/events/EventForm";
-import { EventRowActions } from "@/components/admin/events/EventRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { eventsApi } from "@/lib/api/events";
 import { ApiError } from "@/lib/api/client";
@@ -34,7 +33,6 @@ export default async function AdminEditEventPage({ params, searchParams }: Props
         title="Tədbiri redaktə et"
         description={event.title}
         breadcrumb={[{ label: "Təqvim", href: "/admin/teqvim" }, { label: event.title }]}
-        actions={<EventRowActions event={event} />}
       />
       <EventForm event={event} />
     </div>

@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { EducationForm } from "@/components/admin/education/EducationForm";
-import { EducationRowActions } from "@/components/admin/education/EducationRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { educationApi } from "@/lib/api/education";
 import { getPersonOptions } from "@/lib/admin/personOptions";
@@ -37,7 +36,6 @@ export default async function AdminEditEducationPage({ params, searchParams }: P
         title="Təhsil qeydini redaktə et"
         description={entry.title}
         breadcrumb={[{ label: "Təhsil", href: "/admin/tehsil" }, { label: entry.title }]}
-        actions={<EducationRowActions entry={entry} />}
       />
       <EducationForm entry={entry} personOptions={personOptions} />
     </div>

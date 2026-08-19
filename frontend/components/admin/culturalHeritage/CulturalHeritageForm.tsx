@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
+import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { culturalHeritageKindLabels, sourceStatusLabels } from "@/lib/api/labels";
-import type { CulturalHeritageItemDto, CulturalHeritageKind, MediaAssetDto, SourceStatus } from "@/lib/api/types";
+import type { CulturalHeritageItemDto, CulturalHeritageKind, MediaAssetDto, PublicationStatus, SourceStatus } from "@/lib/api/types";
 
 const KIND_OPTIONS = Object.entries(culturalHeritageKindLabels) as [CulturalHeritageKind, string][];
 const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, string][];
@@ -18,12 +20,17 @@ const SOURCE_OPTIONS = Object.entries(sourceStatusLabels) as [SourceStatus, stri
 export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto }) {
   const router = useRouter();
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(item?.coverMediaAssetId ?? null);
+  const [publicationChoice, setPublicationChoice] = useState<PublicationChoice>(
+    item?.publicationStatus === "Published" ? "Published" : "Draft",
+  );
   const isEdit = !!item;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
+    setErrorMessage(null);
     const form = new FormData(event.currentTarget);
 
     const payload = {
@@ -38,17 +45,40 @@ export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto 
     };
 
     try {
+      let itemId: string;
+      let currentStatus: PublicationStatus;
       if (isEdit) {
         await culturalHeritageApi.update(item.id, payload);
-        setStatus("success");
-        router.push(`/admin/medeni-iras/${item.id}/redakte?s=${item.publicationStatus}`);
+        itemId = item.id;
+        currentStatus = item.publicationStatus;
       } else {
         const created = await culturalHeritageApi.create(payload);
-        router.push(`/admin/medeni-iras/${created.id}/redakte?s=${created.publicationStatus}`);
+        itemId = created.id;
+        currentStatus = created.publicationStatus;
       }
+
+      let finalStatus = currentStatus;
+      let statusErrorMessage: string | null = null;
+      if (publicationChoice !== currentStatus) {
+        try {
+          const updated = await culturalHeritageApi.updateStatus(itemId, { publicationStatus: publicationChoice });
+          finalStatus = updated.publicationStatus;
+        } catch (statusErr) {
+          statusErrorMessage = describeSaveError(statusErr);
+        }
+      }
+
+      if (statusErrorMessage) {
+        setStatus("error");
+        setErrorMessage(`Məlumat saxlanıldı, lakin status yenilənmədi: ${statusErrorMessage}`);
+      } else {
+        setStatus("success");
+      }
+      router.push(`/admin/medeni-iras/${itemId}/redakte?s=${finalStatus}`);
       router.refresh();
-    } catch {
+    } catch (err) {
       setStatus("error");
+      setErrorMessage(describeSaveError(err));
     }
   }
 
@@ -103,20 +133,24 @@ export function CulturalHeritageForm({ item }: { item?: CulturalHeritageItemDto 
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={item?.originalSourceText ?? ""} />
       </FormField>
 
-      {status === "success" ? (
-        <p className="text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
-      ) : null}
-      {status === "error" ? (
-        <p className="text-sm font-medium text-danger">Yadda saxlamaq mümkün olmadı.</p>
-      ) : null}
+      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
+        {status === "success" ? (
+          <p className="mb-3 text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
+        ) : null}
+        {status === "error" ? (
+          <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
+        ) : null}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" loading={status === "submitting"}>
+            Yadda saxla
+          </Button>
 
-      <div className="flex gap-2">
-        <Button type="submit" loading={status === "submitting"}>
-          Yadda saxla
-        </Button>
-        <Button type="button" variant="outline" href="/admin/medeni-iras">
-          Ləğv et
-        </Button>
+          <PublicationStatusPicker value={publicationChoice} onChange={setPublicationChoice} />
+
+          <Button type="button" variant="outline" href="/admin/medeni-iras">
+            Ləğv et
+          </Button>
+        </div>
       </div>
     </form>
   );

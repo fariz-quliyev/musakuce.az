@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { PlaceForm } from "@/components/admin/places/PlaceForm";
-import { PlaceRowActions } from "@/components/admin/places/PlaceRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { placesApi } from "@/lib/api/places";
 import { ApiError } from "@/lib/api/client";
@@ -34,7 +33,6 @@ export default async function AdminEditPlacePage({ params, searchParams }: Props
         title="Yeri redaktə et"
         description={place.name}
         breadcrumb={[{ label: "Məkanlar", href: "/admin/yerler" }, { label: place.name }]}
-        actions={<PlaceRowActions place={place} />}
       />
       <PlaceForm place={place} />
     </div>

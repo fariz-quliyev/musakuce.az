@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { CulturalHeritageForm } from "@/components/admin/culturalHeritage/CulturalHeritageForm";
-import { CulturalHeritageRowActions } from "@/components/admin/culturalHeritage/CulturalHeritageRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { ApiError } from "@/lib/api/client";
@@ -34,7 +33,6 @@ export default async function AdminEditCulturalHeritagePage({ params, searchPara
         title="Mədəni irs məzmununu redaktə et"
         description={item.title}
         breadcrumb={[{ label: "Mədəni irs", href: "/admin/medeni-iras" }, { label: item.title }]}
-        actions={<CulturalHeritageRowActions item={item} />}
       />
       <CulturalHeritageForm item={item} />
     </div>

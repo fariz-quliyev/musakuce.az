@@ -12,7 +12,12 @@ public class EducationEntryConfiguration : IEntityTypeConfiguration<EducationEnt
         builder.Property(x => x.Slug).IsRequired().HasMaxLength(180);
         builder.HasIndex(x => x.Slug).IsUnique();
         builder.Property(x => x.Summary).HasMaxLength(500);
-        builder.Property(x => x.Content).HasMaxLength(8000);
+        // 16000, not 8000 — Content now goes through the shared Tiptap
+        // rich text editor with inline images (same reasoning as
+        // Person.Biography's identical bump): an <img src="..." alt="...">
+        // tag alone costs ~120-170 chars, which ate into the old limit
+        // fast for a field with even a few images.
+        builder.Property(x => x.Content).HasMaxLength(16000);
         builder.Property(x => x.Period).HasMaxLength(50);
         builder.Property(x => x.SourceReference).HasMaxLength(500);
         builder.Property(x => x.EditorialNote).HasMaxLength(2000);

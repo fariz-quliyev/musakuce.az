@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { VideoForm } from "@/components/admin/videos/VideoForm";
-import { VideoRowActions } from "@/components/admin/videos/VideoRowActions";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { videosApi } from "@/lib/api/videos";
 import { ApiError } from "@/lib/api/client";
@@ -34,7 +33,6 @@ export default async function AdminEditVideoPage({ params, searchParams }: Props
         title="Videonu redaktə et"
         description={video.title}
         breadcrumb={[{ label: "Videolar", href: "/admin/videolar" }, { label: video.title }]}
-        actions={<VideoRowActions video={video} />}
       />
       <VideoForm video={video} />
     </div>
