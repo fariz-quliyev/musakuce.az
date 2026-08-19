@@ -262,7 +262,11 @@ export function PersonForm({ person }: { person?: PersonDto }) {
           // which is exactly why photos of different source dimensions
           // ended up looking inconsistent on the public site.
           previewAspectClassName="aspect-[3/4]"
-          hint="JPEG, PNG, WebP və ya AVIF, maks. 15 MB — boş buraxıla bilər. Portret (şaquli, 3:4) kadrlaşdırılacaq."
+          // Admin picks the exact crop themselves (drag + zoom) instead
+          // of leaving it to automatic centering — same 3/4 ratio the
+          // preview box above and the public site both already use.
+          cropAspectRatio={3 / 4}
+          hint="JPEG, PNG, WebP və ya AVIF, maks. 15 MB — boş buraxıla bilər. Seçdikdən sonra kadrı özünüz ayarlaya bilərsiniz (portret, 3:4)."
         />
       </FormSection>
 
