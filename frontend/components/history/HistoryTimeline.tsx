@@ -159,32 +159,28 @@ function MarkerGlyph({ event, iconClassName }: { event: HistoricalEventDto; icon
  * thumbnail swaps the main image. Keyed by event id from the caller so
  * switching events resets the selection back to the cover image.
  *
- * The dominant visual element of its column (§editorial two-column
- * redesign) — sized to fill the gallery column's full height on
- * desktop (`lg:h-full`, stretching to match whatever height the
- * write-up text next to it naturally takes), a fixed landscape box on
- * narrower viewports where there's no shared row height to match.
- * `object-contain` (not the site's usual `object-cover`) is
- * deliberate: these are often archival illustrations/documents where
- * cropping any part would lose real content, unlike an ordinary scenic
- * photo where a center-crop is harmless — letterboxing inside the
- * frame is the correct trade-off here. The `bg-paper-soft` on the
- * inner frame is what that letterboxing sits on. */
+ * Deliberately frameless: no border, radius, background, padding, ring
+ * or shadow around the image, so what renders is exactly the source
+ * image's own edges and nothing else. It's also sized intrinsically
+ * (`width={0} height={0}` + `sizes` is Next.js's documented pattern for
+ * a responsive image whose height follows its own aspect ratio) rather
+ * than filling a fixed box — a fixed box plus `object-contain` is what
+ * previously produced the empty letterbox bands above and below the
+ * image. Nothing is ever cropped: the image simply takes its column's
+ * full width and whatever height its own ratio implies. */
 function EventGallery({ event }: { event: HistoricalEventDto }) {
   const [selected, setSelected] = useState(0);
   const images = [
     ...(event.coverImageUrl ? [{ url: event.coverImageUrl, alt: event.title }] : []),
     ...event.additionalImages.map((img) => ({ url: img.imageUrl, alt: event.title })),
   ];
-  const frameClass =
-    "aspect-[4/3] w-full overflow-hidden rounded-md border border-parchment-line/80 bg-paper-soft p-1 shadow-sm ring-1 ring-inset ring-white/40 lg:aspect-auto lg:h-full";
 
   if (images.length === 0) {
+    // The placeholder has no intrinsic ratio of its own to follow, so
+    // it keeps an explicit box — this branch renders no real image.
     return (
-      <div className={frameClass}>
-        <div className="h-full w-full overflow-hidden rounded-[3px]">
-          <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
-        </div>
+      <div className="aspect-[4/3] w-full overflow-hidden">
+        <VillagePhoto alt={event.title} tone="warm" placeholderLabel="Foto tezliklə əlavə olunacaq" />
       </div>
     );
   }
@@ -193,17 +189,14 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   return (
     <div>
-      <div className={frameClass}>
-        <div className="h-full w-full overflow-hidden rounded-[3px] bg-paper-soft">
-          <VillagePhoto
-            src={main.url}
-            alt={main.alt}
-            tone="forest"
-            sizes="(min-width: 1024px) 55vw, 100vw"
-            imageClassName="object-contain"
-          />
-        </div>
-      </div>
+      <Image
+        src={main.url}
+        alt={main.alt}
+        width={0}
+        height={0}
+        sizes="(min-width: 1024px) 40vw, 100vw"
+        className="h-auto w-full"
+      />
       {images.length > 1 ? (
         <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
           {images.map((image, i) => (
