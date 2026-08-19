@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { interviewsApi } from "@/lib/api/interviews";
@@ -93,7 +94,7 @@ export function InterviewForm({ interview, personOptions }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Müsahibin adı" htmlFor="personName" required>
           <Input id="personName" name="personName" required maxLength={150} defaultValue={interview?.personName} />
@@ -194,6 +195,6 @@ export function InterviewForm({ interview, personOptions }: Props) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

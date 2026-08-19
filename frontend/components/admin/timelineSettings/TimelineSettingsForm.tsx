@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { timelineSettingsApi } from "@/lib/api/timelineSettings";
 import type { TimelineSettingsDto } from "@/lib/api/types";
 
@@ -41,7 +42,7 @@ export function TimelineSettingsForm({ settings }: { settings?: TimelineSettings
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <FormField label="Bölmə başlığı" htmlFor="title" required>
         <Input id="title" name="title" required maxLength={150} defaultValue={settings?.title ?? "Zaman xəttində Musaküçə"} />
       </FormField>
@@ -87,6 +88,6 @@ export function TimelineSettingsForm({ settings }: { settings?: TimelineSettings
           Yadda saxla
         </Button>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

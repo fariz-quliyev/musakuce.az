@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { photosApi } from "@/lib/api/photos";
@@ -91,7 +92,7 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Başlıq" htmlFor="title" required>
           <Input id="title" name="title" required maxLength={150} defaultValue={photo?.title} />
@@ -174,6 +175,6 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

@@ -7,6 +7,7 @@ import { FormField } from "@/components/ui/FormField";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { listingsApi } from "@/lib/api/listings";
 import { classifiedCategoryLabels } from "@/lib/api/labels";
 import type { ClassifiedCategory, ListingDto } from "@/lib/api/types";
@@ -45,7 +46,7 @@ export function ListingEditForm({ listing }: { listing: ListingDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Başlıq" htmlFor="title" required>
           <Input id="title" name="title" required maxLength={150} defaultValue={listing.title} />
@@ -97,6 +98,6 @@ export function ListingEditForm({ listing }: { listing: ListingDto }) {
           Ləğv et
         </Button>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

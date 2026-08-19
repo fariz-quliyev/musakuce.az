@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Badge } from "@/components/ui/Badge";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { RichTextEditor } from "@/components/admin/shared/RichTextEditor";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
@@ -214,7 +215,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5 pb-2">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <FormSection title="Şəxsi məlumatlar">
         <div className="grid gap-5 sm:grid-cols-3">
           <FormField label="Ad" htmlFor="firstName" required>
@@ -397,6 +398,6 @@ export function PersonForm({ person }: { person?: PersonDto }) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

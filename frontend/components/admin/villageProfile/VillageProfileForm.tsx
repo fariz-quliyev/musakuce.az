@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import type { MediaAssetDto, SourceStatus, VillageProfileDto } from "@/lib/api/types";
@@ -66,7 +67,7 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Kənd adı" htmlFor="villageName" hint="Boş buraxıla bilər">
           <Input id="villageName" name="villageName" maxLength={150} defaultValue={profile?.villageName ?? "Musaküçə"} />
@@ -191,6 +192,6 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
           Yadda saxla
         </Button>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

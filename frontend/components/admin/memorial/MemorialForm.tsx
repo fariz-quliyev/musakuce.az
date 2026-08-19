@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { memorialApi } from "@/lib/api/memorial";
@@ -93,7 +94,7 @@ export function MemorialForm({ record, personOptions }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-3">
         <FormField label="Ad, soyad" htmlFor="fullName" required>
           <Input id="fullName" name="fullName" required maxLength={150} defaultValue={record?.fullName} />
@@ -193,6 +194,6 @@ export function MemorialForm({ record, personOptions }: Props) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

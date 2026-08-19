@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { RichTextEditor } from "@/components/admin/shared/RichTextEditor";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
@@ -112,7 +113,7 @@ export function EducationForm({ entry, personOptions }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-6xl gap-5 pb-2">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Başlıq" htmlFor="title" required>
           <Input id="title" name="title" required maxLength={150} defaultValue={entry?.title} />
@@ -212,6 +213,6 @@ export function EducationForm({ entry, personOptions }: Props) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

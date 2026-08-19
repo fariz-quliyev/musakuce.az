@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { placesApi } from "@/lib/api/places";
@@ -124,7 +125,7 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Ad" htmlFor="name" required>
           <Input id="name" name="name" required maxLength={150} defaultValue={place?.name} />
@@ -259,6 +260,6 @@ export function PlaceForm({ place }: { place?: PlaceDto }) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

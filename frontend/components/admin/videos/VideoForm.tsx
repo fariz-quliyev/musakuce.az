@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { videosApi } from "@/lib/api/videos";
@@ -83,7 +84,7 @@ export function VideoForm({ video }: { video?: VideoDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <FormField label="Başlıq" htmlFor="title" required>
         <Input id="title" name="title" required maxLength={150} defaultValue={video?.title} />
       </FormField>
@@ -152,6 +153,6 @@ export function VideoForm({ video }: { video?: VideoDto }) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

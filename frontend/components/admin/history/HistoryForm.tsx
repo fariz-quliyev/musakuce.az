@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { RichTextEditor } from "@/components/admin/shared/RichTextEditor";
 import { historyApi } from "@/lib/api/history";
 import { sourceStatusLabels, eventIconLabels } from "@/lib/api/labels";
@@ -78,7 +79,7 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       {event?.isDefault ? (
         <p className="rounded-md bg-info-bg px-3 py-2 text-sm text-info">
           Bu, timeline-ın nümunə (default) məzmunudur — real məlumatla əvəz edin və ya bu formada redaktə edin.
@@ -232,6 +233,6 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
           Ləğv et
         </Button>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { ImageUploadField } from "@/components/admin/media/ImageUploadField";
+import { AdminFormContainer } from "@/components/admin/shared/AdminFormContainer";
 import { PublicationStatusPicker, type PublicationChoice } from "@/components/admin/shared/PublicationStatusPicker";
 import { describeSaveError } from "@/components/admin/shared/describeSaveError";
 import { localInfoApi } from "@/lib/api/localInfo";
@@ -82,7 +83,7 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid max-w-4xl gap-5">
+    <AdminFormContainer onSubmit={handleSubmit}>
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Ad" htmlFor="name" required>
           <Input id="name" name="name" required maxLength={150} defaultValue={entry?.name} />
@@ -149,6 +150,6 @@ export function LocalInfoForm({ entry }: { entry?: LocalInfoEntryDto }) {
           </Button>
         </div>
       </div>
-    </form>
+    </AdminFormContainer>
   );
 }
