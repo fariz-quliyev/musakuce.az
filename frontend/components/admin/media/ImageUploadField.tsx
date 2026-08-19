@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { mediaApi } from "@/lib/api/media";
 import type { MediaAssetDto } from "@/lib/api/types";
 
@@ -13,6 +13,12 @@ type Props = {
   community?: boolean;
   required?: boolean;
   hint?: string;
+  /** Opt-in (Phase — People admin UX pass): when provided, a "Şəkli sil"
+   * action appears once there's a preview (existing or newly-selected),
+   * clearing it and calling this. Every existing caller that doesn't
+   * pass it renders exactly as before — this changes nothing by
+   * default. */
+  onRemove?: () => void;
 };
 
 /**
@@ -22,11 +28,12 @@ type Props = {
  * resulting MediaAssetDto to the parent form via onUploaded; the parent
  * is responsible for including its `id` in the eventual form submission.
  */
-export function ImageUploadField({ label, initialPreviewUrl, onUploaded, community, required, hint }: Props) {
+export function ImageUploadField({ label, initialPreviewUrl, onUploaded, community, required, hint, onRemove }: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl ?? null);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -51,6 +58,20 @@ export function ImageUploadField({ label, initialPreviewUrl, onUploaded, communi
     }
   }
 
+  function handleRemove() {
+    setPreviewUrl(null);
+    setStatus("idle");
+    setProgress(0);
+    setError(null);
+    // Without this, re-selecting the exact same file right after
+    // removing it wouldn't fire another change event (the input's own
+    // value wouldn't have changed).
+    if (inputRef.current) inputRef.current.value = "";
+    onRemove?.();
+  }
+
+  const showRemove = !!onRemove && !!previewUrl && status !== "uploading";
+
   return (
     <div className="grid gap-2">
       <label className="text-sm font-semibold text-ink">
@@ -67,12 +88,23 @@ export function ImageUploadField({ label, initialPreviewUrl, onUploaded, communi
         />
       ) : null}
 
-      <input
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/avif"
-        onChange={handleFileChange}
-        className="text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-forest file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-on-dark file:transition-colors hover:file:bg-forest-dark"
-      />
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          onChange={handleFileChange}
+          className="text-sm text-ink-soft file:mr-3 file:rounded-md file:border-0 file:bg-forest file:px-3 file:py-2 file:text-sm file:font-semibold file:text-ink-on-dark file:transition-colors hover:file:bg-forest-dark"
+        />
+        {showRemove ? (
+          <button type="button" onClick={handleRemove} className="text-xs font-medium text-danger hover:underline">
+            Şəkli sil
+          </button>
+        ) : null}
+      </div>
+      {onRemove && previewUrl && status === "idle" ? (
+        <p className="text-xs text-ink-faint">Dəyişmək üçün yuxarıdan yeni fayl seçin.</p>
+      ) : null}
       {hint && status === "idle" ? <p className="text-xs text-ink-faint">{hint}</p> : null}
 
       {status === "uploading" ? (
