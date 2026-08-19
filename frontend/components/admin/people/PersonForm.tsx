@@ -62,6 +62,14 @@ export function PersonForm({ person }: { person?: PersonDto }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(person?.coverMediaAssetId ?? null);
+  // The upload itself is async (a separate request from the form's own
+  // submit) — coverMediaAssetId only updates once it resolves, so a save
+  // that fires while it's still in flight silently persists the person
+  // WITHOUT the just-selected photo (confirmed in production: the form
+  // showed "Yükləndi." and a preview, but the saved record's
+  // coverMediaAssetId was null). Blocking submit while this is true
+  // closes that window.
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [biographyEmpty, setBiographyEmpty] = useState(!person?.biography?.trim());
   // A brand-new person is always created as Draft (Person.PublicationStatus's
   // domain default) — an existing Archived person defaults to "Draft" here
@@ -76,6 +84,15 @@ export function PersonForm({ person }: { person?: PersonDto }) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const biographyHtml = String(form.get("biography") ?? "");
+
+    // Defense in depth alongside the disabled Save button below — a
+    // keyboard Enter-to-submit doesn't go through the button's own
+    // `disabled` state, so this is the one guard that can't be bypassed.
+    if (photoUploading) {
+      setStatus("error");
+      setErrorMessage("Şəkil hələ yüklənir. Yükləmə bitənə qədər gözləyin.");
+      return;
+    }
 
     // The editor is a contenteditable, not a native input, so the
     // `required`/`maxLength` HTML5 constraints that used to apply to the
@@ -236,6 +253,7 @@ export function PersonForm({ person }: { person?: PersonDto }) {
           initialPreviewUrl={person?.coverImageUrl}
           onUploaded={(media: MediaAssetDto) => setCoverMediaAssetId(media.id)}
           onRemove={() => setCoverMediaAssetId(null)}
+          onUploadingChange={setPhotoUploading}
           hint="JPEG, PNG, WebP və ya AVIF, maks. 15 MB — boş buraxıla bilər"
         />
       </FormSection>
@@ -262,8 +280,11 @@ export function PersonForm({ person }: { person?: PersonDto }) {
         {status === "error" ? (
           <p className="mb-3 text-sm font-medium text-danger">{errorMessage}</p>
         ) : null}
+        {photoUploading ? (
+          <p className="mb-3 text-sm font-medium text-ink-soft">Şəkil yüklənir, bir az gözləyin…</p>
+        ) : null}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" loading={status === "submitting"}>
+          <Button type="submit" loading={status === "submitting"} disabled={photoUploading}>
             Yadda saxla
           </Button>
 

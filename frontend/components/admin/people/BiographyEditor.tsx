@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
@@ -33,7 +33,18 @@ type Props = {
  * `FormData`-based submit in PersonForm.tsx needs no changes at all. */
 export function BiographyEditor({ id, name, initialContent, error, hint, onEmptyChange }: Props) {
   const [initialHtml] = useState(() => toEditableHtml(initialContent));
-  const hiddenInputRef = useRef<HTMLInputElement>(null);
+  // Held in state (not just mirrored onto a ref-mutated hidden input) so
+  // it survives PersonForm re-renders triggered by unrelated state
+  // elsewhere in the form (e.g. the publish-status picker, or this same
+  // upload-disable fix's onUploadingChange) — an <input type="hidden">
+  // whose value is set only imperatively via a ref, with `defaultValue`
+  // for the initial render, gets reset back to that defaultValue by
+  // React on the next re-render of this component (confirmed: hidden
+  // inputs don't get the same "dirty value" exemption typed inputs do).
+  // A genuinely controlled `value` doesn't have that problem — React
+  // reapplies the current state on every render, which is exactly what's
+  // needed here.
+  const [html, setHtml] = useState(initialHtml);
 
   const editor = useEditor({
     // Tiptap SSRs a first pass that must match the client hydration
@@ -60,7 +71,7 @@ export function BiographyEditor({ id, name, initialContent, error, hint, onEmpty
     ],
     content: initialHtml,
     onUpdate: ({ editor }) => {
-      if (hiddenInputRef.current) hiddenInputRef.current.value = editor.getHTML();
+      setHtml(editor.getHTML());
       onEmptyChange?.(editor.isEmpty);
     },
     editorProps: {
@@ -97,7 +108,10 @@ export function BiographyEditor({ id, name, initialContent, error, hint, onEmpty
     <div className="min-w-0">
       {editor ? <RichTextToolbar editor={editor} /> : null}
       <EditorContent editor={editor} />
-      <input ref={hiddenInputRef} type="hidden" id={`${id}-value`} name={name} defaultValue={initialHtml} />
+      {/* readOnly: this is never user-edited directly (only via the
+          editor above, through setHtml), so there's no missing-onChange
+          concern — readOnly just tells React not to warn about it. */}
+      <input type="hidden" id={`${id}-value`} name={name} value={html} readOnly />
     </div>
   );
 }

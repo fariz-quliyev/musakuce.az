@@ -19,6 +19,14 @@ type Props = {
    * pass it renders exactly as before — this changes nothing by
    * default. */
   onRemove?: () => void;
+  /** Opt-in: fires `true` right before the upload starts and `false`
+   * once it settles (success or error) — lets the parent form disable
+   * its own submit while a photo is still uploading, so a fast "Yadda
+   * saxla" click can't save the record before the just-selected image
+   * is actually attached (the upload is async; onUploaded — and thus
+   * the parent's coverMediaAssetId — only arrives after it resolves).
+   * Every existing caller that doesn't pass it is unaffected. */
+  onUploadingChange?: (uploading: boolean) => void;
 };
 
 /**
@@ -28,7 +36,16 @@ type Props = {
  * resulting MediaAssetDto to the parent form via onUploaded; the parent
  * is responsible for including its `id` in the eventual form submission.
  */
-export function ImageUploadField({ label, initialPreviewUrl, onUploaded, community, required, hint, onRemove }: Props) {
+export function ImageUploadField({
+  label,
+  initialPreviewUrl,
+  onUploaded,
+  community,
+  required,
+  hint,
+  onRemove,
+  onUploadingChange,
+}: Props) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(initialPreviewUrl ?? null);
   const [status, setStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
   const [progress, setProgress] = useState(0);
@@ -42,6 +59,7 @@ export function ImageUploadField({ label, initialPreviewUrl, onUploaded, communi
     setStatus("uploading");
     setProgress(0);
     setError(null);
+    onUploadingChange?.(true);
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
 
@@ -55,6 +73,7 @@ export function ImageUploadField({ label, initialPreviewUrl, onUploaded, communi
       setError(err instanceof Error ? err.message : "Yükləmə uğursuz oldu.");
     } finally {
       URL.revokeObjectURL(localPreview);
+      onUploadingChange?.(false);
     }
   }
 
