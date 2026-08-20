@@ -23,6 +23,8 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [mediaAssetId, setMediaAssetId] = useState<string | null>(photo?.mediaAssetId ?? null);
+  const [restoredMediaAssetId, setRestoredMediaAssetId] = useState<string | null>(photo?.restoredMediaAssetId ?? null);
+  const [restoredPreviewUrl, setRestoredPreviewUrl] = useState<string | null>(photo?.restoredImageUrl ?? null);
   const [publicationChoice, setPublicationChoice] = useState<PublicationChoice>(
     photo?.publicationStatus === "Published" ? "Published" : "Draft",
   );
@@ -51,6 +53,7 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
       uploaderName: String(form.get("uploaderName") ?? "") || null,
       mediaAssetId,
       altText: String(form.get("altText") ?? "") || null,
+      restoredMediaAssetId,
     };
 
     try {
@@ -119,6 +122,21 @@ export function PhotoForm({ photo }: { photo?: PhotoDto }) {
       <FormField label="Alternativ mətn (alt text)" htmlFor="altText" required hint="Ekran oxuyucuları üçün şəklin qısa təsviri">
         <Input id="altText" name="altText" required maxLength={300} defaultValue={photo?.altText ?? ""} />
       </FormField>
+
+      <ImageUploadField
+        key={restoredMediaAssetId ?? "empty"}
+        label="Bərpa edilmiş şəkil"
+        initialPreviewUrl={restoredPreviewUrl}
+        onUploaded={(media) => {
+          setRestoredMediaAssetId(media.id);
+          setRestoredPreviewUrl(media.url);
+        }}
+        onRemove={() => {
+          setRestoredMediaAssetId(null);
+          setRestoredPreviewUrl(null);
+        }}
+        hint="Boş buraxıla bilər — yüklənərsə, Fotoalbomda bu foto açıldıqda Əvvəl/Sonra müqayisə slayderi göstərilir. Orijinal şəkillə eyni kadraj/aspect-ratioda olması müqayisənin düzgün üst-üstə düşməsi üçün vacibdir."
+      />
 
       <div className="grid gap-5 sm:grid-cols-2">
         <FormField label="Çəkiliş tarixi" htmlFor="takenDate" hint="Boş buraxıla bilər">

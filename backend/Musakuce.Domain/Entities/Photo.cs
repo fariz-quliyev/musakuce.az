@@ -20,5 +20,11 @@ public class Photo : BaseEntity
     public string? UploaderName { get; set; }
     public Guid MediaAssetId { get; set; }
     public MediaAsset? MediaAsset { get; set; }
+    /// <summary>Optional restored/enhanced version of the same photo —
+    /// when present, the public Fotoalbom lightbox renders a Before/After
+    /// comparison slider instead of the plain image. Absent on every
+    /// existing photo; nothing changes for those.</summary>
+    public Guid? RestoredMediaAssetId { get; set; }
+    public MediaAsset? RestoredMediaAsset { get; set; }
     public PublicationStatus PublicationStatus { get; set; } = PublicationStatus.Draft;
 }

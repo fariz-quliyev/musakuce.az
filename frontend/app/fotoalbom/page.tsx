@@ -27,6 +27,8 @@ const FALLBACK: PagedResult<PhotoDto> = {
       mediaAssetId: "mock-media-1",
       imageUrl: "",
       altText: null,
+      restoredMediaAssetId: null,
+      restoredImageUrl: null,
       publicationStatus: "Published",
     },
   ],

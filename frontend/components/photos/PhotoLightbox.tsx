@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import Image from "next/image";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
+import { BeforeAfterSlider } from "./BeforeAfterSlider";
 import { photoCategoryLabels } from "@/lib/api/labels";
 import type { PhotoDto } from "@/lib/api/types";
 
@@ -107,7 +108,15 @@ export function PhotoLightbox({ photos, index, onClose, onIndexChange }: Props) 
         ) : null}
 
         <div className="relative h-full max-h-[70vh] w-full max-w-4xl sm:max-h-[75vh]">
-          {photo.imageUrl ? (
+          {photo.imageUrl && photo.restoredImageUrl ? (
+            <BeforeAfterSlider
+              key={photo.id}
+              beforeSrc={photo.imageUrl}
+              afterSrc={photo.restoredImageUrl}
+              beforeAlt={photo.altText ?? photo.title}
+              afterAlt={`${photo.altText ?? photo.title} — bərpa edilmiş`}
+            />
+          ) : photo.imageUrl ? (
             <Image
               key={photo.id}
               src={photo.imageUrl}

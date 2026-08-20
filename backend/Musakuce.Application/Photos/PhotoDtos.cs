@@ -16,6 +16,8 @@ public record PhotoDto(
     Guid MediaAssetId,
     string ImageUrl,
     string? AltText,
+    Guid? RestoredMediaAssetId,
+    string? RestoredImageUrl,
     PublicationStatus PublicationStatus
 );
 
@@ -33,6 +35,10 @@ public class CreatePhotoRequest
     /// Phase 8 replaces free-text image URLs with a real upload pipeline.</summary>
     public required Guid MediaAssetId { get; set; }
     public string? AltText { get; set; }
+    /// <summary>Id of a MediaAsset holding the restored/enhanced version
+    /// of the same photo — optional. When set, the public lightbox shows
+    /// a Before/After comparison slider instead of the plain image.</summary>
+    public Guid? RestoredMediaAssetId { get; set; }
 }
 
 /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>

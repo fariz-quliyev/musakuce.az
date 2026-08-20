@@ -12,7 +12,7 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
 {
     public async Task<PagedResult<PhotoDto>> GetPagedAsync(PhotoQuery query, CancellationToken ct = default)
     {
-        var photos = db.Photos.Include(p => p.MediaAsset).AsNoTracking().AsQueryable();
+        var photos = db.Photos.Include(p => p.MediaAsset).Include(p => p.RestoredMediaAsset).AsNoTracking().AsQueryable();
 
         if (query.Category is not null)
             photos = photos.Where(p => p.Category == query.Category);
@@ -36,7 +36,7 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
 
     public async Task<PhotoDto> GetByIdAsync(Guid id, PublicationStatus? publicationStatus, CancellationToken ct = default)
     {
-        var photo = await db.Photos.Include(p => p.MediaAsset).AsNoTracking()
+        var photo = await db.Photos.Include(p => p.MediaAsset).Include(p => p.RestoredMediaAsset).AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == id && p.PublicationStatus == (publicationStatus ?? PublicationStatus.Published), ct)
             ?? throw new NotFoundException(nameof(Photo), id);
         return ToDto(photo);
@@ -61,6 +61,12 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
             MediaAsset = media,
         };
 
+        if (request.RestoredMediaAssetId is { } restoredId)
+        {
+            photo.RestoredMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == restoredId, ct)
+                ?? throw new NotFoundException(nameof(MediaAsset), restoredId);
+        }
+
         db.Photos.Add(photo);
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Create", nameof(Photo), photo.Id.ToString(), newValue: photo.Title, ct: ct);
@@ -69,11 +75,12 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
 
     public async Task<PhotoDto> UpdateAsync(Guid id, UpdatePhotoRequest request, CancellationToken ct = default)
     {
-        var photo = await db.Photos.Include(p => p.MediaAsset).FirstOrDefaultAsync(p => p.Id == id, ct)
+        var photo = await db.Photos.Include(p => p.MediaAsset).Include(p => p.RestoredMediaAsset).FirstOrDefaultAsync(p => p.Id == id, ct)
             ?? throw new NotFoundException(nameof(Photo), id);
 
         var oldTitle = photo.Title;
         var oldMediaAssetId = photo.MediaAssetId;
+        var oldRestoredMediaAssetId = photo.RestoredMediaAssetId;
 
         photo.Title = request.Title;
         photo.TakenDate = request.TakenDate;
@@ -98,6 +105,20 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
             photo.MediaAsset.AltText = request.AltText;
         }
 
+        if (request.RestoredMediaAssetId != photo.RestoredMediaAssetId)
+        {
+            if (request.RestoredMediaAssetId is { } newRestoredId)
+            {
+                photo.RestoredMediaAsset = await db.MediaAssets.FirstOrDefaultAsync(m => m.Id == newRestoredId, ct)
+                    ?? throw new NotFoundException(nameof(MediaAsset), newRestoredId);
+            }
+            else
+            {
+                photo.RestoredMediaAsset = null;
+                photo.RestoredMediaAssetId = null;
+            }
+        }
+
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync("Update", nameof(Photo), photo.Id.ToString(), oldValue: oldTitle, newValue: photo.Title, ct: ct);
 
@@ -108,6 +129,12 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
             // A failure here (e.g. it's still referenced elsewhere) must
             // never fail the photo update itself.
             try { await mediaUploadService.DeleteIfUnreferencedAsync(oldMediaAssetId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+
+        if (oldRestoredMediaAssetId is { } removedRestoredId && oldRestoredMediaAssetId != photo.RestoredMediaAssetId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(removedRestoredId, ct); }
             catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
         }
 
@@ -145,6 +172,7 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
 
         var title = photo.Title;
         var mediaAssetId = photo.MediaAssetId;
+        var restoredMediaAssetId = photo.RestoredMediaAssetId;
 
         db.Photos.Remove(photo);
         await db.SaveChangesAsync(ct);
@@ -152,9 +180,16 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
 
         try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaAssetId, ct); }
         catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+
+        if (restoredMediaAssetId is { } restoredId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(restoredId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
     }
 
     private static PhotoDto ToDto(Photo p) => new(
         p.Id, p.Title, p.TakenDate, p.Location, p.Description, p.Story, p.Category,
-        p.SourceStatus, p.UploaderName, p.MediaAssetId, p.MediaAsset!.Url, p.MediaAsset.AltText, p.PublicationStatus);
+        p.SourceStatus, p.UploaderName, p.MediaAssetId, p.MediaAsset!.Url, p.MediaAsset.AltText,
+        p.RestoredMediaAssetId, p.RestoredMediaAsset?.Url, p.PublicationStatus);
 }

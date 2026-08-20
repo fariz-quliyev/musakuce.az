@@ -22,6 +22,11 @@ public class PhotoConfiguration : IEntityTypeConfiguration<Photo>
             .OnDelete(DeleteBehavior.Cascade)
             .IsRequired();
 
+        builder.HasOne(x => x.RestoredMediaAsset)
+            .WithMany()
+            .HasForeignKey(x => x.RestoredMediaAssetId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(x => x.Category);
         builder.HasIndex(x => x.PublicationStatus);
 

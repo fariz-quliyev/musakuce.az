@@ -476,6 +476,11 @@ export interface PhotoDto {
   mediaAssetId: string;
   imageUrl: string;
   altText: string | null;
+  /** Optional restored/enhanced version of the same photo — when both
+   * this and imageUrl are present, the public lightbox shows a
+   * Before/After comparison slider instead of the plain image. */
+  restoredMediaAssetId: string | null;
+  restoredImageUrl: string | null;
   publicationStatus: PublicationStatus;
 }
 
@@ -497,6 +502,7 @@ export interface CreatePhotoRequest {
   uploaderName?: string | null;
   mediaAssetId: string;
   altText?: string | null;
+  restoredMediaAssetId?: string | null;
 }
 
 /** ADMIN-PRIVILEGED — full field edit. */
