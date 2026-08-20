@@ -11,4 +11,6 @@ public interface IHistoricalEventService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<HistoricalEventDto> UpdateAsync(Guid id, UpdateHistoricalEventRequest request, CancellationToken ct = default);
     Task<HistoricalEventDto> UpdateStatusAsync(Guid id, UpdateHistoricalEventStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

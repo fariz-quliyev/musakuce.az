@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Musakuce.Application.Audit;
+using Musakuce.Application.Corrections;
 using Musakuce.Application.CulturalHeritage;
 using Musakuce.Application.Education;
 using Musakuce.Application.Events;
@@ -58,6 +59,8 @@ public static class DependencyInjection
         services.AddScoped<IValidator<Videos.UpdateVideoStatusRequest>, Videos.UpdateVideoStatusRequestValidator>();
         services.AddScoped<IValidator<Submissions.CreateSubmissionRequest>, Submissions.CreateSubmissionRequestValidator>();
         services.AddScoped<IValidator<Submissions.UpdateSubmissionStatusRequest>, Submissions.UpdateSubmissionStatusRequestValidator>();
+        services.AddScoped<IValidator<CreateCorrectionSuggestionRequest>, CreateCorrectionSuggestionRequestValidator>();
+        services.AddScoped<IValidator<UpdateCorrectionSuggestionStatusRequest>, UpdateCorrectionSuggestionStatusRequestValidator>();
         services.AddScoped<IValidator<UpsertVillageProfileRequest>, UpsertVillageProfileRequestValidator>();
         services.AddScoped<IValidator<UpdateVillageProfileStatusRequest>, UpdateVillageProfileStatusRequestValidator>();
         services.AddScoped<IValidator<UpsertTimelineSettingsRequest>, UpsertTimelineSettingsRequestValidator>();
@@ -83,6 +86,7 @@ public static class DependencyInjection
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IVideoService, VideoService>();
         services.AddScoped<ISubmissionService, SubmissionService>();
+        services.AddScoped<ICorrectionSuggestionService, CorrectionSuggestionService>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
         services.AddScoped<IMediaUploadService, MediaUploadService>();

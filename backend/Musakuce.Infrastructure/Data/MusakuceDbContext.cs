@@ -24,6 +24,7 @@ public class MusakuceDbContext(DbContextOptions<MusakuceDbContext> options)
     public DbSet<Video> Videos => Set<Video>();
     public DbSet<CommunitySubmission> CommunitySubmissions => Set<CommunitySubmission>();
     public DbSet<SubmissionFile> SubmissionFiles => Set<SubmissionFile>();
+    public DbSet<CorrectionSuggestion> CorrectionSuggestions => Set<CorrectionSuggestion>();
     public DbSet<AuditLogEntry> AuditLogEntries => Set<AuditLogEntry>();
     public DbSet<VillageProfile> VillageProfiles => Set<VillageProfile>();
     public DbSet<MemorialRecord> MemorialRecords => Set<MemorialRecord>();

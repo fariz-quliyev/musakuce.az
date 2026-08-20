@@ -8,6 +8,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { CardSkeleton } from "@/components/ui/Skeleton";
 import { Pagination } from "@/components/ui/Pagination";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { videosApi } from "@/lib/api/videos";
 import type { PagedResult, VideoDto } from "@/lib/api/types";
 
@@ -117,29 +118,38 @@ export function VideosBrowser({ initialData, initialIsLive }: Props) {
               const playableUrl = resolvePlayableUrl(video);
               const Wrapper = playableUrl ? "a" : "div";
               return (
-                <Wrapper
-                  key={video.id}
-                  {...(playableUrl ? { href: playableUrl, target: "_blank", rel: "noreferrer" } : {})}
-                  className="group block"
-                >
-                  <div className="aspect-video overflow-hidden rounded-lg">
-                    <VillagePhoto
-                      src={video.thumbnailUrl ?? undefined}
-                      alt={video.title}
-                      tone="warm"
-                      placeholderLabel={video.title}
-                      sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                    />
+                // SuggestionCta below is deliberately a sibling outside
+                // Wrapper, not nested inside it — Wrapper is an <a> when
+                // the video is playable, and a button/link inside
+                // another link is both invalid HTML and would trigger
+                // the outer navigation on click.
+                <div key={video.id}>
+                  <Wrapper
+                    {...(playableUrl ? { href: playableUrl, target: "_blank", rel: "noreferrer" } : {})}
+                    className="group block"
+                  >
+                    <div className="aspect-video overflow-hidden rounded-lg">
+                      <VillagePhoto
+                        src={video.thumbnailUrl ?? undefined}
+                        alt={video.title}
+                        tone="warm"
+                        placeholderLabel={video.title}
+                        sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                      />
+                    </div>
+                    <p className="mt-2 line-clamp-2 font-medium text-ink">{video.title}</p>
+                    {video.description ? (
+                      <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{video.description}</p>
+                    ) : null}
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      {video.category ? <Badge tone="neutral">{video.category}</Badge> : null}
+                      {!playableUrl ? <Badge tone="neutral">İzləmə keçidi yoxdur</Badge> : null}
+                    </div>
+                  </Wrapper>
+                  <div className="mt-2">
+                    <SuggestionCta targetEntityType="Video" targetEntityId={video.id} />
                   </div>
-                  <p className="mt-2 line-clamp-2 font-medium text-ink">{video.title}</p>
-                  {video.description ? (
-                    <p className="mt-1 line-clamp-2 text-sm text-ink-soft">{video.description}</p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    {video.category ? <Badge tone="neutral">{video.category}</Badge> : null}
-                    {!playableUrl ? <Badge tone="neutral">İzləmə keçidi yoxdur</Badge> : null}
-                  </div>
-                </Wrapper>
+                </div>
               );
             })}
           </div>

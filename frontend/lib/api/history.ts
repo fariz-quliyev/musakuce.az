@@ -23,4 +23,6 @@ export const historyApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateHistoricalEventStatusRequest) =>
     apiClient.patch<HistoricalEventDto>(`/api/history/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/history/${id}`),
 };

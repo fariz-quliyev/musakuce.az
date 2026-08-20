@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { PersonPhotoAlbum } from "@/components/people/PersonPhotoAlbum";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
@@ -121,6 +122,10 @@ export default async function PersonDetailPage({ params }: Props) {
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
               <Badge tone="neutral">{sourceStatusLabels[person.sourceStatus]}</Badge>
               {person.sourceReference ? <span>{person.sourceReference}</span> : null}
+            </div>
+
+            <div className="mt-6 max-w-2xl">
+              <SuggestionCta targetEntityType="Person" targetEntityId={person.id} />
             </div>
           </div>
         </div>

@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { educationApi } from "@/lib/api/education";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
@@ -134,6 +135,10 @@ export default async function EducationDetailPage({ params }: Props) {
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
               <Badge tone="neutral">{sourceStatusLabels[entry.sourceStatus]}</Badge>
               {entry.sourceReference ? <span>{entry.sourceReference}</span> : null}
+            </div>
+
+            <div className="mt-6">
+              <SuggestionCta targetEntityType="EducationEntry" targetEntityId={entry.id} />
             </div>
           </div>
         </div>

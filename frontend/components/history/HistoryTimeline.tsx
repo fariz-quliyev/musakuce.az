@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { sourceStatusLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
 import { sanitizeRichText } from "@/lib/richText";
@@ -310,6 +311,10 @@ function EventDetailContent({
           ) : null}
         </div>
         <EventGallery key={event.id} event={event} />
+
+        <div className="mt-4">
+          <SuggestionCta targetEntityType="HistoricalEvent" targetEntityId={event.id} />
+        </div>
       </div>
 
       <div className="mt-5 flex items-center justify-between border-t border-parchment-line/70 pt-3">

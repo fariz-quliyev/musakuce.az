@@ -94,7 +94,15 @@ public class MediaUploadService(
         || await db.EducationEntries.AnyAsync(e => e.CoverMediaAssetId == mediaAssetId, ct)
         || await db.CulturalHeritageItems.AnyAsync(c => c.CoverMediaAssetId == mediaAssetId, ct)
         || await db.Interviews.AnyAsync(i => i.ThumbnailMediaAssetId == mediaAssetId, ct)
-        || await db.VillageProfiles.AnyAsync(v => v.HeroMediaAssetId == mediaAssetId || v.LogoMediaAssetId == mediaAssetId, ct);
+        || await db.VillageProfiles.AnyAsync(v => v.HeroMediaAssetId == mediaAssetId || v.LogoMediaAssetId == mediaAssetId, ct)
+        // HistoricalEvent was missing entirely — found while wiring up
+        // HistoryService.DeleteAsync, which (like PersonService.DeleteAsync)
+        // calls DeleteIfUnreferencedAsync on the record's own media after
+        // removing it; without these three checks that cleanup could not
+        // tell "still referenced elsewhere" from "safe to delete" for any
+        // of History's own media fields.
+        || await db.HistoricalEvents.AnyAsync(e => e.CoverMediaAssetId == mediaAssetId || e.IconMediaAssetId == mediaAssetId, ct)
+        || await db.HistoricalEventImages.AnyAsync(i => i.MediaAssetId == mediaAssetId, ct);
 
     public async Task DeleteIfUnreferencedAsync(Guid mediaAssetId, CancellationToken ct = default)
     {

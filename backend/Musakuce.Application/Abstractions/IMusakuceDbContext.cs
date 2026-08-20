@@ -24,6 +24,7 @@ public interface IMusakuceDbContext
     DbSet<Video> Videos { get; }
     DbSet<CommunitySubmission> CommunitySubmissions { get; }
     DbSet<SubmissionFile> SubmissionFiles { get; }
+    DbSet<CorrectionSuggestion> CorrectionSuggestions { get; }
     DbSet<AuditLogEntry> AuditLogEntries { get; }
     DbSet<VillageProfile> VillageProfiles { get; }
     DbSet<MemorialRecord> MemorialRecords { get; }

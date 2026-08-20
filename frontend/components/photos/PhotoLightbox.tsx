@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { photoCategoryLabels } from "@/lib/api/labels";
 import type { PhotoDto } from "@/lib/api/types";
 
@@ -145,6 +146,9 @@ export function PhotoLightbox({ photos, index, onClose, onIndexChange }: Props) 
           <span>{photoCategoryLabels[photo.category]}</span>
           {photo.takenDate ? <span>{photo.takenDate}</span> : null}
           {photo.location ? <span>{photo.location}</span> : null}
+        </div>
+        <div className="mt-3">
+          <SuggestionCta targetEntityType="Photo" targetEntityId={photo.id} tone="dark" />
         </div>
       </div>
     </div>

@@ -595,6 +595,64 @@ export interface UpdateSubmissionStatusRequest {
   reviewerNote?: string | null;
 }
 
+// ---- Correction suggestions ("Düzəliş təklif et") ------------------------------
+
+/** Which public content type a suggestion targets — must match the
+ * backend's CorrectionTargetTypes.All exactly (also the same strings
+ * IAuditLogService already logs as entityType for each of these). */
+export type TargetEntityType =
+  | "Person"
+  | "HistoricalEvent"
+  | "EducationEntry"
+  | "MemorialRecord"
+  | "CulturalHeritageItem"
+  | "Interview"
+  | "Place"
+  | "LocalInfoEntry"
+  | "Photo"
+  | "Video";
+
+export interface CorrectionSuggestionDto {
+  id: string;
+  targetEntityType: TargetEntityType;
+  targetEntityId: string;
+  targetTitle: string;
+  fieldOrSection: string | null;
+  suggestedChange: string | null;
+  additionalNotes: string | null;
+  photoMediaAssetId: string | null;
+  photoUrl: string | null;
+  submitterName: string | null;
+  contactInfo: string | null;
+  status: ModerationStatus;
+  reviewerNote: string | null;
+  createdAt: string;
+}
+
+/** The public, anonymous "Düzəliş təklif et" intake. */
+export interface CreateCorrectionSuggestionRequest {
+  targetEntityType: TargetEntityType;
+  targetEntityId: string;
+  fieldOrSection?: string | null;
+  suggestedChange?: string | null;
+  additionalNotes?: string | null;
+  photoMediaAssetId?: string | null;
+  submitterName?: string | null;
+  contactInfo?: string | null;
+}
+
+/** ADMIN-PRIVILEGED — the moderation inbox listing. */
+export interface CorrectionSuggestionQuery extends PagedQuery {
+  status?: ModerationStatus;
+  targetEntityType?: TargetEntityType;
+}
+
+/** ADMIN-PRIVILEGED — approve/reject. */
+export interface UpdateCorrectionSuggestionStatusRequest {
+  status: ModerationStatus;
+  reviewerNote?: string | null;
+}
+
 // ---- Media (Phase 8) ----------------------------------------------------------
 
 export type MediaType = "Image" | "Video" | "Document";

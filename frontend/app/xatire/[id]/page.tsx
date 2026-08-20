@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { memorialApi } from "@/lib/api/memorial";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
@@ -126,6 +127,10 @@ export default async function MemorialDetailPage({ params }: Props) {
             <p className="mt-8 border-t border-memorial-line pt-4 text-xs text-memorial-ink/60">
               {sourceStatusLabels[record.sourceStatus]}
             </p>
+
+            <div className="mt-6 text-left">
+              <SuggestionCta targetEntityType="MemorialRecord" targetEntityId={record.id} tone="memorial" />
+            </div>
           </div>
         </Container>
       </div>

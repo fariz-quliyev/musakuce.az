@@ -56,4 +56,16 @@ public class HistoryController(IHistoricalEventService service, IAuthorizationSe
     [Authorize(Policy = Permissions.HistoryModerate)]
     public async Task<ActionResult> UpdateStatus(Guid id, UpdateHistoricalEventStatusRequest request, CancellationToken ct) =>
         Ok(await service.UpdateStatusAsync(id, request, ct));
+
+    /// <summary>ADMIN-PRIVILEGED — hard delete. Same policy as
+    /// publish/archive (Permissions.HistoryModerate), matching the
+    /// PeopleController precedent — this codebase has no separate
+    /// "delete" permission tier for any content type.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.HistoryModerate)]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await service.DeleteAsync(id, ct);
+        return NoContent();
+    }
 }

@@ -7,6 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Pagination } from "@/components/ui/Pagination";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { localInfoKindLabels } from "@/lib/api/labels";
 import { cn } from "@/lib/cn";
@@ -156,6 +157,9 @@ export function LocalInfoBrowser({ initialData, initialIsLive, initialKind }: Pr
                 {entry.areaServed ? (
                   <p className="mt-1 text-xs text-ink-faint">{entry.areaServed}</p>
                 ) : null}
+                <div className="mt-3">
+                  <SuggestionCta targetEntityType="LocalInfoEntry" targetEntityId={entry.id} />
+                </div>
               </li>
             ))}
           </ul>

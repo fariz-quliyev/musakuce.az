@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { placeCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import type { PlaceDto } from "@/lib/api/types";
 
@@ -72,6 +73,10 @@ export function SelectedPlaceCard({ place, onClose }: Props) {
           <Button href={directionsUrl} target="_blank" rel="noopener noreferrer" variant="outline" size="sm">
             Marşrutu aç →
           </Button>
+        </div>
+
+        <div className="mt-4">
+          <SuggestionCta targetEntityType="Place" targetEntityId={place.id} />
         </div>
       </div>
     </div>

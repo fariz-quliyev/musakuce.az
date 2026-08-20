@@ -2,12 +2,13 @@ using Microsoft.EntityFrameworkCore;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
+using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
 
 namespace Musakuce.Application.History;
 
-public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService auditLog) : IHistoricalEventService
+public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService auditLog, IMediaUploadService mediaUploadService) : IHistoricalEventService
 {
     public async Task<PagedResult<HistoricalEventDto>> GetPagedAsync(HistoricalEventQuery query, bool includeEditorial, CancellationToken ct = default)
     {
@@ -234,6 +235,32 @@ public class HistoricalEventService(IMusakuceDbContext db, IAuditLogService audi
         await auditLog.LogAsync(action, nameof(HistoricalEvent), ev.Id.ToString(), oldStatus.ToString(), ev.PublicationStatus.ToString(), ct);
 
         return ToDto(ev, includeEditorial: true);
+    }
+
+    /// <summary>Hard delete — mirrors PersonService.DeleteAsync (same
+    /// precedent: cascade-deletes AdditionalImages via the FK's own
+    /// Cascade behavior, then best-effort-cleans up every media field
+    /// this entity owned, including the cover and the custom marker
+    /// icon, neither of which PersonService has an equivalent of).</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var ev = await db.HistoricalEvents.Include(e => e.AdditionalImages).FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new NotFoundException(nameof(HistoricalEvent), id);
+
+        var title = ev.Title;
+        var coverMediaAssetId = ev.CoverMediaAssetId;
+        var iconMediaAssetId = ev.IconMediaAssetId;
+        var albumMediaAssetIds = ev.AdditionalImages.Select(i => i.MediaAssetId).ToList();
+
+        db.HistoricalEvents.Remove(ev);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(HistoricalEvent), id.ToString(), oldValue: title, ct: ct);
+
+        foreach (var mediaId in albumMediaAssetIds.Cast<Guid?>().Append(coverMediaAssetId).Append(iconMediaAssetId).OfType<Guid>())
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
     }
 
     private static HistoricalEventDto ToDto(HistoricalEvent e, bool includeEditorial) => new(

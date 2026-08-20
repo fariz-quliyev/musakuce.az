@@ -16,6 +16,7 @@ import type {
   SourceStatus,
   SubmissionKind,
   SubmissionStatus,
+  TargetEntityType,
   VideoEmbedProvider,
 } from "./types";
 
@@ -122,6 +123,19 @@ export const submissionStatusLabels: Record<SubmissionStatus, string> = {
   Rejected: "Rədd edilib",
   Converted: "Arxivə əlavə edilib",
   Archived: "Arxivləşdirilib",
+};
+
+export const targetEntityTypeLabels: Record<TargetEntityType, string> = {
+  Person: "İnsanlarımız",
+  HistoricalEvent: "Tariximiz",
+  EducationEntry: "Təhsil",
+  MemorialRecord: "Xatirə",
+  CulturalHeritageItem: "Mədəni irs",
+  Interview: "Kəndimizin səsi",
+  Place: "Məkanlar",
+  LocalInfoEntry: "Faydalı məlumatlar",
+  Photo: "Fotoalbom",
+  Video: "Videolar",
 };
 
 export const submissionKindLabels: Record<SubmissionKind, string> = {

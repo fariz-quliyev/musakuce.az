@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { ApiError } from "@/lib/api/client";
 import { culturalHeritageKindLabels, sourceStatusLabels } from "@/lib/api/labels";
@@ -88,6 +89,10 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
               <Badge tone="neutral">{sourceStatusLabels[item.sourceStatus]}</Badge>
               {item.sourceReference ? <span>{item.sourceReference}</span> : null}
+            </div>
+
+            <div className="mt-6">
+              <SuggestionCta targetEntityType="CulturalHeritageItem" targetEntityId={item.id} />
             </div>
           </div>
         </div>

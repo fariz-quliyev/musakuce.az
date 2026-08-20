@@ -146,7 +146,9 @@ export function HistoryForm({ event }: { event?: HistoricalEventDto }) {
             setIconMediaAssetId(media.id);
             setIconPreviewUrl(media.url);
           }}
-          hint="Boş buraxıla bilər — yüklənərsə, yuxarıdakı kateqoriya ikonu əvəzinə bu şəkil kiçik dairəvi marker kimi göstərilir"
+          cropAspectRatio={1}
+          previewAspectClassName="aspect-square"
+          hint="Boş buraxıla bilər — yüklənərsə, yuxarıdakı kateqoriya ikonu əvəzinə bu şəkil kiçik dairəvi marker kimi göstərilir. Şəkil seçdikdən sonra kvadrat formada kəsmə addımı açılır."
         />
         {iconMediaAssetId ? (
           <button

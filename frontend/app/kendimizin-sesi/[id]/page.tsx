@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { InterviewEmbed, extractVimeoId, extractYouTubeId } from "@/components/interviews/InterviewEmbed";
+import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { interviewsApi } from "@/lib/api/interviews";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
@@ -132,6 +133,10 @@ export default async function InterviewDetailPage({ params }: Props) {
           ) : null}
 
           <p className="mt-6 border-t border-stone-light pt-4 text-xs text-ink-faint">{sourceStatusLabels[interview.sourceStatus]}</p>
+
+          <div className="mt-6">
+            <SuggestionCta targetEntityType="Interview" targetEntityId={interview.id} />
+          </div>
         </div>
 
         {related.length > 0 ? (

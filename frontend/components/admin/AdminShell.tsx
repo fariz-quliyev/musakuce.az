@@ -56,7 +56,10 @@ const NAV: NavGroup[] = [
   },
   {
     label: "Göndərişlər",
-    items: [{ label: "İstifadəçi göndərişləri", href: "/admin/gonderisler", permission: "submissions.view" }],
+    items: [
+      { label: "İstifadəçi göndərişləri", href: "/admin/gonderisler", permission: "submissions.view" },
+      { label: "Düzəliş təklifləri", href: "/admin/duzelis-teklifleri", permission: "corrections.view" },
+    ],
   },
   {
     label: "Sistem",

@@ -40,6 +40,13 @@ public static class Permissions
     public const string SubmissionsView = "submissions.view";
     public const string SubmissionsModerate = "submissions.moderate";
 
+    /// <summary>Reader-submitted "Düzəliş təklif et" suggestions against
+    /// any of the 10 public content types. No *.write tier — a
+    /// suggestion is never applied automatically; approving it only
+    /// marks the suggestion reviewed, same shape as Submissions.*.</summary>
+    public const string CorrectionsView = "corrections.view";
+    public const string CorrectionsModerate = "corrections.moderate";
+
     /// <summary>Phase 11 — Places CMS (/admin/yerler). Assigned to Editor
     /// and Archivist alongside the other archive/village-content
     /// permissions (see Roles.Permissions below).</summary>
@@ -96,6 +103,7 @@ public static class Permissions
         PhotosView, PhotosWrite, PhotosModerate,
         VideosView, VideosWrite, VideosModerate,
         SubmissionsView, SubmissionsModerate,
+        CorrectionsView, CorrectionsModerate,
         PlacesView, PlacesWrite, PlacesModerate,
         VillageProfileView, VillageProfileWrite, VillageProfileModerate,
         MemorialView, MemorialWrite, MemorialModerate,
@@ -143,6 +151,7 @@ public static class Roles
             Authorization.Permissions.InterviewsView, Authorization.Permissions.InterviewsWrite, Authorization.Permissions.InterviewsModerate,
             Authorization.Permissions.EducationView, Authorization.Permissions.EducationWrite, Authorization.Permissions.EducationModerate,
             Authorization.Permissions.SubmissionsView, Authorization.Permissions.SubmissionsModerate,
+            Authorization.Permissions.CorrectionsView, Authorization.Permissions.CorrectionsModerate,
             Authorization.Permissions.MediaUpload,
         ],
 
@@ -162,6 +171,7 @@ public static class Roles
             Authorization.Permissions.InterviewsView, Authorization.Permissions.InterviewsWrite, Authorization.Permissions.InterviewsModerate,
             Authorization.Permissions.EducationView, Authorization.Permissions.EducationWrite, Authorization.Permissions.EducationModerate,
             Authorization.Permissions.SubmissionsView, Authorization.Permissions.SubmissionsModerate,
+            Authorization.Permissions.CorrectionsView, Authorization.Permissions.CorrectionsModerate,
             Authorization.Permissions.MediaUpload,
         ],
 
@@ -170,6 +180,7 @@ public static class Roles
             Authorization.Permissions.ListingsView, Authorization.Permissions.ListingsWrite, Authorization.Permissions.ListingsModerate,
             Authorization.Permissions.LocalInfoView, Authorization.Permissions.LocalInfoWrite, Authorization.Permissions.LocalInfoModerate,
             Authorization.Permissions.SubmissionsView, Authorization.Permissions.SubmissionsModerate,
+            Authorization.Permissions.CorrectionsView, Authorization.Permissions.CorrectionsModerate,
             Authorization.Permissions.MediaUpload,
         ],
     };
