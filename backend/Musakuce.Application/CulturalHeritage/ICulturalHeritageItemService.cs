@@ -11,4 +11,6 @@ public interface ICulturalHeritageItemService
     /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>
     Task<CulturalHeritageItemDto> UpdateAsync(Guid id, UpdateCulturalHeritageItemRequest request, CancellationToken ct = default);
     Task<CulturalHeritageItemDto> UpdateStatusAsync(Guid id, UpdateCulturalHeritageItemStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

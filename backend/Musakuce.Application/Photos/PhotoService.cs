@@ -135,6 +135,25 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         return ToDto(photo);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.
+    /// Unlike the other content types, Photo.MediaAssetId is required
+    /// (never null) — the image is the content, not an optional cover.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var photo = await db.Photos.FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Photo), id);
+
+        var title = photo.Title;
+        var mediaAssetId = photo.MediaAssetId;
+
+        db.Photos.Remove(photo);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(Photo), id.ToString(), oldValue: title, ct: ct);
+
+        try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaAssetId, ct); }
+        catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+    }
+
     private static PhotoDto ToDto(Photo p) => new(
         p.Id, p.Title, p.TakenDate, p.Location, p.Description, p.Story, p.Category,
         p.SourceStatus, p.UploaderName, p.MediaAssetId, p.MediaAsset!.Url, p.MediaAsset.AltText, p.PublicationStatus);

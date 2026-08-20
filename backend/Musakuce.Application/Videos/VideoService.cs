@@ -129,6 +129,26 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         return ToDto(video);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var video = await db.Videos.FirstOrDefaultAsync(v => v.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Video), id);
+
+        var title = video.Title;
+        var thumbnailMediaAssetId = video.ThumbnailMediaAssetId;
+
+        db.Videos.Remove(video);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(Video), id.ToString(), oldValue: title, ct: ct);
+
+        if (thumbnailMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static VideoDto ToDto(Video v) => new(
         v.Id, v.Title, v.Description, v.EmbedProvider, v.EmbedUrlOrKey,
         v.ThumbnailMediaAssetId, v.ThumbnailMediaAsset?.Url, v.Category, v.RecordedDate, v.SourceStatus, v.PublicationStatus);

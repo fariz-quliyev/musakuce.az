@@ -150,6 +150,36 @@ public class LocalInfoService(IMusakuceDbContext db, IAuditLogService auditLog, 
         return ToDto(entry);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync,
+    /// with one addition: AttachedToEntryId is a self-referencing FK
+    /// configured Restrict (LocalInfoEntryConfiguration), so deleting an
+    /// entry that other entries are attached to as recommendations would
+    /// otherwise fail with a raw FK-violation error. Detaching them first
+    /// (they become standalone entries, not deleted themselves) keeps
+    /// this a clean delete instead of surfacing a DB error to the admin.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var entry = await db.LocalInfoEntries.FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new NotFoundException(nameof(LocalInfoEntry), id);
+
+        var attachedChildren = await db.LocalInfoEntries.Where(e => e.AttachedToEntryId == id).ToListAsync(ct);
+        foreach (var child in attachedChildren)
+            child.AttachedToEntryId = null;
+
+        var name = entry.Name;
+        var photoMediaAssetId = entry.PhotoMediaAssetId;
+
+        db.LocalInfoEntries.Remove(entry);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(LocalInfoEntry), id.ToString(), oldValue: name, ct: ct);
+
+        if (photoMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static LocalInfoEntryDto ToDto(LocalInfoEntry e) => new(
         e.Id, e.Name, e.Kind, e.Category, e.Description, e.ContactInfo, e.AreaServed,
         e.PhotoMediaAssetId, e.PhotoMediaAsset?.Url, e.AttachedToEntryId, e.PublicationStatus);

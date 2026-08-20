@@ -20,4 +20,6 @@ export const eventsApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive ("delete" is modeled as Archived). */
   updateStatus: (id: string, request: UpdateEventStatusRequest) =>
     apiClient.patch<EventDto>(`/api/events/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/events/${id}`),
 };

@@ -56,4 +56,15 @@ public class EventsController(IEventService service, IAuthorizationService autho
     [Authorize(Policy = Permissions.EventsModerate)]
     public async Task<ActionResult> UpdateStatus(Guid id, UpdateEventStatusRequest request, CancellationToken ct) =>
         Ok(await service.UpdateStatusAsync(id, request, ct));
+
+    /// <summary>ADMIN-PRIVILEGED — hard delete. Same policy as
+    /// publish/archive, matching the History/People precedent — this
+    /// codebase has no separate "delete" permission tier.</summary>
+    [HttpDelete("{id:guid}")]
+    [Authorize(Policy = Permissions.EventsModerate)]
+    public async Task<ActionResult> Delete(Guid id, CancellationToken ct)
+    {
+        await service.DeleteAsync(id, ct);
+        return NoContent();
+    }
 }

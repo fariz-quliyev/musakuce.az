@@ -148,6 +148,26 @@ public class EducationEntryService(IMusakuceDbContext db, IAuditLogService audit
         return ToDto(entry, includeEditorial: true);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var entry = await db.EducationEntries.FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new NotFoundException(nameof(EducationEntry), id);
+
+        var title = entry.Title;
+        var coverMediaAssetId = entry.CoverMediaAssetId;
+
+        db.EducationEntries.Remove(entry);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(EducationEntry), id.ToString(), oldValue: title, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static EducationEntryDto ToDto(EducationEntry e, bool includeEditorial) => new(
         e.Id, e.Title, e.Slug, e.Summary, e.Content, e.Kind, e.Period, e.EventDate,
         e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.RelatedPersonId, e.SourceStatus, e.SourceReference,

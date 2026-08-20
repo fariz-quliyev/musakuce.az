@@ -21,4 +21,6 @@ export const educationApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateEducationEntryStatusRequest) =>
     apiClient.patch<EducationEntryDto>(`/api/education/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/education/${id}`),
 };

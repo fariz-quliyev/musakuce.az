@@ -11,4 +11,6 @@ public interface IVideoService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<VideoDto> UpdateAsync(Guid id, UpdateVideoRequest request, CancellationToken ct = default);
     Task<VideoDto> UpdateStatusAsync(Guid id, UpdateVideoStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

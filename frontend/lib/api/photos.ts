@@ -21,4 +21,6 @@ export const photosApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdatePhotoStatusRequest) =>
     apiClient.patch<PhotoDto>(`/api/photos/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/photos/${id}`),
 };

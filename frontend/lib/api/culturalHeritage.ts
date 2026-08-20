@@ -22,4 +22,6 @@ export const culturalHeritageApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateCulturalHeritageItemStatusRequest) =>
     apiClient.patch<CulturalHeritageItemDto>(`/api/cultural-heritage/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/cultural-heritage/${id}`),
 };

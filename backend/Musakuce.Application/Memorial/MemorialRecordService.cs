@@ -148,6 +148,26 @@ public class MemorialRecordService(IMusakuceDbContext db, IAuditLogService audit
         return ToDto(record, includeEditorial: true);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var record = await db.MemorialRecords.FirstOrDefaultAsync(r => r.Id == id, ct)
+            ?? throw new NotFoundException(nameof(MemorialRecord), id);
+
+        var name = record.FullName;
+        var coverMediaAssetId = record.CoverMediaAssetId;
+
+        db.MemorialRecords.Remove(record);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(MemorialRecord), id.ToString(), oldValue: name, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static MemorialRecordDto ToDto(MemorialRecord r, bool includeEditorial) => new(
         r.Id, r.FullName, r.FatherName, r.Category, r.BirthDate, r.DeathDate, r.Biography, r.Achievements,
         r.CoverMediaAssetId, r.CoverMediaAsset?.Url, r.RelatedPersonId, r.SourceStatus, r.SourceReference,

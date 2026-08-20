@@ -11,4 +11,6 @@ public interface IEducationEntryService
     /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>
     Task<EducationEntryDto> UpdateAsync(Guid id, UpdateEducationEntryRequest request, CancellationToken ct = default);
     Task<EducationEntryDto> UpdateStatusAsync(Guid id, UpdateEducationEntryStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

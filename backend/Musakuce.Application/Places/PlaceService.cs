@@ -150,6 +150,26 @@ public class PlaceService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         return ToDto(place, includeEditorial: true);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var place = await db.Places.FirstOrDefaultAsync(p => p.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Place), id);
+
+        var name = place.Name;
+        var coverMediaAssetId = place.CoverMediaAssetId;
+
+        db.Places.Remove(place);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(Place), id.ToString(), oldValue: name, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static PlaceDto ToDto(Place p, bool includeEditorial) => new(
         p.Id, p.Name, p.Slug, p.Kind, p.Category, p.Description, p.HistoricalBackground,
         p.Latitude, p.Longitude, p.CoverMediaAssetId, p.CoverMediaAsset?.Url, p.SourceStatus, p.SourceReference,

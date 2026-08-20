@@ -21,4 +21,6 @@ export const videosApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateVideoStatusRequest) =>
     apiClient.patch<VideoDto>(`/api/videos/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/videos/${id}`),
 };

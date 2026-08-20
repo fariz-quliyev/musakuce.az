@@ -11,4 +11,6 @@ public interface IEventService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<EventDto> UpdateAsync(Guid id, UpdateEventRequest request, CancellationToken ct = default);
     Task<EventDto> UpdateStatusAsync(Guid id, UpdateEventStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

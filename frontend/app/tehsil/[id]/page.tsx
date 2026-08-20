@@ -110,7 +110,7 @@ export default async function EducationDetailPage({ params }: Props) {
                   "[&_ul]:my-3 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-3 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-1",
                   "[&_a]:text-forest [&_a]:underline [&_a]:underline-offset-2 hover:[&_a]:text-forest-dark",
                   "[&_blockquote]:my-3 [&_blockquote]:border-l-2 [&_blockquote]:border-stone [&_blockquote]:pl-4 [&_blockquote]:italic",
-                  "[&_img]:my-3 [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-md",
+                  "[&_img]:my-3 [&_img]:max-h-[420px] [&_img]:max-w-full [&_img]:w-auto [&_img]:h-auto [&_img]:rounded-md",
                   "[&_table]:my-3 [&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse",
                   "[&_th]:border [&_th]:border-stone-light [&_th]:px-2 [&_th]:py-1 [&_th]:text-left [&_th]:font-semibold",
                   "[&_td]:border [&_td]:border-stone-light [&_td]:px-2 [&_td]:py-1 [&_td]:align-top",

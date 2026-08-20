@@ -11,4 +11,6 @@ public interface IPhotoService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<PhotoDto> UpdateAsync(Guid id, UpdatePhotoRequest request, CancellationToken ct = default);
     Task<PhotoDto> UpdateStatusAsync(Guid id, UpdatePhotoStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

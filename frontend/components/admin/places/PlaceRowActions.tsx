@@ -1,16 +1,16 @@
 "use client";
 
-import { PublicationStatusActions } from "@/components/admin/PublicationStatusActions";
+import { PublicationStatusActionsWithDelete } from "@/components/admin/shared/PublicationStatusActionsWithDelete";
 import { placesApi } from "@/lib/api/places";
 import type { PlaceDto, PublicationStatus } from "@/lib/api/types";
 
 export function PlaceRowActions({ place }: { place: PlaceDto }) {
   return (
-    <PublicationStatusActions
+    <PublicationStatusActionsWithDelete
       status={place.publicationStatus}
-      onChangeStatus={(publicationStatus: PublicationStatus) =>
-        placesApi.updateStatus(place.id, { publicationStatus })
-      }
+      title={place.name}
+      onChangeStatus={(publicationStatus: PublicationStatus) => placesApi.updateStatus(place.id, { publicationStatus })}
+      onDelete={() => placesApi.remove(place.id)}
     />
   );
 }

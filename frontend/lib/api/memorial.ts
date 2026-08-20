@@ -21,4 +21,6 @@ export const memorialApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateMemorialRecordStatusRequest) =>
     apiClient.patch<MemorialRecordDto>(`/api/memorial/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/memorial/${id}`),
 };

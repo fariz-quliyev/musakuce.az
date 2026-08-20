@@ -144,6 +144,26 @@ public class EventService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         return ToDto(ev);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var ev = await db.VillageEvents.FirstOrDefaultAsync(e => e.Id == id, ct)
+            ?? throw new NotFoundException(nameof(VillageEvent), id);
+
+        var title = ev.Title;
+        var coverMediaAssetId = ev.CoverMediaAssetId;
+
+        db.VillageEvents.Remove(ev);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(VillageEvent), id.ToString(), oldValue: title, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static EventDto ToDto(VillageEvent e) => new(
         e.Id, e.Title, e.Description, e.Category, e.StartsAt, e.EndsAt, e.Location, e.PlaceId,
         e.OrganizerName, e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.PublicationStatus);

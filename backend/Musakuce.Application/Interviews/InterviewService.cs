@@ -146,6 +146,26 @@ public class InterviewService(IMusakuceDbContext db, IAuditLogService auditLog, 
         return ToDto(interview, includeEditorial: true);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var interview = await db.Interviews.FirstOrDefaultAsync(i => i.Id == id, ct)
+            ?? throw new NotFoundException(nameof(Interview), id);
+
+        var name = interview.PersonName;
+        var thumbnailMediaAssetId = interview.ThumbnailMediaAssetId;
+
+        db.Interviews.Remove(interview);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(Interview), id.ToString(), oldValue: name, ct: ct);
+
+        if (thumbnailMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static InterviewDto ToDto(Interview i, bool includeEditorial) => new(
         i.Id, i.PersonName, i.RelatedPersonId, i.Title, i.Description, i.Transcript,
         i.EmbedProvider, i.EmbedUrlOrKey, i.ThumbnailMediaAssetId, i.ThumbnailMediaAsset?.Url,

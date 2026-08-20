@@ -23,4 +23,6 @@ export const localInfoApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateLocalInfoStatusRequest) =>
     apiClient.patch<LocalInfoEntryDto>(`/api/local-info/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/local-info/${id}`),
 };

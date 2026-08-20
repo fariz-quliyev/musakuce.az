@@ -11,4 +11,6 @@ public interface IMemorialRecordService
     /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>
     Task<MemorialRecordDto> UpdateAsync(Guid id, UpdateMemorialRecordRequest request, CancellationToken ct = default);
     Task<MemorialRecordDto> UpdateStatusAsync(Guid id, UpdateMemorialRecordStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

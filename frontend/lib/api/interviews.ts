@@ -21,4 +21,6 @@ export const interviewsApi = {
   /** ADMIN-PRIVILEGED — publish/unpublish/archive. */
   updateStatus: (id: string, request: UpdateInterviewStatusRequest) =>
     apiClient.patch<InterviewDto>(`/api/interviews/${id}/status`, request),
+  /** ADMIN-PRIVILEGED — hard delete. */
+  remove: (id: string) => apiClient.delete<void>(`/api/interviews/${id}`),
 };

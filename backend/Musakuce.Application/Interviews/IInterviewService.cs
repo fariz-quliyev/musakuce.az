@@ -11,4 +11,6 @@ public interface IInterviewService
     /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>
     Task<InterviewDto> UpdateAsync(Guid id, UpdateInterviewRequest request, CancellationToken ct = default);
     Task<InterviewDto> UpdateStatusAsync(Guid id, UpdateInterviewStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

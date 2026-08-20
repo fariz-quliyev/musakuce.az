@@ -11,4 +11,6 @@ public interface ILocalInfoService
     /// <summary>ADMIN-PRIVILEGED.</summary>
     Task<LocalInfoEntryDto> UpdateAsync(Guid id, UpdateLocalInfoEntryRequest request, CancellationToken ct = default);
     Task<LocalInfoEntryDto> UpdateStatusAsync(Guid id, UpdateLocalInfoStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

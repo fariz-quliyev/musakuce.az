@@ -11,4 +11,6 @@ public interface IPlaceService
     /// <summary>ADMIN-PRIVILEGED — full field edit.</summary>
     Task<PlaceDto> UpdateAsync(Guid id, UpdatePlaceRequest request, CancellationToken ct = default);
     Task<PlaceDto> UpdateStatusAsync(Guid id, UpdatePlaceStatusRequest request, CancellationToken ct = default);
+    /// <summary>ADMIN-PRIVILEGED — hard delete.</summary>
+    Task DeleteAsync(Guid id, CancellationToken ct = default);
 }

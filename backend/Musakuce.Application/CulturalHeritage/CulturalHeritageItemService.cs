@@ -132,6 +132,26 @@ public class CulturalHeritageItemService(IMusakuceDbContext db, IAuditLogService
         return ToDto(item, includeEditorial: true);
     }
 
+    /// <summary>Hard delete — mirrors HistoricalEventService.DeleteAsync.</summary>
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var item = await db.CulturalHeritageItems.FirstOrDefaultAsync(i => i.Id == id, ct)
+            ?? throw new NotFoundException(nameof(CulturalHeritageItem), id);
+
+        var title = item.Title;
+        var coverMediaAssetId = item.CoverMediaAssetId;
+
+        db.CulturalHeritageItems.Remove(item);
+        await db.SaveChangesAsync(ct);
+        await auditLog.LogAsync("Delete", nameof(CulturalHeritageItem), id.ToString(), oldValue: title, ct: ct);
+
+        if (coverMediaAssetId is { } mediaId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(mediaId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+    }
+
     private static CulturalHeritageItemDto ToDto(CulturalHeritageItem i, bool includeEditorial) => new(
         i.Id, i.Title, i.Kind, i.Description, i.CoverMediaAssetId, i.CoverMediaAsset?.Url, i.SourceStatus, i.SourceReference,
         includeEditorial ? i.EditorialNote : null, includeEditorial ? i.OriginalSourceText : null,

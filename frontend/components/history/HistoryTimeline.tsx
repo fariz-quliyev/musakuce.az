@@ -160,15 +160,13 @@ function MarkerGlyph({ event, iconClassName }: { event: HistoricalEventDto; icon
  * thumbnail swaps the main image. Keyed by event id from the caller so
  * switching events resets the selection back to the cover image.
  *
- * Deliberately frameless: no border, radius, background, padding, ring
- * or shadow around the image, so what renders is exactly the source
- * image's own edges and nothing else. It's also sized intrinsically
- * (`width={0} height={0}` + `sizes` is Next.js's documented pattern for
- * a responsive image whose height follows its own aspect ratio) rather
- * than filling a fixed box — a fixed box plus `object-contain` is what
- * previously produced the empty letterbox bands above and below the
- * image. Nothing is ever cropped: the image simply takes its column's
- * full width and whatever height its own ratio implies. */
+ * Deliberately frameless: no border, radius, padding, ring or shadow
+ * around the image. The slot itself is a fixed-height box (upload size
+ * ≠ display size — the same source image at 800×1200 or 5000×3000 both
+ * render at this one height) with `object-contain` so nothing is ever
+ * cropped; `bg-transparent` lets the panel's own parchment texture show
+ * through any letterbox bands instead of a previous fixed-box attempt's
+ * flat empty-looking fill, which is what that attempt was reverted for. */
 function EventGallery({ event }: { event: HistoricalEventDto }) {
   const [selected, setSelected] = useState(0);
   const images = [
@@ -190,14 +188,15 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
 
   return (
     <div>
-      <Image
-        src={main.url}
-        alt={main.alt}
-        width={0}
-        height={0}
-        sizes="(min-width: 1024px) 40vw, 100vw"
-        className="h-auto w-full"
-      />
+      <div className="relative h-64 w-full bg-transparent sm:h-72 lg:h-80">
+        <Image
+          src={main.url}
+          alt={main.alt}
+          fill
+          sizes="(min-width: 1024px) 40vw, 100vw"
+          className="object-contain"
+        />
+      </div>
       {images.length > 1 ? (
         <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
           {images.map((image, i) => (
@@ -296,6 +295,14 @@ function EventDetailContent({
                 "[&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_li]:my-0.5",
                 "[&_a]:text-parchment-accent-ink [&_a]:underline [&_a]:underline-offset-2",
                 "[&_blockquote]:my-2 [&_blockquote]:border-l-2 [&_blockquote]:border-parchment-line [&_blockquote]:pl-3 [&_blockquote]:italic",
+                // Upload size ≠ display size (same rule as EventGallery
+                // above) — without this, an inline image inserted via
+                // RichTextEditor rendered at its own full natural pixel
+                // size in this narrow column, unlike every other rich-text
+                // surface (Person.biography, EducationEntry.content),
+                // which already caps [&_img]. This was the one surface
+                // missing the rule entirely.
+                "[&_img]:my-2 [&_img]:max-h-[420px] [&_img]:max-w-full [&_img]:w-auto [&_img]:h-auto [&_img]:rounded-md",
               )}
               // detailedText is admin-authored rich text (RichTextEditor,
               // same fixed tag allowlist as Person.biography) — sanitized
@@ -449,14 +456,24 @@ export function HistoryTimeline({ events, initialActiveIndex = 0 }: Props) {
       <div className="hidden sm:block">
         <div className="relative">
           <div aria-hidden className="pointer-events-none absolute inset-x-0 top-[26.5px] h-[3px] rounded-full bg-forest/70" />
-          <svg
+          {/* "Timeline davam edir" cap — deliberately decorative, not a
+              scroll/navigation control (the tablist above it already
+              handles horizontal scroll on its own via overflow-x-auto,
+              and Prev/Next in EventDetailContent below already covers
+              keyboard-free navigation) — a plain 16px chevron here used
+              to read as a stray icon rather than an intentional part of
+              the timeline. Styled as a marker-weight circle (same size/
+              border/shadow language as MarkerGlyph's active state) so it
+              reads as "the line continues past what's shown" rather than
+              a leftover UI fragment. */}
+          <div
             aria-hidden
-            viewBox="0 0 24 24"
-            fill="none"
-            className="pointer-events-none absolute top-5 right-0 h-4 w-4 text-forest/70"
+            className="pointer-events-none absolute top-[28px] right-0 z-10 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border-2 border-forest bg-forest text-cream shadow-md"
           >
-            <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+            <svg viewBox="0 0 24 24" fill="none" className="h-4 w-4">
+              <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
           <div
             ref={trackRef}
             role="tablist"
