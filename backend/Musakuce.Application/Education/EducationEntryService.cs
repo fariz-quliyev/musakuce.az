@@ -56,6 +56,7 @@ public class EducationEntryService(IMusakuceDbContext db, IAuditLogService audit
             Summary = request.Summary,
             Content = request.Content,
             Kind = request.Kind,
+            OtherKindLabel = request.OtherKindLabel,
             Period = request.Period,
             EventDate = request.EventDate,
             RelatedPersonId = request.RelatedPersonId,
@@ -93,6 +94,7 @@ public class EducationEntryService(IMusakuceDbContext db, IAuditLogService audit
         entry.Summary = request.Summary;
         entry.Content = request.Content;
         entry.Kind = request.Kind;
+        entry.OtherKindLabel = request.OtherKindLabel;
         entry.Period = request.Period;
         entry.EventDate = request.EventDate;
         entry.RelatedPersonId = request.RelatedPersonId;
@@ -169,7 +171,7 @@ public class EducationEntryService(IMusakuceDbContext db, IAuditLogService audit
     }
 
     private static EducationEntryDto ToDto(EducationEntry e, bool includeEditorial) => new(
-        e.Id, e.Title, e.Slug, e.Summary, e.Content, e.Kind, e.Period, e.EventDate,
+        e.Id, e.Title, e.Slug, e.Summary, e.Content, e.Kind, e.OtherKindLabel, e.Period, e.EventDate,
         e.CoverMediaAssetId, e.CoverMediaAsset?.Url, e.RelatedPersonId, e.SourceStatus, e.SourceReference,
         includeEditorial ? e.EditorialNote : null, includeEditorial ? e.OriginalSourceText : null,
         e.PublicationStatus);

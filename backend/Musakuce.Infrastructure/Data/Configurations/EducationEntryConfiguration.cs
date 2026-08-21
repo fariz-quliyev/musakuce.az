@@ -18,6 +18,7 @@ public class EducationEntryConfiguration : IEntityTypeConfiguration<EducationEnt
         // tag alone costs ~120-170 chars, which ate into the old limit
         // fast for a field with even a few images.
         builder.Property(x => x.Content).HasMaxLength(16000);
+        builder.Property(x => x.OtherKindLabel).HasMaxLength(100);
         builder.Property(x => x.Period).HasMaxLength(50);
         builder.Property(x => x.SourceReference).HasMaxLength(500);
         builder.Property(x => x.EditorialNote).HasMaxLength(2000);

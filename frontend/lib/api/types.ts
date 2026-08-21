@@ -1035,6 +1035,9 @@ export interface EducationEntryDto {
   summary: string | null;
   content: string | null;
   kind: EducationKind;
+  /** Only meaningful when `kind` is "Other" — a custom display label
+   * the admin entered instead of the generic "Digər" badge. */
+  otherKindLabel: string | null;
   period: string | null;
   eventDate: string | null;
   coverMediaAssetId: string | null;
@@ -1060,6 +1063,7 @@ export interface CreateEducationEntryRequest {
   summary?: string | null;
   content?: string | null;
   kind: EducationKind;
+  otherKindLabel?: string | null;
   period?: string | null;
   eventDate?: string | null;
   coverMediaAssetId?: string | null;

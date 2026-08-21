@@ -12,7 +12,7 @@ import { educationApi } from "@/lib/api/education";
 import { photosApi } from "@/lib/api/photos";
 import { videosApi } from "@/lib/api/videos";
 import { withFallback } from "@/lib/api/withFallback";
-import { educationKindLabels, sourceStatusLabels } from "@/lib/api/labels";
+import { educationEntryKindLabel, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
 import type { EducationEntryDto, EducationKind, PhotoDto, VideoDto } from "@/lib/api/types";
 
@@ -42,7 +42,7 @@ function EntryCard({ entry }: { entry: EducationEntryDto }) {
       </CardMedia>
       <CardBody>
         <div className="flex flex-wrap items-center gap-1.5">
-          <Badge tone="terracotta">{educationKindLabels[entry.kind]}</Badge>
+          <Badge tone="terracotta">{educationEntryKindLabel(entry)}</Badge>
           {entry.period ? <Badge tone="neutral">{entry.period}</Badge> : null}
         </div>
         <CardTitle className="mt-2 text-base">

@@ -189,6 +189,14 @@ export const educationKindLabels: Record<EducationKind, string> = {
   Other: "Digər",
 };
 
+/** Display label for an EducationEntry's Kind badge — prefers the
+ * admin's own custom `otherKindLabel` over the generic "Digər" when
+ * Kind is "Other" and one was actually entered. */
+export function educationEntryKindLabel(entry: { kind: EducationKind; otherKindLabel?: string | null }): string {
+  if (entry.kind === "Other" && entry.otherKindLabel) return entry.otherKindLabel;
+  return educationKindLabels[entry.kind];
+}
+
 export const sourceStatusLabels: Record<SourceStatus, string> = {
   Verified: "Təsdiqlənib",
   OfficialSource: "Rəsmi mənbə",

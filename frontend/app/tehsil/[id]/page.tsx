@@ -11,7 +11,7 @@ import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { educationApi } from "@/lib/api/education";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
-import { educationKindLabels, sourceStatusLabels } from "@/lib/api/labels";
+import { educationEntryKindLabel, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
 import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
 import { richTextToPlainText, sanitizeRichText } from "@/lib/richText";
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const entry = await loadEntry(id);
     return buildPageMetadata({
       title: entry.title,
-      description: entry.summary ?? `${educationKindLabels[entry.kind]} — Musaküçə təhsil arxivi.`,
+      description: entry.summary ?? `${educationEntryKindLabel(entry)} — Musaküçə təhsil arxivi.`,
       path: `/tehsil/${entry.id}`,
       imageUrl: entry.coverImageUrl,
     });
@@ -71,7 +71,7 @@ export default async function EducationDetailPage({ params }: Props) {
   const body = (
     <>
       <div className="flex flex-wrap items-center gap-1.5">
-        <Badge tone="terracotta">{educationKindLabels[entry.kind]}</Badge>
+        <Badge tone="terracotta">{educationEntryKindLabel(entry)}</Badge>
         {entry.period ? <Badge tone="neutral">{entry.period}</Badge> : null}
       </div>
 
@@ -152,7 +152,7 @@ export default async function EducationDetailPage({ params }: Props) {
             ]),
             articleJsonLd({
               headline: entry.title,
-              description: entry.summary ?? (entry.content ? richTextToPlainText(entry.content) : educationKindLabels[entry.kind]),
+              description: entry.summary ?? (entry.content ? richTextToPlainText(entry.content) : educationEntryKindLabel(entry)),
               url: `/tehsil/${entry.id}`,
               imageUrl: entry.coverImageUrl,
             }),

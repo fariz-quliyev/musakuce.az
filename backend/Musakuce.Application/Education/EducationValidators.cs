@@ -8,6 +8,7 @@ public class CreateEducationEntryRequestValidator : AbstractValidator<CreateEduc
     {
         RuleFor(x => x.Title).NotEmpty().MaximumLength(150);
         RuleFor(x => x.Kind).IsInEnum();
+        RuleFor(x => x.OtherKindLabel).MaximumLength(100);
         RuleFor(x => x.Summary).MaximumLength(500);
         RuleFor(x => x.Content).MaximumLength(16000);
         RuleFor(x => x.Period).MaximumLength(50);

@@ -10,6 +10,7 @@ public record EducationEntryDto(
     string? Summary,
     string? Content,
     EducationKind Kind,
+    string? OtherKindLabel,
     string? Period,
     DateOnly? EventDate,
     Guid? CoverMediaAssetId,
@@ -32,6 +33,7 @@ public class CreateEducationEntryRequest
     public string? Summary { get; set; }
     public string? Content { get; set; }
     public EducationKind Kind { get; set; }
+    public string? OtherKindLabel { get; set; }
     public string? Period { get; set; }
     public DateOnly? EventDate { get; set; }
     public Guid? CoverMediaAssetId { get; set; }

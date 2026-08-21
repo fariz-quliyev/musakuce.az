@@ -16,6 +16,13 @@ public class EducationEntry : BaseEntity
     public string? Summary { get; set; }
     public string? Content { get; set; }
     public EducationKind Kind { get; set; }
+    /// <summary>Admin-entered display name for this entry's category,
+    /// only meaningful when <see cref="Kind"/> is <see
+    /// cref="EducationKind.Other"/> — lets an entry that doesn't fit any
+    /// predefined kind show a specific label (e.g. "Musiqi məktəbi")
+    /// instead of the generic "Digər" badge. Ignored for every other
+    /// Kind.</summary>
+    public string? OtherKindLabel { get; set; }
     /// <summary>Free text — many entries are ranges/approximate
     /// ("1928", "1962–1970"), not a single exact date.</summary>
     public string? Period { get; set; }

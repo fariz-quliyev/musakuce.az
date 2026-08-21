@@ -29,6 +29,7 @@ export function EducationForm({ entry, personOptions }: Props) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [coverMediaAssetId, setCoverMediaAssetId] = useState<string | null>(entry?.coverMediaAssetId ?? null);
+  const [kind, setKind] = useState<EducationKind>(entry?.kind ?? "SchoolHistory");
   // A brand-new entry is always created as Draft (the domain default) —
   // an existing Archived entry defaults to "Draft" here too, since
   // Archived isn't one of this picker's two choices; picking either
@@ -61,7 +62,11 @@ export function EducationForm({ entry, personOptions }: Props) {
 
     const payload = {
       title: String(form.get("title") ?? ""),
-      kind: form.get("kind") as EducationKind,
+      kind,
+      // Only meaningful for Kind "Other" — cleared if the admin picks a
+      // different kind after having typed one, so an entry can't end up
+      // with a leftover custom label under a predefined kind.
+      otherKindLabel: kind === "Other" ? String(form.get("otherKindLabel") ?? "") || null : null,
       summary: String(form.get("summary") ?? "") || null,
       content: contentHtml || null,
       period: String(form.get("period") ?? "") || null,
@@ -119,7 +124,7 @@ export function EducationForm({ entry, personOptions }: Props) {
           <Input id="title" name="title" required maxLength={150} defaultValue={entry?.title} />
         </FormField>
         <FormField label="Növ" htmlFor="kind" required>
-          <Select id="kind" name="kind" defaultValue={entry?.kind ?? "SchoolHistory"} required>
+          <Select id="kind" name="kind" value={kind} onChange={(e) => setKind(e.target.value as EducationKind)} required>
             {KIND_OPTIONS.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -128,6 +133,12 @@ export function EducationForm({ entry, personOptions }: Props) {
           </Select>
         </FormField>
       </div>
+
+      {kind === "Other" ? (
+        <FormField label="Xüsusi ad" htmlFor="otherKindLabel" hint="“Digər” üçün — badge-də “Digər” əvəzinə bu ad göstərilir. Boş buraxılsa, “Digər” qalır.">
+          <Input id="otherKindLabel" name="otherKindLabel" maxLength={100} defaultValue={entry?.otherKindLabel ?? ""} />
+        </FormField>
+      ) : null}
 
       <FormField label="Qısa xülasə" htmlFor="summary" hint="Boş buraxıla bilər — siyahı/kart görünüşündə istifadə olunur">
         <Textarea id="summary" name="summary" maxLength={500} defaultValue={entry?.summary ?? ""} />
