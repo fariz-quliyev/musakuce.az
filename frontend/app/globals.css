@@ -241,3 +241,49 @@ h3,
     transform: translateY(0);
   }
 }
+
+/* ==========================================================================
+   Rich text content — inline image float/wrap
+   Shared by RichTextEditor's own live preview and every public page that
+   renders sanitized rich-text HTML (currently /tehsil/[id] and
+   /insanlarimiz/[id] — see lib/richText.ts's ALLOWED_STYLE_VALUE, which
+   is what actually lets `style="float: left|right;"` survive
+   sanitization). `display: flow-root` gives this container its own
+   block-formatting context so it properly contains floated children —
+   without it, a floated image trailing at the end of the content
+   collapses the container's height and can bleed into whatever renders
+   after it (e.g. the related-person card, the source-status footer).
+   ========================================================================== */
+.rich-content {
+  display: flow-root;
+}
+.rich-content img[style*="float"] {
+  margin-bottom: 0.75rem;
+}
+.rich-content img[style*="float: left"],
+.rich-content img[style*="float:left"] {
+  margin-right: 1.25rem;
+  max-width: min(50%, 360px);
+}
+.rich-content img[style*="float: right"],
+.rich-content img[style*="float:right"] {
+  margin-left: 1.25rem;
+  max-width: min(50%, 360px);
+}
+/* Below ~sm: a floated image squeezed into half a narrow column reads
+   worse than one that just runs full-width above its text — drop the
+   float and let the existing [&_img] rules' max-w-full take over.
+   `!important` is required here specifically for `float`: the value
+   being overridden comes from the element's own inline `style="float:
+   ...;"` attribute (that's the only way it survives sanitization at
+   all — see the doc comment above), and an inline style always beats
+   an external stylesheet rule regardless of selector specificity,
+   `!important` being the one documented exception. */
+@media (max-width: 640px) {
+  .rich-content img[style*="float"] {
+    float: none !important;
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+}

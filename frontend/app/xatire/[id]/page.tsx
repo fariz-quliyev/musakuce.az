@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { memorialApi } from "@/lib/api/memorial";
 import { peopleApi } from "@/lib/api/people";
@@ -85,7 +86,13 @@ export default async function MemorialDetailPage({ params }: Props) {
 
           <div className="mx-auto mt-8 max-w-2xl text-center">
             <div className="mx-auto h-28 w-28 overflow-hidden rounded-full shadow-sm">
-              <VillagePhoto src={record.coverImageUrl ?? undefined} alt={record.fullName} tone="memorial" placeholderLabel="" />
+              {record.coverImageUrl ? (
+                <ZoomableImage src={record.coverImageUrl} alt={record.fullName}>
+                  <VillagePhoto src={record.coverImageUrl} alt={record.fullName} tone="memorial" placeholderLabel="" />
+                </ZoomableImage>
+              ) : (
+                <VillagePhoto tone="memorial" alt={record.fullName} placeholderLabel="" />
+              )}
             </div>
 
             <Badge tone="memorial" className="mt-5">

@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { eventsApi } from "@/lib/api/events";
@@ -84,12 +85,13 @@ export default async function EventDetailPage({ params }: Props) {
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <div className="aspect-square overflow-hidden rounded-xl shadow-photo">
-                <VillagePhoto
-                  src={event.coverImageUrl ?? undefined}
-                  alt={event.title}
-                  tone="forest"
-                  placeholderLabel={eventCategoryLabels[event.category]}
-                />
+                {event.coverImageUrl ? (
+                  <ZoomableImage src={event.coverImageUrl} alt={event.title}>
+                    <VillagePhoto src={event.coverImageUrl} alt={event.title} tone="forest" placeholderLabel={eventCategoryLabels[event.category]} />
+                  </ZoomableImage>
+                ) : (
+                  <VillagePhoto tone="forest" alt={event.title} placeholderLabel={eventCategoryLabels[event.category]} />
+                )}
               </div>
             </div>
 

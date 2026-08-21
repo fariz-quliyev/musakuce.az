@@ -165,6 +165,7 @@ export function EducationForm({ entry, personOptions }: Props) {
         label="Şəkil"
         initialPreviewUrl={entry?.coverImageUrl}
         onUploaded={(media: MediaAssetDto) => setCoverMediaAssetId(media.id)}
+        onRemove={() => setCoverMediaAssetId(null)}
         hint="Boş buraxıla bilər"
       />
 

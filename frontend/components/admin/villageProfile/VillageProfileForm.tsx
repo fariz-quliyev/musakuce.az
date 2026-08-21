@@ -164,6 +164,7 @@ export function VillageProfileForm({ profile }: { profile?: VillageProfileDto | 
         label="Logo/emblem"
         initialPreviewUrl={profile?.logoImageUrl}
         onUploaded={(media: MediaAssetDto) => setLogoMediaAssetId(media.id)}
+        onRemove={() => setLogoMediaAssetId(null)}
         hint="Boş buraxıla bilər"
       />
 

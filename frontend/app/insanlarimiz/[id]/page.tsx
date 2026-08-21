@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { PersonPhotoAlbum } from "@/components/people/PersonPhotoAlbum";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { peopleApi } from "@/lib/api/people";
@@ -76,13 +77,19 @@ export default async function PersonDetailPage({ params }: Props) {
         <div className="mt-6 grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">
             <div className="aspect-[3/4] overflow-hidden rounded-xl shadow-photo">
-              <VillagePhoto
-                src={person.coverImageUrl ?? undefined}
-                alt={fullName}
-                tone="forest"
-                placeholderLabel={fullName}
-                sizes="(min-width: 1024px) 33vw, 100vw"
-              />
+              {person.coverImageUrl ? (
+                <ZoomableImage src={person.coverImageUrl} alt={fullName}>
+                  <VillagePhoto
+                    src={person.coverImageUrl}
+                    alt={fullName}
+                    tone="forest"
+                    placeholderLabel={fullName}
+                    sizes="(min-width: 1024px) 33vw, 100vw"
+                  />
+                </ZoomableImage>
+              ) : (
+                <VillagePhoto tone="forest" alt={fullName} placeholderLabel={fullName} sizes="(min-width: 1024px) 33vw, 100vw" />
+              )}
             </div>
           </div>
 
@@ -97,7 +104,7 @@ export default async function PersonDetailPage({ params }: Props) {
 
             <div
               className={cn(
-                "mt-5 max-w-2xl text-base leading-relaxed text-ink-soft",
+                "rich-content mt-5 max-w-2xl text-base leading-relaxed text-ink-soft",
                 "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
                 "[&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink",
                 "[&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink",

@@ -84,3 +84,26 @@ test("sanitizeRichText strips a style value that isn't exactly text-align", () =
     assert.equal(html.includes("style"), false, `style="${value}" must be stripped`);
   }
 });
+
+// Regression coverage for adding the RichTextEditor's image float
+// (left/right wrap) attribute — see the ALLOWED_STYLE_VALUE doc comment.
+
+test("sanitizeRichText keeps a valid img float style value", () => {
+  for (const value of ["left", "right"]) {
+    const html = sanitizeRichText(`<img src="https://media.musakuce.az/photo.webp" alt="x" style="float: ${value}">`);
+    assert.match(html, new RegExp(`style="float: ${value}"`));
+  }
+});
+
+test("sanitizeRichText strips an img float value that isn't exactly left/right", () => {
+  const cases = [
+    "float: none",
+    "float: inherit",
+    "float: left; position: fixed",
+    "float:left;background:url(javascript:alert(1))",
+  ];
+  for (const value of cases) {
+    const html = sanitizeRichText(`<img src="https://media.musakuce.az/photo.webp" alt="x" style="${value}">`);
+    assert.equal(html.includes("style"), false, `style="${value}" must be stripped`);
+  }
+});

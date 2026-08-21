@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
+using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
 
@@ -9,7 +10,7 @@ namespace Musakuce.Application.VillageProfiles;
 
 /// <summary>Singleton content type — at most one row ever exists. See
 /// VillageProfile entity doc comment for the Draft/Published rationale.</summary>
-public class VillageProfileService(IMusakuceDbContext db, IAuditLogService auditLog) : IVillageProfileService
+public class VillageProfileService(IMusakuceDbContext db, IAuditLogService auditLog, IMediaUploadService mediaUploadService) : IVillageProfileService
 {
     public async Task<VillageProfileDto?> GetAsync(PublicationStatus? publicationStatus, bool includeEditorial, CancellationToken ct = default)
     {
@@ -29,6 +30,7 @@ public class VillageProfileService(IMusakuceDbContext db, IAuditLogService audit
             .FirstOrDefaultAsync(ct);
         var isNew = profile is null;
         profile ??= new VillageProfile { VillageName = request.VillageName, ShortDescription = request.ShortDescription };
+        var oldLogoMediaAssetId = profile.LogoMediaAssetId;
 
         profile.VillageName = request.VillageName;
         profile.Tagline = request.Tagline;
@@ -77,6 +79,18 @@ public class VillageProfileService(IMusakuceDbContext db, IAuditLogService audit
         if (isNew) db.VillageProfiles.Add(profile);
         await db.SaveChangesAsync(ct);
         await auditLog.LogAsync(isNew ? "Create" : "Update", nameof(VillageProfile), profile.Id.ToString(), newValue: profile.VillageName, ct: ct);
+
+        // Logo removed or replaced — clean up the now-unreferenced
+        // MediaAsset (storage objects + DB row), same best-effort
+        // pattern as PersonService.UpdateAsync/EducationEntryService.
+        // UpdateAsync. Without this, clearing/replacing the logo left
+        // the old upload orphaned in storage forever.
+        if (oldLogoMediaAssetId is { } removedLogoId && oldLogoMediaAssetId != profile.LogoMediaAssetId)
+        {
+            try { await mediaUploadService.DeleteIfUnreferencedAsync(removedLogoId, ct); }
+            catch { /* safe to ignore — see MediaUploadService.DeleteIfUnreferencedAsync */ }
+        }
+
         return ToDto(profile, includeEditorial: true);
     }
 

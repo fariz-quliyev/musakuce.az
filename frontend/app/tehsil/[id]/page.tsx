@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { educationApi } from "@/lib/api/education";
 import { peopleApi } from "@/lib/api/people";
@@ -81,7 +82,7 @@ export default async function EducationDetailPage({ params }: Props) {
       {entry.content ? (
         <div
           className={cn(
-            "mt-4 text-base leading-relaxed text-ink-soft",
+            "rich-content mt-4 text-base leading-relaxed text-ink-soft",
             "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
             "[&_h2]:mt-6 [&_h2]:mb-2 [&_h2]:font-display [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-ink",
             "[&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:font-display [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-ink",
@@ -166,7 +167,9 @@ export default async function EducationDetailPage({ params }: Props) {
           <div className="mx-auto mt-6 max-w-3xl">
             {entry.coverImageUrl ? (
               <div className="aspect-[16/9] overflow-hidden rounded-xl shadow-photo">
-                <VillagePhoto src={entry.coverImageUrl} alt={entry.title} tone="warm" placeholderLabel={entry.title} sizes="768px" />
+                <ZoomableImage src={entry.coverImageUrl} alt={entry.title}>
+                  <VillagePhoto src={entry.coverImageUrl} alt={entry.title} tone="warm" placeholderLabel={entry.title} sizes="768px" />
+                </ZoomableImage>
               </div>
             ) : null}
             <div className={entry.coverImageUrl ? "mt-8" : undefined}>{body}</div>
@@ -176,7 +179,9 @@ export default async function EducationDetailPage({ params }: Props) {
             {entry.coverImageUrl ? (
               <div className="lg:col-span-5">
                 <div className="lg:sticky lg:top-24 aspect-[4/3] overflow-hidden rounded-xl shadow-photo">
-                  <VillagePhoto src={entry.coverImageUrl} alt={entry.title} tone="warm" placeholderLabel={entry.title} />
+                  <ZoomableImage src={entry.coverImageUrl} alt={entry.title}>
+                    <VillagePhoto src={entry.coverImageUrl} alt={entry.title} tone="warm" placeholderLabel={entry.title} />
+                  </ZoomableImage>
                 </div>
               </div>
             ) : null}

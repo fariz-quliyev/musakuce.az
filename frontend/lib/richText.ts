@@ -24,7 +24,13 @@ DOMPurify.addHook("uponSanitizeAttribute", (node, data) => {
 // belt-and-suspenders approach as the data: URI hook above. Any other
 // style value (a CSS injection attempt, or just a property this editor
 // never produces) is stripped outright rather than partially trusted.
-const ALLOWED_STYLE_VALUE = /^text-align:\s*(left|center|right|justify)\s*;?$/i;
+// `float: left`/`float: right` was added alongside for the image
+// extension's left/right wrap placement (RichTextEditor.tsx's custom
+// `float` image attribute) — never on the same element as text-align
+// (TextAlign only targets paragraph/heading, float only targets img),
+// so the two keep this an exact, non-overlapping allowlist rather than
+// a general style property.
+const ALLOWED_STYLE_VALUE = /^(text-align:\s*(left|center|right|justify)|float:\s*(left|right))\s*;?$/i;
 DOMPurify.addHook("uponSanitizeAttribute", (_node, data) => {
   if (data.attrName === "style" && !ALLOWED_STYLE_VALUE.test(data.attrValue.trim())) {
     data.keepAttr = false;

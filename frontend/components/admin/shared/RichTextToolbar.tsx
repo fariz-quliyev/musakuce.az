@@ -228,13 +228,58 @@ export function RichTextToolbar({ editor, onInsertImageClick, isFullscreen, onTo
         </svg>
       </ToolbarButton>
       {onInsertImageClick ? (
-        <ToolbarButton label="Şəkil əlavə et" onClick={onInsertImageClick}>
-          <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
-            <rect x="2.5" y="4" width="15" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
-            <circle cx="7" cy="8.5" r="1.4" stroke="currentColor" strokeWidth="1.3" />
-            <path d="M3.5 14.5 8 10.5l2.5 2.3 3-3 3 3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        </ToolbarButton>
+        <>
+          <ToolbarButton label="Şəkil əlavə et" onClick={onInsertImageClick}>
+            <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+              <rect x="2.5" y="4" width="15" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.5" />
+              <circle cx="7" cy="8.5" r="1.4" stroke="currentColor" strokeWidth="1.3" />
+              <path d="M3.5 14.5 8 10.5l2.5 2.3 3-3 3 3.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </ToolbarButton>
+          {/* Seçili şəklin mətnə görə yerləşməsi — mətn şəklin ətrafından
+              axsın deyə sol/sağ float, ya da normal (tam en) blok. Yalnız
+              kursor/seçim bir şəkil node-unun üzərindəysə aktivdir, TextAlign
+              düymələri kimi qarşılıqlı-eksklüziv 3-lük qrup. */}
+          <ToolbarButton
+            label="Şəkli sola yerləşdir (mətn sağdan axsın)"
+            active={editor.isActive("image", { float: "left" })}
+            disabled={!editor.isActive("image")}
+            onClick={() => editor.chain().focus().updateAttributes("image", { float: "left" }).run()}
+          >
+            <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+              <rect x="2.5" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="10.5" y1="5.5" x2="17.5" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="10.5" y1="8.5" x2="17.5" y2="8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="2.5" y1="13.5" x2="17.5" y2="13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="2.5" y1="16.5" x2="12.5" y2="16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </ToolbarButton>
+          <ToolbarButton
+            label="Şəkli sağa yerləşdir (mətn soldan axsın)"
+            active={editor.isActive("image", { float: "right" })}
+            disabled={!editor.isActive("image")}
+            onClick={() => editor.chain().focus().updateAttributes("image", { float: "right" }).run()}
+          >
+            <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+              <rect x="11.5" y="4" width="6" height="6" rx="1" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="2.5" y1="5.5" x2="9.5" y2="5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="2.5" y1="8.5" x2="9.5" y2="8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="2.5" y1="13.5" x2="17.5" y2="13.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <line x1="7.5" y1="16.5" x2="17.5" y2="16.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </ToolbarButton>
+          <ToolbarButton
+            label="Şəkli normal (tam en) göstər"
+            active={editor.isActive("image", { float: null })}
+            disabled={!editor.isActive("image")}
+            onClick={() => editor.chain().focus().updateAttributes("image", { float: null }).run()}
+          >
+            <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-4 w-4">
+              <rect x="2.5" y="5" width="15" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="2.5" y1="15.5" x2="17.5" y2="15.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+            </svg>
+          </ToolbarButton>
+        </>
       ) : null}
 
       <Divider />

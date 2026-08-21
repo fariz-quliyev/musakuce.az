@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { ListingContactActions } from "@/components/listings/ListingContactActions";
@@ -84,18 +85,21 @@ export default async function ListingDetailPage({ params }: Props) {
           <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-6">
               <div className="aspect-square overflow-hidden rounded-xl shadow-photo">
-                <VillagePhoto
-                  src={listing.imageUrls[0]}
-                  alt={listing.title}
-                  tone="warm"
-                  placeholderLabel={classifiedCategoryLabels[listing.category]}
-                />
+                {listing.imageUrls[0] ? (
+                  <ZoomableImage src={listing.imageUrls[0]} alt={listing.title}>
+                    <VillagePhoto src={listing.imageUrls[0]} alt={listing.title} tone="warm" placeholderLabel={classifiedCategoryLabels[listing.category]} />
+                  </ZoomableImage>
+                ) : (
+                  <VillagePhoto tone="warm" alt={listing.title} placeholderLabel={classifiedCategoryLabels[listing.category]} />
+                )}
               </div>
               {listing.imageUrls.length > 1 ? (
                 <div className="mt-3 grid grid-cols-4 gap-2">
                   {listing.imageUrls.slice(1, 5).map((url) => (
                     <div key={url} className="aspect-square overflow-hidden rounded-md">
-                      <VillagePhoto src={url} alt={listing.title} tone="warm" />
+                      <ZoomableImage src={url} alt={listing.title}>
+                        <VillagePhoto src={url} alt={listing.title} tone="warm" />
+                      </ZoomableImage>
                     </div>
                   ))}
                 </div>

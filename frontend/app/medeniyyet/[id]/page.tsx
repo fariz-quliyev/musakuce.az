@@ -5,6 +5,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
+import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { ApiError } from "@/lib/api/client";
@@ -72,7 +73,9 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
           {item.coverImageUrl ? (
             <div className="lg:col-span-6">
               <div className="aspect-[4/3] overflow-hidden rounded-xl shadow-photo">
-                <VillagePhoto src={item.coverImageUrl} alt={item.title} tone="warm" placeholderLabel={item.title} />
+                <ZoomableImage src={item.coverImageUrl} alt={item.title}>
+                  <VillagePhoto src={item.coverImageUrl} alt={item.title} tone="warm" placeholderLabel={item.title} />
+                </ZoomableImage>
               </div>
             </div>
           ) : null}

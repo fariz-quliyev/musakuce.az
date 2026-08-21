@@ -39,6 +39,37 @@ type Props = {
   allowImages?: boolean;
 };
 
+// Adds a `float` attribute ("left" | "right" | null) to Tiptap's base
+// Image node — lets an inline image sit to one side with the following
+// paragraph text wrapping around it (Problem: images otherwise always
+// behaved as their own full-width block, never wrapped by surrounding
+// text). Rendered as a real `style="float: left;"`/`"float: right;"`
+// attribute so it survives the shared sanitizer unchanged — that
+// sanitizer's style allowlist (lib/richText.ts's ALLOWED_STYLE_VALUE)
+// was extended alongside this to permit exactly those two values, the
+// same belt-and-suspenders approach it already uses for TextAlign.
+// `null` (the default) renders no style attribute at all, i.e. the
+// original full-width block behavior — fully backward compatible with
+// every image saved before this existed.
+const AlignableImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      float: {
+        default: null,
+        parseHTML: (element: HTMLElement) => {
+          const value = element.style.float;
+          return value === "left" || value === "right" ? value : null;
+        },
+        renderHTML: (attributes: Record<string, unknown>) => {
+          const float = attributes.float;
+          return float === "left" || float === "right" ? { style: `float: ${float};` } : {};
+        },
+      },
+    };
+  },
+});
+
 /** Builds the contenteditable's own DOM attributes — pulled out of the
  * `useEditor` call so the exact same class logic can be reapplied via
  * `editor.setOptions()` when fullscreen toggles, without recreating the
@@ -50,6 +81,7 @@ type Props = {
 function buildEditorAttributes(id: string, isFullscreen: boolean, error?: string, hint?: string) {
   return {
     class: cn(
+      "rich-content",
       isFullscreen ? "h-full overflow-y-auto" : "min-h-[400px] max-h-[500px] overflow-y-auto",
       "rounded-b-md border border-stone-light bg-paper-soft px-3.5 py-2.5",
       "text-sm text-ink focus:outline-none",
@@ -127,7 +159,7 @@ export function RichTextEditor({ id, name, initialContent, error, hint, onEmptyC
       // Block-level, default config — no resize handles/inline mode,
       // since nothing in the spec asked for manual resizing and the
       // [&_img] rule below already keeps it from ever overflowing.
-      ...(allowImages ? [Image] : []),
+      ...(allowImages ? [AlignableImage] : []),
     ],
     content: initialHtml,
     onUpdate: ({ editor }) => {
