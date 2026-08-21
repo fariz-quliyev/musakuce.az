@@ -88,7 +88,7 @@ export async function MapPreview() {
             ))}
 
             {places.length > 0 ? (
-              <span className="absolute top-3 right-3 rounded-full bg-paper/90 px-2.5 py-1 text-[11px] font-medium text-ink-soft shadow-sm backdrop-blur-sm">
+              <span className="absolute top-3 right-3 rounded-full bg-paper px-2.5 py-1 text-[11px] font-medium text-ink-soft shadow-sm">
                 Xəritədə {places.length} məkan
               </span>
             ) : null}

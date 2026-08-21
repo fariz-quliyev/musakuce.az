@@ -23,7 +23,7 @@ export async function VillageIntro() {
   const text = profile.longDescription ?? profile.shortDescription;
 
   return (
-    <Container as="section" id="kendimiz" className="py-10 sm:py-14">
+    <Container as="section" id="kendimiz" className="scroll-mt-20 py-10 sm:py-14">
       <DataSourceNote isLive={isLive} />
       <div className="grid items-center gap-6 sm:grid-cols-[1fr_auto] sm:gap-10">
         <div>

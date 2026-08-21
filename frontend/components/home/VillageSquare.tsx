@@ -164,7 +164,7 @@ export async function VillageSquare() {
   });
 
   return (
-    <div className="bg-clay-light/40 py-16 sm:py-20" id="kendin-meydani">
+    <div className="scroll-mt-20 bg-clay-light/40 py-16 sm:py-20" id="kendin-meydani">
       <Container>
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <SectionHeading

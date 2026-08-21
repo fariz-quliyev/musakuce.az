@@ -74,15 +74,15 @@ export function PhotoPlaceholder({
         </svg>
 
         {/* Very faint grain so the surface reads as photographic, not flat vector art. */}
-        <svg aria-hidden className="absolute inset-0 h-full w-full opacity-[0.05] mix-blend-multiply">
+        <svg aria-hidden className="absolute inset-0 h-full w-full opacity-[0.08] text-ink">
           <pattern id="pp-grain" width="3" height="3" patternUnits="userSpaceOnUse">
             <circle cx="1" cy="1" r="0.6" fill="currentColor" />
           </pattern>
-          <rect width="100%" height="100%" fill="url(#pp-grain)" className="text-ink" />
+          <rect width="100%" height="100%" fill="url(#pp-grain)" />
         </svg>
 
         {label ? (
-          <span className="relative m-4 rounded-full bg-ink/35 px-3 py-1 text-[11px] font-medium text-cream/90 backdrop-blur-sm">
+          <span className="relative m-4 rounded-full bg-ink/55 px-3 py-1 text-[11px] font-medium text-cream/90">
             {label}
           </span>
         ) : null}
@@ -100,7 +100,7 @@ export function PhotoPlaceholder({
     >
       <svg
         aria-hidden
-        className="absolute inset-0 h-full w-full opacity-[0.14] mix-blend-multiply"
+        className="absolute inset-0 h-full w-full opacity-[0.18] text-ink"
       >
         <pattern
           id="weave"
@@ -112,10 +112,10 @@ export function PhotoPlaceholder({
           <path d="M0 9H18" stroke="currentColor" strokeWidth="1" />
           <path d="M9 0V18" stroke="currentColor" strokeWidth="1" />
         </pattern>
-        <rect width="100%" height="100%" fill="url(#weave)" className="text-ink" />
+        <rect width="100%" height="100%" fill="url(#weave)" />
       </svg>
       {label ? (
-        <span className="relative rounded-full bg-paper/70 px-3 py-1 text-xs font-medium text-ink-soft backdrop-blur-sm">
+        <span className="relative rounded-full bg-paper/90 px-3 py-1 text-xs font-medium text-ink-soft">
           {label}
         </span>
       ) : null}

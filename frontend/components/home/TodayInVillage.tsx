@@ -65,7 +65,7 @@ export async function TodayInVillage() {
   const featuredTime = featured.date ? formatRelativeTimeAz(featured.date) : null;
 
   return (
-    <Container as="section" id="bu-gun-kendde" className="py-16 sm:py-20">
+    <Container as="section" id="bu-gun-kendde" className="scroll-mt-20 py-16 sm:py-20">
       <DataSourceNote isLive={isLive} />
       <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
         <SectionHeading
