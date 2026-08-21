@@ -123,13 +123,27 @@ export default async function EducationDetailPage({ params }: Props) {
             ) : null}
 
             {relatedPerson ? (
-              <div className="mt-6 rounded-lg border border-stone-light bg-paper-soft p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Əlaqəli şəxs</p>
-                <p className="mt-1 font-display text-lg text-ink">
-                  {relatedPerson.firstName} {relatedPerson.lastName}
-                </p>
-                {relatedPerson.occupation ? <p className="text-sm text-ink-soft">{relatedPerson.occupation}</p> : null}
-              </div>
+              <Link
+                href={`/insanlarimiz/${relatedPerson.id}`}
+                className="mt-6 flex items-center gap-4 rounded-lg border border-stone-light bg-paper-soft p-4 transition-colors hover:border-forest-light/60 hover:bg-paper"
+              >
+                <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full">
+                  <VillagePhoto
+                    src={relatedPerson.coverImageUrl ?? undefined}
+                    alt={`${relatedPerson.firstName} ${relatedPerson.lastName}`}
+                    tone="forest"
+                    placeholderLabel={`${relatedPerson.firstName} ${relatedPerson.lastName}`}
+                    sizes="64px"
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-ink-faint">Əlaqəli şəxs</p>
+                  <p className="mt-1 font-display text-lg text-ink">
+                    {relatedPerson.firstName} {relatedPerson.lastName}
+                  </p>
+                  {relatedPerson.occupation ? <p className="text-sm text-ink-soft">{relatedPerson.occupation}</p> : null}
+                </div>
+              </Link>
             ) : null}
 
             <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-stone-light pt-5 text-xs text-ink-faint">
