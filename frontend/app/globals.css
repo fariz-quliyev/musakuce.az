@@ -257,6 +257,13 @@ h3,
 .rich-content {
   display: flow-root;
 }
+/* ZoomableRichContent tags every inline <img> here as a keyboard-
+   focusable "zoom" trigger after mount (see that component) — the
+   cursor affordance lives here rather than as an inline style so it
+   applies from first paint, before that effect runs. */
+.rich-content img {
+  cursor: zoom-in;
+}
 .rich-content img[style*="float"] {
   margin-bottom: 0.75rem;
 }

@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { ZoomableRichContent } from "@/components/ui/ZoomableRichContent";
 import { PersonPhotoAlbum } from "@/components/people/PersonPhotoAlbum";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { peopleApi } from "@/lib/api/people";
@@ -102,7 +103,7 @@ export default async function PersonDetailPage({ params }: Props) {
               <p className="mt-2 text-lg leading-relaxed text-ink-soft">{person.occupation}</p>
             ) : null}
 
-            <div
+            <ZoomableRichContent
               className={cn(
                 "rich-content mt-5 max-w-2xl text-base leading-relaxed text-ink-soft",
                 "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
@@ -116,7 +117,7 @@ export default async function PersonDetailPage({ params }: Props) {
               // Biography is sanitized (DOMPurify, fixed tag allowlist)
               // just above — the only safe way to render admin-authored
               // rich text here; never render person.biography directly.
-              dangerouslySetInnerHTML={{ __html: sanitizeRichText(person.biography) }}
+              html={sanitizeRichText(person.biography)}
             />
 
             {person.additionalImages.length > 0 ? (

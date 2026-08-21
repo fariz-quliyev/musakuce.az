@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { ZoomableRichContent } from "@/components/ui/ZoomableRichContent";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { educationApi } from "@/lib/api/education";
 import { peopleApi } from "@/lib/api/people";
@@ -80,7 +81,7 @@ export default async function EducationDetailPage({ params }: Props) {
 
       {entry.summary ? <p className="mt-5 text-base leading-relaxed text-ink-soft">{entry.summary}</p> : null}
       {entry.content ? (
-        <div
+        <ZoomableRichContent
           className={cn(
             "rich-content mt-4 text-base leading-relaxed text-ink-soft",
             "[&_p]:my-3 first:[&_p]:mt-0 last:[&_p]:mb-0",
@@ -99,7 +100,7 @@ export default async function EducationDetailPage({ params }: Props) {
           // Content is sanitized (DOMPurify, fixed tag allowlist)
           // just above — the only safe way to render admin-authored
           // rich text here; never render entry.content directly.
-          dangerouslySetInnerHTML={{ __html: sanitizeRichText(entry.content) }}
+          html={sanitizeRichText(entry.content)}
         />
       ) : null}
 
