@@ -5,12 +5,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PhotosBrowser } from "@/components/photos/PhotosBrowser";
 import { photosApi } from "@/lib/api/photos";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { PagedResult, PhotoDto } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Fotoalbom — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Fotoalbom",
   description: "Musaküçə fotoarxivi — köhnə şəkillərdən bugünkü kənd həyatına.",
-};
+  path: "/fotoalbom",
+});
 
 const FALLBACK: PagedResult<PhotoDto> = {
   items: [

@@ -5,12 +5,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { XeriteMapView } from "@/components/map/XeriteMapView";
 import { placesApi } from "@/lib/api/places";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { PagedResult, PlaceDto } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Xəritə — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Xəritə",
   description: "Musaküçə xəritədə — məscid, ocaq, məktəb və digər mühüm yerlər.",
-};
+  path: "/xerite",
+});
 
 const FALLBACK: PagedResult<PlaceDto> = {
   items: [

@@ -79,7 +79,12 @@ export function Footer() {
       <div className="border-t border-stone-light">
         <Container className="flex flex-col items-center justify-between gap-2 py-5 text-xs text-ink-faint sm:flex-row">
           <p>© {new Date().getFullYear()} Musaküçə.az — kəndimizin rəqəmsal evi.</p>
-          <p>Tarixi məlumatların mənbələri hər səhifədə ayrıca qeyd olunur.</p>
+          <div className="flex items-center gap-4">
+            <p>Tarixi məlumatların mənbələri hər səhifədə ayrıca qeyd olunur.</p>
+            <Link href="/mexfilik-siyaseti" className="shrink-0 hover:text-forest hover:underline">
+              Məxfilik siyasəti
+            </Link>
+          </div>
         </Container>
       </div>
     </footer>

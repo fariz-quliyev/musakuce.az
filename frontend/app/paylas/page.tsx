@@ -3,6 +3,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { CommunitySubmissionForm } from "@/components/forms/CommunitySubmissionForm";
+import { buildPageMetadata } from "@/lib/seo";
 import type { SubmissionKind } from "@/lib/api/types";
 
 const VALID_KINDS: SubmissionKind[] = ["Photo", "Video", "Memory", "HistoricalInfo"];
@@ -35,7 +36,10 @@ type Props = { searchParams: Promise<{ kind?: string }> };
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const { kind } = await searchParams;
   const resolved = VALID_KINDS.includes(kind as SubmissionKind) ? (kind as SubmissionKind) : "Memory";
-  return { title: `${KIND_COPY[resolved].title} — Musaküçə` };
+  // canonical always points at the bare /paylas — the ?kind= variants
+  // are the same page/form with different pre-filled copy, not distinct
+  // content, so they shouldn't be indexed as separate URLs.
+  return buildPageMetadata({ title: KIND_COPY[resolved].title, description: KIND_COPY[resolved].description, path: "/paylas" });
 }
 
 export default async function PaylasPage({ searchParams }: Props) {

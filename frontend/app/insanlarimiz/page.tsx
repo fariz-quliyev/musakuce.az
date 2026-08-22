@@ -5,12 +5,15 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PeopleBrowser } from "@/components/people/PeopleBrowser";
 import { peopleApi } from "@/lib/api/people";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
+import { RelatedSections } from "@/components/ui/RelatedSections";
 import type { PagedResult, PersonDto } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "İnsanlarımız — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "İnsanlarımız",
   description: "Musaküçənin tanınmış və yadda qalan sakinləri.",
-};
+  path: "/insanlarimiz",
+});
 
 const FALLBACK: PagedResult<PersonDto> = {
   items: [
@@ -79,6 +82,14 @@ export default async function InsanlarimizPage() {
         />
 
         <PeopleBrowser initialData={people} initialIsLive={isLive} />
+
+        <RelatedSections
+          sections={[
+            { href: "/tehsil", label: "Təhsil", description: "Məktəb tarixi, müəllimlər və məzunlar" },
+            { href: "/tariximiz", label: "Tariximiz", description: "Kəndin yaranışından bu günə mühüm tarixlər" },
+            { href: "/xatire", label: "Xatirə", description: "Aramızdan ayrılan sakinlərimizi xatırladığımız arxiv" },
+          ]}
+        />
       </Container>
     </PageShell>
   );

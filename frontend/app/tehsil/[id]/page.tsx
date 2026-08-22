@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { ZoomableRichContent } from "@/components/ui/ZoomableRichContent";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { educationApi } from "@/lib/api/education";
 import { peopleApi } from "@/lib/api/people";
@@ -47,9 +48,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: entry.summary ?? `${educationEntryKindLabel(entry)} — Musaküçə təhsil arxivi.`,
       path: `/tehsil/${entry.id}`,
       imageUrl: entry.coverImageUrl,
+      type: "article",
     });
   } catch {
-    return buildPageMetadata({ title: "Təhsil qeydi", description: "Musaküçə təhsil arxivi.", path: `/tehsil/${id}` });
+    return buildPageMetadata({ title: "Təhsil qeydi", description: "Musaküçə təhsil arxivi.", path: `/tehsil/${id}`, type: "article" });
   }
 }
 
@@ -67,6 +69,11 @@ export default async function EducationDetailPage({ params }: Props) {
   }
 
   const isLongForm = LONG_FORM_KINDS.includes(entry.kind);
+  const breadcrumbItems = [
+    { name: "Ana səhifə", path: "/" },
+    { name: "Təhsil", path: "/tehsil" },
+    { name: entry.title, path: `/tehsil/${entry.id}` },
+  ];
 
   const body = (
     <>
@@ -145,11 +152,7 @@ export default async function EducationDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: jsonLdScript([
-            breadcrumbJsonLd([
-              { name: "Ana səhifə", path: "/" },
-              { name: "Təhsil", path: "/tehsil" },
-              { name: entry.title, path: `/tehsil/${entry.id}` },
-            ]),
+            breadcrumbJsonLd(breadcrumbItems),
             articleJsonLd({
               headline: entry.title,
               description: entry.summary ?? (entry.content ? richTextToPlainText(entry.content) : educationEntryKindLabel(entry)),
@@ -160,9 +163,7 @@ export default async function EducationDetailPage({ params }: Props) {
         }}
       />
       <Container className="py-16 sm:py-20">
-        <Link href="/tehsil" className="text-sm text-ink-soft hover:text-forest">
-          ← Təhsil arxivinə qayıt
-        </Link>
+        <Breadcrumbs items={breadcrumbItems} />
 
         {isLongForm ? (
           <div className="mx-auto mt-6 max-w-3xl">

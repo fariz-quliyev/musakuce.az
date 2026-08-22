@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { eventsApi } from "@/lib/api/events";
@@ -32,31 +32,35 @@ async function loadEvent(id: string): Promise<{ event: EventDto | null; failed: 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const { event } = await loadEvent(id);
-  if (!event) return buildPageMetadata({ title: "Tədbir", description: "Musaküçə təqvimi.", path: `/teqvim/${id}` });
+  if (!event) return buildPageMetadata({ title: "Tədbir", description: "Musaküçə təqvimi.", path: `/teqvim/${id}`, type: "article" });
   return buildPageMetadata({
     title: event.title,
     description: event.description,
     path: `/teqvim/${event.id}`,
     imageUrl: event.coverImageUrl,
+    type: "article",
   });
 }
 
 export default async function EventDetailPage({ params }: Props) {
   const { id } = await params;
   const { event, failed } = await loadEvent(id);
+  const breadcrumbItems = event
+    ? [
+        { name: "Ana səhifə", path: "/" },
+        { name: "Təqvim", path: "/teqvim" },
+        { name: event.title, path: `/teqvim/${event.id}` },
+      ]
+    : null;
 
   return (
     <PageShell>
-      {event ? (
+      {event && breadcrumbItems ? (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: jsonLdScript([
-              breadcrumbJsonLd([
-                { name: "Ana səhifə", path: "/" },
-                { name: "Təqvim", path: "/teqvim" },
-                { name: event.title, path: `/teqvim/${event.id}` },
-              ]),
+              breadcrumbJsonLd(breadcrumbItems),
               eventJsonLd({
                 name: event.title,
                 description: event.description,
@@ -82,7 +86,9 @@ export default async function EventDetailPage({ params }: Props) {
             }
           />
         ) : (
-          <div className="grid gap-10 lg:grid-cols-12">
+          <>
+            <Breadcrumbs items={breadcrumbItems!} />
+            <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-5">
               <div className="aspect-square overflow-hidden rounded-xl shadow-photo">
                 {event.coverImageUrl ? (
@@ -96,10 +102,6 @@ export default async function EventDetailPage({ params }: Props) {
             </div>
 
             <div className="lg:col-span-7">
-              <Link href="/teqvim" className="text-sm text-ink-soft hover:text-forest">
-                ← Bütün tədbirlər
-              </Link>
-
               <Badge tone="neutral" className="mt-4">
                 {eventCategoryLabels[event.category]}
               </Badge>
@@ -147,7 +149,8 @@ export default async function EventDetailPage({ params }: Props) {
                 ) : null}
               </dl>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </Container>
     </PageShell>

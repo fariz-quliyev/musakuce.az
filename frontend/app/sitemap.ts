@@ -5,6 +5,7 @@ import { memorialApi } from "@/lib/api/memorial";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { interviewsApi } from "@/lib/api/interviews";
 import { educationApi } from "@/lib/api/education";
+import { peopleApi } from "@/lib/api/people";
 import type { PagedResult } from "@/lib/api/types";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://musakuce.az";
@@ -14,13 +15,15 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://musakuce.az";
 // (and our backend) from a full re-fetch on every single sitemap request.
 const SITEMAP_REVALIDATE_SECONDS = 3600;
 
-// Content-bearing public pages with no [id] (People/History/Photos/
-// Videos/Places are list-only — no detail route exists for them yet,
-// see Phase 13/14 notes — so they appear here, not in the dynamic loop
-// below).
+// Content-bearing public pages with no [id] (History/Photos/Videos/
+// Places are list-only — no detail route exists for them yet, see
+// Phase 13/14 notes — so they appear here, not in the dynamic loop
+// below). People *does* have a detail route (/insanlarimiz/[id]) — see
+// the dynamic loop.
 const STATIC_PAGES = [
   "",
   "/kendimiz",
+  "/kendimizden",
   "/tariximiz",
   "/tehsil",
   "/insanlarimiz",
@@ -33,6 +36,8 @@ const STATIC_PAGES = [
   "/elanlar",
   "/teqvim",
   "/faydali-melumatlar",
+  "/paylas",
+  "/mexfilik-siyaseti",
 ];
 
 /** Paginates through every Published page (bounded at 10 pages/500
@@ -59,7 +64,7 @@ async function fetchAllPublished<T>(fetchPage: (page: number) => Promise<PagedRe
  * here (and /admin is additionally Disallowed in robots.ts).
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [listings, events, memorial, culturalHeritage, interviews, education] = await Promise.all([
+  const [listings, events, memorial, culturalHeritage, interviews, education, people] = await Promise.all([
     fetchAllPublished((page) => listingsApi.getPaged({ listingStatus: "Active", pageSize: 50, page }, SITEMAP_REVALIDATE_SECONDS)),
     fetchAllPublished((page) =>
       eventsApi.getPaged({ publicationStatus: "Published", pageSize: 50, page }, SITEMAP_REVALIDATE_SECONDS),
@@ -76,6 +81,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     fetchAllPublished((page) =>
       educationApi.getPaged({ publicationStatus: "Published", pageSize: 50, page }, SITEMAP_REVALIDATE_SECONDS),
     ),
+    fetchAllPublished((page) =>
+      peopleApi.getPaged({ publicationStatus: "Published", pageSize: 50, page }, SITEMAP_REVALIDATE_SECONDS),
+    ),
   ]);
 
   const staticEntries: MetadataRoute.Sitemap = STATIC_PAGES.map((path) => ({
@@ -91,6 +99,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ...culturalHeritage.map((c) => ({ url: `${siteUrl}/medeniyyet/${c.id}`, changeFrequency: "monthly" as const, priority: 0.5 })),
     ...interviews.map((i) => ({ url: `${siteUrl}/kendimizin-sesi/${i.id}`, changeFrequency: "monthly" as const, priority: 0.5 })),
     ...education.map((e) => ({ url: `${siteUrl}/tehsil/${e.id}`, changeFrequency: "monthly" as const, priority: 0.5 })),
+    ...people.map((p) => ({ url: `${siteUrl}/insanlarimiz/${p.id}`, changeFrequency: "monthly" as const, priority: 0.6 })),
   ];
 
   return [...staticEntries, ...dynamicEntries];

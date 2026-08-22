@@ -6,12 +6,15 @@ import { HistoryBrowser } from "@/components/history/HistoryBrowser";
 import { historyApi } from "@/lib/api/history";
 import { withFallback } from "@/lib/api/withFallback";
 import { withPublicDescription } from "@/lib/historyDefaults";
+import { buildPageMetadata } from "@/lib/seo";
+import { RelatedSections } from "@/components/ui/RelatedSections";
 import type { HistoricalEventDto, PagedResult } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Tariximiz — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Tariximiz",
   description: "Musaküçənin yaranışından bu günə mühüm tarixlər.",
-};
+  path: "/tariximiz",
+});
 
 const FALLBACK: PagedResult<HistoricalEventDto> = {
   items: [
@@ -106,6 +109,14 @@ export default async function TariximizPage() {
         />
 
         <HistoryBrowser initialData={{ ...events, items: events.items.map(withPublicDescription) }} initialIsLive={isLive} />
+
+        <RelatedSections
+          sections={[
+            { href: "/fotoalbom", label: "Fotoalbom", description: "Köhnə və müasir Musaküçədən şəkillər" },
+            { href: "/insanlarimiz", label: "İnsanlarımız", description: "Musaküçəni tanıdan adlar" },
+            { href: "/xatire", label: "Xatirə", description: "Aramızdan ayrılan sakinlərimizi xatırladığımız arxiv" },
+          ]}
+        />
       </Container>
     </PageShell>
   );

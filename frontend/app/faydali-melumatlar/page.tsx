@@ -5,12 +5,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { LocalInfoBrowser } from "@/components/localInfo/LocalInfoBrowser";
 import { localInfoApi } from "@/lib/api/localInfo";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { LocalInfoEntryDto, LocalInfoKind, PagedResult } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Faydalı məlumatlar — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Faydalı məlumatlar",
   description: "Yerli xidmətlər, faydalı əlaqələr və tövsiyələr — elektrik ustası, aptek, taksi və digərləri.",
-};
+  path: "/faydali-melumatlar",
+});
 
 const FALLBACK: PagedResult<LocalInfoEntryDto> = {
   items: [

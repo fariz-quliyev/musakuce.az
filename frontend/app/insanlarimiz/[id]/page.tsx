@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
@@ -7,13 +6,14 @@ import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
 import { ZoomableRichContent } from "@/components/ui/ZoomableRichContent";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { PersonPhotoAlbum } from "@/components/people/PersonPhotoAlbum";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { peopleApi } from "@/lib/api/people";
 import { ApiError } from "@/lib/api/client";
 import { personCategoryLabels, sourceStatusLabels } from "@/lib/api/labels";
 import { buildPageMetadata } from "@/lib/seo";
-import { articleJsonLd, breadcrumbJsonLd, jsonLdScript } from "@/lib/structuredData";
+import { breadcrumbJsonLd, jsonLdScript, personJsonLd } from "@/lib/structuredData";
 import { richTextToPlainText, sanitizeRichText } from "@/lib/richText";
 import { cn } from "@/lib/cn";
 import type { PersonDto } from "@/lib/api/types";
@@ -39,9 +39,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: person.occupation || richTextToPlainText(person.biography).slice(0, 160) || personCategoryLabels[person.category],
       path: `/insanlarimiz/${person.id}`,
       imageUrl: person.coverImageUrl,
+      type: "article",
     });
   } catch {
-    return buildPageMetadata({ title: "Şəxs", description: "Musaküçə insanlar arxivi.", path: `/insanlarimiz/${id}` });
+    return buildPageMetadata({ title: "Şəxs", description: "Musaküçə insanlar arxivi.", path: `/insanlarimiz/${id}`, type: "article" });
   }
 }
 
@@ -49,6 +50,11 @@ export default async function PersonDetailPage({ params }: Props) {
   const { id } = await params;
   const person = await loadPerson(id);
   const fullName = [person.firstName, person.fatherName, person.lastName].filter(Boolean).join(" ");
+  const breadcrumbItems = [
+    { name: "Ana səhifə", path: "/" },
+    { name: "İnsanlarımız", path: "/insanlarimiz" },
+    { name: fullName, path: `/insanlarimiz/${person.id}` },
+  ];
 
   return (
     <PageShell>
@@ -56,24 +62,19 @@ export default async function PersonDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: jsonLdScript([
-            breadcrumbJsonLd([
-              { name: "Ana səhifə", path: "/" },
-              { name: "İnsanlarımız", path: "/insanlarimiz" },
-              { name: fullName, path: `/insanlarimiz/${person.id}` },
-            ]),
-            articleJsonLd({
-              headline: fullName,
+            breadcrumbJsonLd(breadcrumbItems),
+            personJsonLd({
+              name: fullName,
               description: person.occupation || richTextToPlainText(person.biography),
               url: `/insanlarimiz/${person.id}`,
               imageUrl: person.coverImageUrl,
+              jobTitle: person.occupation,
             }),
           ]),
         }}
       />
       <Container className="py-16 sm:py-20">
-        <Link href="/insanlarimiz" className="text-sm text-ink-soft hover:text-forest">
-          ← İnsanlarımıza qayıt
-        </Link>
+        <Breadcrumbs items={breadcrumbItems} />
 
         <div className="mt-6 grid gap-10 lg:grid-cols-12">
           <div className="lg:col-span-4">

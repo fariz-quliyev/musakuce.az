@@ -6,6 +6,7 @@ import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { InterviewEmbed, extractVimeoId, extractYouTubeId } from "@/components/interviews/InterviewEmbed";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { interviewsApi } from "@/lib/api/interviews";
 import { peopleApi } from "@/lib/api/people";
@@ -45,9 +46,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: interview.description ?? `${interview.personName} ilə müsahibə — Musaküçənin şifahi tarixi.`,
       path: `/kendimizin-sesi/${interview.id}`,
       imageUrl: interview.thumbnailImageUrl,
+      type: "article",
     });
   } catch {
-    return buildPageMetadata({ title: "Kəndimizin səsi", description: "Musaküçə şifahi tarix arxivi.", path: `/kendimizin-sesi/${id}` });
+    return buildPageMetadata({
+      title: "Kəndimizin səsi",
+      description: "Musaküçə şifahi tarix arxivi.",
+      path: `/kendimizin-sesi/${id}`,
+      type: "article",
+    });
   }
 }
 
@@ -66,6 +73,11 @@ export default async function InterviewDetailPage({ params }: Props) {
   ]);
 
   const embedUrl = interviewEmbedUrl(interview);
+  const breadcrumbItems = [
+    { name: "Ana səhifə", path: "/" },
+    { name: "Kəndimizin səsi", path: "/kendimizin-sesi" },
+    { name: interview.personName, path: `/kendimizin-sesi/${interview.id}` },
+  ];
 
   return (
     <PageShell>
@@ -73,11 +85,7 @@ export default async function InterviewDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: jsonLdScript([
-            breadcrumbJsonLd([
-              { name: "Ana səhifə", path: "/" },
-              { name: "Kəndimizin səsi", path: "/kendimizin-sesi" },
-              { name: interview.personName, path: `/kendimizin-sesi/${interview.id}` },
-            ]),
+            breadcrumbJsonLd(breadcrumbItems),
             ...(embedUrl
               ? [
                   videoObjectJsonLd({
@@ -93,9 +101,7 @@ export default async function InterviewDetailPage({ params }: Props) {
         }}
       />
       <Container className="py-16 sm:py-20">
-        <Link href="/kendimizin-sesi" className="text-sm text-ink-soft hover:text-forest">
-          ← Kəndimizin səsi arxivinə qayıt
-        </Link>
+        <Breadcrumbs items={breadcrumbItems} />
 
         <div className="mx-auto mt-6 max-w-3xl">
           <Badge tone="gold">Müsahibə</Badge>

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { memorialApi } from "@/lib/api/memorial";
 import { peopleApi } from "@/lib/api/people";
@@ -35,9 +35,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: `${memorialCategoryLabels[record.category]} — Musaküçə xatirə arxivi.`,
       path: `/xatire/${record.id}`,
       imageUrl: record.coverImageUrl,
+      type: "article",
     });
   } catch {
-    return buildPageMetadata({ title: "Xatirə", description: "Musaküçə xatirə arxivi.", path: `/xatire/${id}` });
+    return buildPageMetadata({ title: "Xatirə", description: "Musaküçə xatirə arxivi.", path: `/xatire/${id}`, type: "article" });
   }
 }
 
@@ -61,6 +62,11 @@ export default async function MemorialDetailPage({ params }: Props) {
 
   const birthYear = formatYear(record.birthDate);
   const deathYear = formatYear(record.deathDate);
+  const breadcrumbItems = [
+    { name: "Ana səhifə", path: "/" },
+    { name: "Xatirə", path: "/xatire" },
+    { name: record.fullName, path: `/xatire/${record.id}` },
+  ];
 
   return (
     <PageShell>
@@ -68,21 +74,11 @@ export default async function MemorialDetailPage({ params }: Props) {
           schema.org type for memorial records (no honest Person/Memorial fit). */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: jsonLdScript(
-            breadcrumbJsonLd([
-              { name: "Ana səhifə", path: "/" },
-              { name: "Xatirə", path: "/xatire" },
-              { name: record.fullName, path: `/xatire/${record.id}` },
-            ]),
-          ),
-        }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(breadcrumbItems)) }}
       />
       <div className="bg-memorial-bg">
         <Container className="py-16 sm:py-20">
-          <Link href="/xatire" className="text-sm text-memorial-accent hover:underline">
-            ← Xatirə arxivinə qayıt
-          </Link>
+          <Breadcrumbs items={breadcrumbItems} tone="memorial" />
 
           <div className="mx-auto mt-8 max-w-2xl text-center">
             <div className="mx-auto h-28 w-28 overflow-hidden rounded-full shadow-sm">

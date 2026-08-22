@@ -5,12 +5,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { EventsBrowser } from "@/components/events/EventsBrowser";
 import { eventsApi } from "@/lib/api/events";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { EventDto, PagedResult } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Təqvim — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Təqvim",
   description: "Kənd təqvimi: görüş, tədbir və mərasimlər.",
-};
+  path: "/teqvim",
+});
 
 const now = new Date();
 const FALLBACK: PagedResult<EventDto> = {

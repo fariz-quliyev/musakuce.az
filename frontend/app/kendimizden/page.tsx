@@ -11,11 +11,13 @@ import { withFallback } from "@/lib/api/withFallback";
 import { photoCategoryLabels, classifiedCategoryLabels } from "@/lib/api/labels";
 import { todayUpdates as MOCK_UPDATES, type TodayUpdate } from "@/lib/mock-content";
 import { formatRelativeTimeAz } from "@/lib/relativeTime";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Kəndimizdən — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Kəndimizdən",
   description: "Kənddə baş verənlər — abadlıq işlərindən məktəb nailiyyətlərinə qədər.",
-};
+  path: "/kendimizden",
+});
 
 const PAGE_SIZE = 12;
 

@@ -84,6 +84,25 @@ export function articleJsonLd(article: { headline: string; description: string; 
   };
 }
 
+/** For a biography/profile page (İnsanlarımız) — the semantically
+ * correct schema.org type for "this page is about a real person",
+ * unlike the generic Article type it replaced here. Not used for
+ * Memorial (/xatire) records — Phase 14 §6 already established that a
+ * memorial/obituary record has no honest Person fit (it would assert
+ * biographical claims the record may not actually make); this is only
+ * for İnsanlarımız's own living-archive profiles. */
+export function personJsonLd(person: { name: string; description: string; url: string; imageUrl?: string | null; jobTitle?: string | null }) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: person.name,
+    description: person.description,
+    url: person.url,
+    image: person.imageUrl ?? undefined,
+    jobTitle: person.jobTitle ?? undefined,
+  };
+}
+
 export function videoObjectJsonLd(video: { name: string; description: string; embedUrl: string; thumbnailUrl?: string | null; uploadDate?: string | null }) {
   return {
     "@context": "https://schema.org",

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { SuggestionCta } from "@/components/forms/SuggestionCta";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { ApiError } from "@/lib/api/client";
@@ -34,15 +34,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: item.description,
       path: `/medeniyyet/${item.id}`,
       imageUrl: item.coverImageUrl,
+      type: "article",
     });
   } catch {
-    return buildPageMetadata({ title: "Mədəni irs", description: "Musaküçə mədəni irs arxivi.", path: `/medeniyyet/${id}` });
+    return buildPageMetadata({ title: "Mədəni irs", description: "Musaküçə mədəni irs arxivi.", path: `/medeniyyet/${id}`, type: "article" });
   }
 }
 
 export default async function CulturalHeritageDetailPage({ params }: Props) {
   const { id } = await params;
   const item = await loadItem(id);
+  const breadcrumbItems = [
+    { name: "Ana səhifə", path: "/" },
+    { name: "Mədəni irs", path: "/medeniyyet" },
+    { name: item.title, path: `/medeniyyet/${item.id}` },
+  ];
 
   return (
     <PageShell>
@@ -50,11 +56,7 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: jsonLdScript([
-            breadcrumbJsonLd([
-              { name: "Ana səhifə", path: "/" },
-              { name: "Mədəni irs", path: "/medeniyyet" },
-              { name: item.title, path: `/medeniyyet/${item.id}` },
-            ]),
+            breadcrumbJsonLd(breadcrumbItems),
             articleJsonLd({
               headline: item.title,
               description: item.description,
@@ -65,9 +67,7 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
         }}
       />
       <Container className="py-16 sm:py-20">
-        <Link href="/medeniyyet" className="text-sm text-ink-soft hover:text-forest">
-          ← Mədəni irs arxivinə qayıt
-        </Link>
+        <Breadcrumbs items={breadcrumbItems} />
 
         <div className="mt-6 grid gap-10 lg:grid-cols-12">
           {item.coverImageUrl ? (

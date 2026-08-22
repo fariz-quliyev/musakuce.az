@@ -6,12 +6,14 @@ import { ListingSubmitForm } from "@/components/forms/ListingSubmitForm";
 import { ListingsBrowser } from "@/components/listings/ListingsBrowser";
 import { listingsApi } from "@/lib/api/listings";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { ClassifiedCategory, ListingDto, PagedResult } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Elanlar — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Elanlar",
   description: "Kəndin elanlar taxtası: alqı-satqı, xidmətlər, itirilmiş-tapılmış.",
-};
+  path: "/elanlar",
+});
 
 const FALLBACK: PagedResult<ListingDto> = {
   items: [

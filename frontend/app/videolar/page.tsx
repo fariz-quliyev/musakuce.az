@@ -5,12 +5,14 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { VideosBrowser } from "@/components/videos/VideosBrowser";
 import { videosApi } from "@/lib/api/videos";
 import { withFallback } from "@/lib/api/withFallback";
+import { buildPageMetadata } from "@/lib/seo";
 import type { PagedResult, VideoDto } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Videolar — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Videolar",
   description: "Musaküçə video arxivi — kənd həyatından görüntülər və söhbətlər.",
-};
+  path: "/videolar",
+});
 
 const FALLBACK: PagedResult<VideoDto> = {
   items: [

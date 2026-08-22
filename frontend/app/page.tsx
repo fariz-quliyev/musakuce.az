@@ -20,10 +20,31 @@ import { withFallback } from "@/lib/api/withFallback";
 import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
 import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
 
+// Not buildPageMetadata() — that helper always suffixes " — Musaküçə",
+// but the homepage intentionally leads with the brand name itself
+// ("Musaküçə — bizim kənd"), so canonical/OG/twitter are set directly
+// here instead, same shape as buildPageMetadata otherwise produces.
+const homeTitle = "Musaküçə — bizim kənd";
+const homeDescription =
+  "Musaküçə kəndinin rəqəmsal yaddaşı və gündəlik həyatı: tarix, insanlar, xatirələr, foto-video arxiv, elanlar və kənd icması bir yerdə.";
+
 export const metadata: Metadata = {
-  title: "Musaküçə — bizim kənd",
-  description:
-    "Musaküçə kəndinin rəqəmsal yaddaşı və gündəlik həyatı: tarix, insanlar, xatirələr, foto-video arxiv, elanlar və kənd icması bir yerdə.",
+  title: homeTitle,
+  description: homeDescription,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: homeTitle,
+    description: homeDescription,
+    url: "/",
+    type: "website",
+    locale: "az_AZ",
+    siteName: "Musaküçə",
+  },
+  twitter: {
+    card: "summary",
+    title: homeTitle,
+    description: homeDescription,
+  },
 };
 
 /**

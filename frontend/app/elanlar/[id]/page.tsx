@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { ZoomableImage } from "@/components/ui/ZoomableImage";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { ListingContactActions } from "@/components/listings/ListingContactActions";
@@ -40,33 +40,33 @@ async function loadListing(id: string): Promise<{ listing: ListingDto | null; fa
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const { listing } = await loadListing(id);
-  if (!listing) return buildPageMetadata({ title: "Elan", description: "Musaküçə elanlar lövhəsi.", path: `/elanlar/${id}` });
+  if (!listing) return buildPageMetadata({ title: "Elan", description: "Musaküçə elanlar lövhəsi.", path: `/elanlar/${id}`, type: "article" });
   return buildPageMetadata({
     title: listing.title,
     description: listing.description,
     path: `/elanlar/${listing.id}`,
     imageUrl: listing.imageUrls[0],
+    type: "article",
   });
 }
 
 export default async function ListingDetailPage({ params }: Props) {
   const { id } = await params;
   const { listing, failed } = await loadListing(id);
+  const breadcrumbItems = listing
+    ? [
+        { name: "Ana səhifə", path: "/" },
+        { name: "Elanlar", path: "/elanlar" },
+        { name: listing.title, path: `/elanlar/${listing.id}` },
+      ]
+    : null;
 
   return (
     <PageShell>
-      {listing ? (
+      {breadcrumbItems ? (
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: jsonLdScript(
-              breadcrumbJsonLd([
-                { name: "Ana səhifə", path: "/" },
-                { name: "Elanlar", path: "/elanlar" },
-                { name: listing.title, path: `/elanlar/${listing.id}` },
-              ]),
-            ),
-          }}
+          dangerouslySetInnerHTML={{ __html: jsonLdScript(breadcrumbJsonLd(breadcrumbItems)) }}
         />
       ) : null}
       <Container className="py-16 sm:py-20">
@@ -82,7 +82,9 @@ export default async function ListingDetailPage({ params }: Props) {
             }
           />
         ) : (
-          <div className="grid gap-10 lg:grid-cols-12">
+          <>
+            <Breadcrumbs items={breadcrumbItems!} />
+            <div className="grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-6">
               <div className="aspect-square overflow-hidden rounded-xl shadow-photo">
                 {listing.imageUrls[0] ? (
@@ -107,11 +109,7 @@ export default async function ListingDetailPage({ params }: Props) {
             </div>
 
             <div className="lg:col-span-6">
-              <Link href="/elanlar" className="text-sm text-ink-soft hover:text-forest">
-                ← Bütün elanlar
-              </Link>
-
-              <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <Badge tone={listing.category === "ItirilmisTapilmis" ? "info" : "terracotta"}>
                   {classifiedCategoryLabels[listing.category]}
                 </Badge>
@@ -153,7 +151,8 @@ export default async function ListingDetailPage({ params }: Props) {
                 <ListingContactActions contactName={listing.contactName} contactInfo={listing.contactInfo} />
               </div>
             </div>
-          </div>
+            </div>
+          </>
         )}
       </Container>
     </PageShell>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { buildPageMetadata } from "@/lib/seo";
 import { PageShell } from "@/components/layout/PageShell";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { Container } from "@/components/ui/Container";
@@ -17,10 +18,11 @@ import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
 import { cn } from "@/lib/cn";
 import type { LocalInfoEntryDto, PagedResult, PhotoDto } from "@/lib/api/types";
 
-export const metadata: Metadata = {
-  title: "Kəndimiz — Musaküçə",
+export const metadata: Metadata = buildPageMetadata({
+  title: "Kəndimiz",
   description: "Musaküçə haqqında: coğrafiya, əhali və yerli faydalı məlumatlar.",
-};
+  path: "/kendimiz",
+});
 
 const LOCAL_INFO_FALLBACK: PagedResult<LocalInfoEntryDto> = {
   items: [
