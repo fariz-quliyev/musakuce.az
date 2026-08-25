@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/Skeleton";
-import { EmptyState } from "@/components/ui/EmptyState";
+import { Badge } from "@/components/ui/Badge";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
 import { SelectedPlaceCard } from "./SelectedPlaceCard";
 import { placeCategoryLabels } from "@/lib/api/labels";
@@ -45,39 +45,44 @@ export function XeriteMapView({ places, isLive }: Props) {
   );
 
   const selectedPlace = filteredPlaces.find((p) => p.id === selectedId) ?? null;
+  const hasPlaces = places.length > 0;
 
-  if (places.length === 0) {
-    return (
-      <>
-        <DataSourceNote isLive={isLive} />
-        <EmptyState title="Xəritədə hələ məkan əlavə edilməyib." />
-      </>
-    );
-  }
-
+  // The real map (real coordinates, real OpenStreetMap tiles) is the
+  // village itself, independent of whether any Place pins exist yet —
+  // it must never be replaced wholesale by an empty-state box. Only the
+  // filter row (pointless with nothing to filter) and the marker count
+  // announcement are conditional on having real places.
   return (
     <div>
       <DataSourceNote isLive={isLive} />
 
-      <div
-        role="group"
-        aria-label="Kateqoriya filtri"
-        className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
-      >
-        <FilterPill label="Hamısı" active={category === "all"} onClick={() => setCategory("all")} />
-        {availableCategories.map((c) => (
-          <FilterPill
-            key={c}
-            label={placeCategoryLabels[c]}
-            active={category === c}
-            onClick={() => setCategory(c)}
-          />
-        ))}
-      </div>
+      {hasPlaces ? (
+        <div
+          role="group"
+          aria-label="Kateqoriya filtri"
+          className="-mx-5 mb-6 flex gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+        >
+          <FilterPill label="Hamısı" active={category === "all"} onClick={() => setCategory("all")} />
+          {availableCategories.map((c) => (
+            <FilterPill
+              key={c}
+              label={placeCategoryLabels[c]}
+              active={category === c}
+              onClick={() => setCategory(c)}
+            />
+          ))}
+        </div>
+      ) : (
+        <Badge tone="neutral" className="mb-6">
+          Xəritədə hələ məkan əlavə edilməyib — tezliklə əlavə olunacaq
+        </Badge>
+      )}
 
-      <p className="sr-only" aria-live="polite">
-        Xəritədə {filteredPlaces.length} məkan göstərilir: {filteredPlaces.map((p) => p.name).join(", ")}.
-      </p>
+      {hasPlaces ? (
+        <p className="sr-only" aria-live="polite">
+          Xəritədə {filteredPlaces.length} məkan göstərilir: {filteredPlaces.map((p) => p.name).join(", ")}.
+        </p>
+      ) : null}
 
       <div
         role="region"
