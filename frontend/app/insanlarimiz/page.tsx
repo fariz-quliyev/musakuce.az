@@ -75,6 +75,7 @@ export default async function InsanlarimizPage() {
       <Container className="py-16 sm:py-20">
         <SectionHeading
           as="h1"
+          align="center"
           eyebrow="Arxiv"
           title="İnsanlarımız"
           description="Kəndimizin tanınmış və yadda qalan sakinləri — alimlər, müəllimlər, idmançılar və digərləri."

@@ -122,7 +122,16 @@ export function PeopleBrowser({ initialData, initialIsLive }: Props) {
     <div>
       <DataSourceNote isLive={isLive} />
 
-      <div className="mb-6">
+      <div className="relative mx-auto mb-6 max-w-xl">
+        <svg
+          aria-hidden
+          viewBox="0 0 20 20"
+          fill="none"
+          className="pointer-events-none absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-ink-faint"
+        >
+          <circle cx="9" cy="9" r="6" stroke="currentColor" strokeWidth="1.6" />
+          <path d="m17 17-3.7-3.7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        </svg>
         <Input
           value={search}
           onChange={(e) => {
@@ -131,11 +140,15 @@ export function PeopleBrowser({ initialData, initialIsLive }: Props) {
           }}
           placeholder="Ad, soyad və ya peşə üzrə axtarış…"
           aria-label="İnsan axtar"
-          className="max-w-md"
+          className="h-14 rounded-full pl-12 text-base"
         />
       </div>
 
-      <div className="mb-8 flex gap-2 overflow-x-auto pb-1" role="group" aria-label="Kateqoriya filtri">
+      <div
+        className="-mx-5 mb-8 flex justify-center gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0"
+        role="group"
+        aria-label="Kateqoriya filtri"
+      >
         <FilterPill
           label="Bütün peşələr"
           active={category === ""}
