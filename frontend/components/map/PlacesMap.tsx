@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, LayersControl, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { createPlaceIcon, createUserLocationIcon } from "./placeMarkerIcon";
 import { placeCategoryLabels } from "@/lib/api/labels";
@@ -78,7 +78,9 @@ type Props = {
 };
 
 /**
- * Real Leaflet map (OpenStreetMap tiles, no API key). Loaded exclusively
+ * Real Leaflet map (OpenStreetMap street tiles + Esri satellite +
+ * OpenTopoMap relief as switchable base layers — all keyless/free, same
+ * no-API-key approach as the original OSM layer). Loaded exclusively
  * via next/dynamic({ ssr: false }) from XeriteMapView — Leaflet reaches
  * for `window`/`document` at module init, which breaks SSR/hydration if
  * imported any other way.
@@ -93,10 +95,28 @@ export function PlacesMap({ places, selectedId, onSelect }: Props) {
       scrollWheelZoom
       style={{ height: "100%", width: "100%" }}
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      <LayersControl position="topleft">
+        <LayersControl.BaseLayer checked name="Standart">
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Peyk">
+          <TileLayer
+            attribution="&copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            maxNativeZoom={18}
+          />
+        </LayersControl.BaseLayer>
+        <LayersControl.BaseLayer name="Relyef">
+          <TileLayer
+            attribution='Xəritə: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA) &mdash; Data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri, SRTM'
+            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+            maxNativeZoom={17}
+          />
+        </LayersControl.BaseLayer>
+      </LayersControl>
       {places.map((place) => (
         <Marker
           key={place.id}

@@ -73,12 +73,13 @@ export function proxy(request: NextRequest) {
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}'`,
     `style-src 'self' 'unsafe-inline'`,
-    // https://*.tile.openstreetmap.org — the real Leaflet map tiles on
-    // /xerite (PlacesMap.tsx); a/b/c subdomains per OSM's own tile URL
-    // scheme (`{s}.tile.openstreetmap.org`). Without this, every tile
-    // request is CSP-blocked and the map renders as an empty grey box —
-    // confirmed by intercepting the failed requests (reason: "csp").
-    `img-src 'self' data: blob: https://*.tile.openstreetmap.org ${mediaHost}`.trim(),
+    // Map tile hosts for /xerite's 3 switchable base layers
+    // (PlacesMap.tsx) — all keyless/free, no registration or billing:
+    // OpenStreetMap (street), Esri World Imagery (satellite), OpenTopoMap
+    // (relief). Without these, tile requests are CSP-blocked and the
+    // layer renders as an empty grey box — confirmed by intercepting the
+    // failed requests (reason: "csp") for the original OSM-only layer.
+    `img-src 'self' data: blob: https://*.tile.openstreetmap.org https://server.arcgisonline.com https://*.tile.opentopomap.org ${mediaHost}`.trim(),
     `font-src 'self'`,
     `connect-src 'self'`,
     `object-src 'none'`,
