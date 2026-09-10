@@ -1,0 +1,169 @@
+# Production deploy — runs on every push to `main` (and on demand).
+#
+# Mirrors docs/DEPLOYMENT.md §7 + §9 exactly, executed over SSH on the
+# VPS (topology B — shared host Nginx, so no `bundled-nginx` profile):
+#
+#   1. git reset --hard origin/main        (deploy tree is never edited
+#                                            by hand; .env.production is
+#                                            untracked so it survives)
+#   2. backup   (production-tools)         snapshot the DB *before* any
+#                                            schema change
+#   3. migrator (production-tools)         `dotnet ef database update` —
+#                                            idempotent: applies only
+#                                            pending migrations, a no-op
+#                                            for frontend-only pushes
+#   4. up -d --build                        rebuild + restart api/frontend
+#   5. health checks                        api /health/ready + frontend /
+#                                            on their loopback ports
+#   6. docker image prune                   reclaim old build layers
+#                                            (shared VPS disk)
+#
+# Deliberately uses plain `ssh` instead of a third-party action: nothing
+# runs on the runner except an ssh client, so there is no supply-chain
+# surface and every remote command is readable right here.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   DEPLOY_HOST            VPS hostname or IP
+#   DEPLOY_USER            SSH user that owns the checkout + can run docker
+#   DEPLOY_SSH_KEY         private key for that user (deploy-only key —
+#                          docs/DEPLOYMENT.md §9b walks through creating it)
+#   DEPLOY_SSH_KNOWN_HOSTS output of `ssh-keyscan -H <host>` — pins the
+#                          server's host key so the runner cannot be
+#                          silently redirected to another machine
+#   DEPLOY_PATH            absolute path of the repo checkout on the VPS
+# Optional:
+#   DEPLOY_SSH_PORT        defaults to 22
+
+name: Deploy to production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; queue instead. cancel-in-progress is
+# intentionally false — killing a deploy mid-migration is worse than
+# waiting for it to finish.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy ${{ github.sha }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production
+      url: https://musakuce.az
+
+    steps:
+      - name: Check required secrets are configured
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+        run: |
+          missing=""
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_SSH_KNOWN_HOSTS DEPLOY_PATH; do
+            [ -z "${!v}" ] && missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing — see the header of .github/workflows/deploy.yml"
+            exit 1
+          fi
+          echo "All deploy secrets present."
+
+      - name: Prepare SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
+          TARGET_SHA: ${{ github.sha }}
+        run: |
+          ssh -i ~/.ssh/deploy_key \
+              -o StrictHostKeyChecking=yes \
+              -o BatchMode=yes \
+              -o ConnectTimeout=20 \
+              -p "${DEPLOY_SSH_PORT:-22}" \
+              "$DEPLOY_USER@$DEPLOY_HOST" \
+              "DEPLOY_PATH=$(printf %q "$DEPLOY_PATH") TARGET_SHA=$TARGET_SHA bash -s" <<'REMOTE'
+          set -euo pipefail
+
+          COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
+
+          echo "==> 1/6  Sync checkout to origin/main"
+          cd "$DEPLOY_PATH"
+          git fetch --prune origin main
+          git checkout -f main
+          git reset --hard origin/main
+          HEAD_SHA=$(git rev-parse HEAD)
+          if [ "$HEAD_SHA" != "$TARGET_SHA" ]; then
+            echo "::error::Checkout is at $HEAD_SHA but this run targets $TARGET_SHA — main moved during deploy? Aborting."
+            exit 1
+          fi
+          echo "    at $HEAD_SHA"
+
+          cd infra
+          if [ ! -f .env.production ]; then
+            echo "::error::infra/.env.production not found on the server — see docs/PRODUCTION_ENV.md"
+            exit 1
+          fi
+
+          echo "==> 2/6  Database backup (before any schema change)"
+          $COMPOSE --profile production-tools run --rm backup
+
+          echo "==> 3/6  Apply pending EF migrations (no-op if none)"
+          $COMPOSE --profile production-tools run --rm migrator
+
+          echo "==> 4/6  Build and (re)start api + frontend"
+          $COMPOSE up -d --build --remove-orphans
+
+          echo "==> 5/6  Health checks"
+          wait_for() {
+            local name="$1" url="$2" tries=30
+            for i in $(seq 1 "$tries"); do
+              if curl -fsS -o /dev/null --max-time 5 "$url"; then
+                echo "    $name healthy ($url)"
+                return 0
+              fi
+              sleep 3
+            done
+            echo "::error::$name did not become healthy at $url after $((tries*3))s"
+            $COMPOSE ps
+            $COMPOSE logs --tail=80 api frontend
+            return 1
+          }
+          wait_for "api"      "http://127.0.0.1:8081/health/ready"
+          wait_for "frontend" "http://127.0.0.1:3001/"
+
+          echo "==> 6/6  Prune dangling build images"
+          docker image prune -f >/dev/null
+
+          echo
+          $COMPOSE ps
+          echo
+          echo "Deployed $HEAD_SHA"
+          REMOTE
+
+      - name: Remove SSH key from runner
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

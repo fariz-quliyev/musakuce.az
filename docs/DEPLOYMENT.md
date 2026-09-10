@@ -104,6 +104,14 @@ including the AWS-specific "Block Public Access" note if using real S3.
 
 ## 7. Migrations (explicit, controlled — never automatic)
 
+> **With the §9b workflow in place** this same `migrator` command runs on
+> every push to `main` — but as a discrete, sequenced step (after a DB
+> `backup`, before `up -d --build`), never inside the API's startup. The
+> "never automatic" rule below is about the *application process*: nothing
+> in this repo migrates the schema as a side effect of a container coming
+> up. `dotnet ef database update` is idempotent, so on a frontend-only push
+> the step is a no-op.
+
 The API does **not** run migrations on startup (confirmed: no
 `Database.Migrate()` call anywhere in `Program.cs` or elsewhere). Run
 them explicitly, once, before first starting `api`:
@@ -193,6 +201,89 @@ to you — see §10 (dedicated VPS, `nginx` included) vs. §10b (shared VPS,
 Note: `NEXT_PUBLIC_*` values are baked into the frontend image at *build*
 time (Docker `ARG`/`ENV` in `frontend/Dockerfile`) — changing one
 requires `--build` again, not just a restart.
+
+## 9b. Automatic deploy on push (GitHub Actions)
+
+`.github/workflows/deploy.yml` runs §7 + §9 for you on every push to
+`main` (and on demand from the Actions tab). It SSHes into the VPS and,
+in order: `git reset --hard origin/main` → `backup` → `migrator` →
+`up -d --build` → health checks (`api` `/health/ready` on
+`127.0.0.1:8081`, `frontend` `/` on `127.0.0.1:3001`) → `docker image
+prune`. Topology B only — it never passes `--profile bundled-nginx`.
+
+The runner itself runs nothing but an `ssh` client (no third-party
+action, no checkout) — the VPS pulls the source. The repository is
+public, so that `git fetch` needs no credentials; the only credential
+involved is the SSH key below.
+
+### One-time setup
+
+1. **On the VPS**, confirm the deploy user can run Docker without
+   `sudo` (member of the `docker` group — §2) and owns the checkout
+   from §4. Note its absolute path; that becomes `DEPLOY_PATH`.
+
+2. **On your own machine** (the private key never needs to touch the
+   VPS), generate a dedicated key pair — do not reuse your personal key:
+
+   ```
+   ssh-keygen -t ed25519 -f ~/.ssh/musakuce_deploy -N "" -C "github-actions-deploy"
+   ```
+
+3. **On the VPS**, authorise the public key for the deploy user,
+   restricted so it can only run commands (no tunnels/agent/X11):
+
+   ```
+   echo "no-port-forwarding,no-agent-forwarding,no-X11-forwarding $(cat ~/.ssh/musakuce_deploy.pub)" >> ~/.ssh/authorized_keys
+   ```
+
+   (paste the `.pub` contents in place of the `$(cat …)` if you're
+   doing this by hand).
+
+4. **On your own machine**, capture the server's host key so the runner
+   can verify it is talking to the real VPS (add `-p <port>` if SSH is
+   not on 22):
+
+   ```
+   ssh-keyscan -H <vps-host-or-ip>
+   ```
+
+5. **On GitHub** → repository **Settings → Secrets and variables →
+   Actions → New repository secret**, add:
+
+   | Secret | Value |
+   |---|---|
+   | `DEPLOY_HOST` | VPS hostname or IP |
+   | `DEPLOY_USER` | the deploy user from step 1 |
+   | `DEPLOY_SSH_KEY` | full contents of `~/.ssh/musakuce_deploy` (the private key, including the `-----BEGIN/END-----` lines) |
+   | `DEPLOY_SSH_KNOWN_HOSTS` | the full output of step 4 |
+   | `DEPLOY_PATH` | absolute path from step 1, e.g. `/home/deploy/musakuce.az` |
+   | `DEPLOY_SSH_PORT` | *(optional)* only if SSH is not on 22 |
+
+6. Push (or re-run) — the first run deploys whatever `main` is at.
+   If a secret is missing the workflow fails immediately on its first
+   step with a message naming it, before touching the server.
+
+### Operating it
+
+- **Approval gate (optional, recommended):** the job targets a GitHub
+  *environment* named `production` (auto-created on first run). Under
+  **Settings → Environments → production** you can add *Required
+  reviewers*, after which every deploy pauses for a click before it
+  runs — a cheap safety net for a live site.
+- **Manual deploy / retry:** Actions tab → *Deploy to production* →
+  *Run workflow*.
+- **Two pushes in quick succession** queue; the second waits for the
+  first to finish (never cancels it — cancelling mid-migration is
+  worse than waiting).
+- **Rollback:** `git revert <sha>` and push — that is itself a deploy.
+  The pre-migration snapshot from step 2 is in the `musakuce_backups`
+  volume; see the `restore` service in `docker-compose.prod.yml` and
+  `infra/scripts/restore-database.sh` if a schema change has to be
+  unwound as well.
+- **Still manual, by design:** `admin-bootstrap` (§8), `.env.production`
+  changes (§3), and anything under §10/§10b (Nginx, TLS, DNS). The
+  workflow only ever runs the four commands listed at the top of this
+  section.
 
 ## 10. Nginx, Cloudflare, HTTPS (topology A — dedicated VPS)
 
