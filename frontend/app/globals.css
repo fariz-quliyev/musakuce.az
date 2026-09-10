@@ -166,8 +166,12 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-photo: var(--shadow-photo);
 
-  --font-display: var(--font-display), "Georgia", serif;
-  --font-body: var(--font-body), "Segoe UI", sans-serif;
+  /* Both point at the same face (Poppins — see lib/fonts.ts). The two
+     tokens are kept distinct so a separate heading typeface can be
+     reintroduced here alone, without touching components. Fallbacks are
+     sans on both, since the display token no longer carries a serif. */
+  --font-display: var(--font-poppins), "Segoe UI", sans-serif;
+  --font-body: var(--font-poppins), "Segoe UI", sans-serif;
 
   /* Fine mobile-first breakpoint below Tailwind's default `sm` (40rem). */
   --breakpoint-xs: 30rem;
@@ -207,7 +211,7 @@ h1,
 h2,
 h3,
 .font-display {
-  font-family: var(--font-display), "Georgia", serif;
+  font-family: var(--font-display), "Segoe UI", sans-serif;
   letter-spacing: -0.01em;
 }
 

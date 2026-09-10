@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { fraunces, plusJakartaSans } from "@/lib/fonts";
+import { poppins } from "@/lib/fonts";
 import { websiteJsonLd, jsonLdScript } from "@/lib/structuredData";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { withFallback } from "@/lib/api/withFallback";
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="az"
-      className={`${fraunces.variable} ${plusJakartaSans.variable} h-full scroll-smooth antialiased`}
+      className={`${poppins.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <script

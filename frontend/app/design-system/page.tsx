@@ -133,8 +133,8 @@ export default function DesignSystemPage() {
         <Container as="section" className="py-14 border-t border-stone-light">
           <SectionHeading
             eyebrow="Tipoqrafiya"
-            title="Fraunces + Plus Jakarta Sans"
-            description="Editorial, isti başlıq şrifti (Fraunces) və dostcasına, oxunaqlı mətn şrifti (Plus Jakarta Sans) — Azərbaycan hərfləri (ə, ğ, ı, ö, ş, ü, ç) daxil olmaqla."
+            title="Poppins"
+            description="Bütün sayt üzrə tək şrift — başlıqlar, mətn, naviqasiya və formalar. Azərbaycan hərfləri (ə, Ə, ğ, ı, İ, ö, ş, ü, ç) tam dəstəklənir. Çəkilər: 400, 500, 600, 700."
             className="mb-10"
           />
           <div className="space-y-6">
