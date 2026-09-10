@@ -63,7 +63,7 @@
      another CMS card, so it gets its own restrained accent pair rather than
      the everyday --color-forest/terracotta. Used only within that one card
      — never spread across the surrounding page. */
-  --color-parchment: #f6ecd9;             /* card base — warm, light aged paper */
+  --color-parchment: #fafaf9;             /* timeline detail panel base — neutral near-white, one step above the cream-deep band it sits on */
   --color-parchment-accent-ink: #1f3438;  /* deep teal — rules, small accents, active states */
   --color-parchment-accent: #6e9c90;      /* sage — secondary accent, used sparingly */
   --color-parchment-line: #cdbb95;        /* hairline divider/border tone */
