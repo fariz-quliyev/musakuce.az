@@ -12,9 +12,9 @@
 :root {
   /* --- Surfaces --------------------------------------------------------- */
   --color-cream: #ffffff;       /* page background — white */
-  --color-cream-deep: #faf7f1;  /* alternating-section background — warm near-white */
+  --color-cream-deep: #f7f7f5;  /* alternating-section background — neutral near-white */
   --color-paper: #fffdf8;       /* card / raised-surface background */
-  --color-paper-soft: #faf5ea;  /* subtle recessed surface (inputs, wells) */
+  --color-paper-soft: #f5f5f3;  /* subtle recessed surface (inputs, wells) — neutral near-white */
 
   /* --- Ink (text) --------------------------------------------------------
      Warm near-black rather than pure black — softer, more human. */
@@ -51,8 +51,8 @@
 
   /* --- Memorial / calm palette (Xatirə) -----------------------------------
      Deliberately muted and desaturated — never the lively site accent. */
-  --color-memorial-bg: #f1efe8;
-  --color-memorial-surface: #f8f7f2;
+  --color-memorial-bg: #f4f4f2;
+  --color-memorial-surface: #fafaf9;
   --color-memorial-ink: #4a463e;
   --color-memorial-accent: #7c8a82;
   --color-memorial-line: #dcd7ca;
@@ -64,7 +64,6 @@
      the everyday --color-forest/terracotta. Used only within that one card
      — never spread across the surrounding page. */
   --color-parchment: #f6ecd9;             /* card base — warm, light aged paper */
-  --color-parchment-deep: #ead8b4;        /* faint corner-aging tone */
   --color-parchment-accent-ink: #1f3438;  /* deep teal — rules, small accents, active states */
   --color-parchment-accent: #6e9c90;      /* sage — secondary accent, used sparingly */
   --color-parchment-line: #cdbb95;        /* hairline divider/border tone */
@@ -143,7 +142,6 @@
   --color-memorial-line: var(--color-memorial-line);
 
   --color-parchment: var(--color-parchment);
-  --color-parchment-deep: var(--color-parchment-deep);
   --color-parchment-accent-ink: var(--color-parchment-accent-ink);
   --color-parchment-accent: var(--color-parchment-accent);
   --color-parchment-line: var(--color-parchment-line);
