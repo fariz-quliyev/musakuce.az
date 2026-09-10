@@ -66,10 +66,21 @@ async function getAuthHeaders(): Promise<Record<string, string>> {
 }
 
 /** Any 401 means "admin auth required" — public endpoints never issue
- * one. Redirect to login rather than surfacing a raw error. */
+ * one. Redirect to login rather than surfacing a raw error.
+ *
+ * In the browser this is a deliberate *hard* navigation, not a
+ * `useRouter().push()`:
+ *   - this runs inside a plain async call stack (not a component or an
+ *     event handler), so hooks are not available here at all;
+ *   - losing the session must discard every piece of in-memory admin
+ *     state. A soft client transition would keep stale authenticated
+ *     data mounted, which a soft push cannot be trusted to clear.
+ * `replace` rather than `assign`/`href` so the dead admin page that just
+ * 401'd is not left in history for the back button to return to. */
 async function handleUnauthorized(): Promise<never> {
   if (typeof window !== "undefined") {
-    window.location.href = `/admin/login?next=${encodeURIComponent(window.location.pathname + window.location.search)}`;
+    const next = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.replace(`/admin/login?next=${next}`);
   } else {
     const { redirect } = await import("next/navigation");
     redirect("/admin/login");
