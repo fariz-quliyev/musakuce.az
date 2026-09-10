@@ -147,7 +147,13 @@ services:
       - "443:443"
     volumes:
       - ../infra/nginx/rendered:/etc/nginx/conf.d:ro
-      - ${SSL_CERT_DIR}:/etc/nginx/certs:ro
+      # Defaulted so topology B deploys (which never start this service)
+      # still parse: Compose interpolates every service definition up
+      # front, profile-gated or not, and an unset SSL_CERT_DIR produced
+      # the invalid spec ":/etc/nginx/certs:ro" and aborted `run`/`up`
+      # before anything happened. Topology A sets SSL_CERT_DIR
+      # explicitly (§10); the default is only ever read at parse time.
+      - ${SSL_CERT_DIR:-/etc/musakuce/certs}:/etc/nginx/certs:ro
     depends_on:
       api:
         condition: service_healthy
