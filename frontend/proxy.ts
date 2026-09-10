@@ -22,8 +22,10 @@ import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
  * hydration/RSC payloads automatically picks up the nonce from that
  * response header — no manual nonce-threading through every page.
  *
- * script-src has no 'unsafe-inline'/'unsafe-eval' — 'self' + the nonce
- * covers every script Next.js itself injects. 'strict-dynamic' was
+ * script-src has no 'unsafe-inline', and no 'unsafe-eval' in production
+ * ('unsafe-eval' is added for `next dev` only — see the isDev note in
+ * proxy() below) — 'self' + the nonce covers every script Next.js itself
+ * injects. 'strict-dynamic' was
  * tried first (nonce-trust propagating to dynamically-inserted scripts
  * without URL allow-listing) but had to be dropped: on routes with a
  * `loading.tsx` Suspense boundary whose real content pulls in a chunk
@@ -59,6 +61,17 @@ import { AUTH_COOKIE_NAME } from "@/lib/auth/constants";
 export function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
 
+  /* React's development build uses eval() for debugging features (hot
+   * reload, reconstructing server-side error stacks in the browser), so
+   * without 'unsafe-eval' `next dev` throws a "eval() is not supported in
+   * this environment" overlay on every page and the app fails to render.
+   * Next's own CSP guide prescribes exactly this dev-only opt-in
+   * (node_modules/next/dist/docs/01-app/02-guides/content-security-policy.md):
+   * "unsafe-eval is not required for production. Neither React nor
+   * Next.js use eval in production by default." The production header is
+   * therefore unchanged — still 'self' + nonce with no eval. */
+  const isDev = process.env.NODE_ENV === "development";
+
   const mediaHost = (() => {
     const raw = process.env.NEXT_PUBLIC_MEDIA_BASE_URL;
     if (!raw) return "";
@@ -71,7 +84,7 @@ export function proxy(request: NextRequest) {
 
   const csp = [
     `default-src 'self'`,
-    `script-src 'self' 'nonce-${nonce}'`,
+    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ""}`,
     `style-src 'self' 'unsafe-inline'`,
     // Map tile hosts for /xerite's 3 switchable base layers
     // (PlacesMap.tsx) — all keyless/free, no registration or billing:
