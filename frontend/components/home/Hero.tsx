@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { Button } from "@/components/ui/Button";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { HeroWeather } from "@/components/home/HeroWeather";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
@@ -9,31 +8,36 @@ import { VILLAGE_PROFILE_FALLBACK } from "@/lib/villageProfileFallback";
 import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
 
 /**
- * Full-bleed hero. Image, main heading, subtitle, and the primary CTA
- * button are admin-managed via the "Kəndimiz" profile (heroImageUrl /
- * villageName / shortDescription / ctaText+ctaLink) — falls back to the
- * TEMPORARY VISUAL-DEMO photo (see public/images/village/DEMO_SOURCES.md)
- * and today's copy/CTA only while no profile has been published yet,
- * same fallback convention as VillageIntro. The eyebrow line, second
- * paragraph, and secondary button are not part of the managed fields —
- * left as-is.
+ * Full-bleed hero. Image, heading and subtitle are admin-managed via the
+ * "Kəndimiz" profile (heroImageUrl / villageName / shortDescription) —
+ * falls back to the TEMPORARY VISUAL-DEMO photo (see
+ * public/images/village/DEMO_SOURCES.md) and today's copy only while no
+ * profile has been published yet, same fallback convention as
+ * VillageIntro.
+ *
+ * Pared back to name + one line on request: the eyebrow, the second
+ * paragraph and both CTA buttons were removed. NOTE for whoever touches
+ * the admin panel next — VillageProfile still exposes ctaText/ctaLink
+ * ("Baş səhifə düyməsinin mətni/keçidi" in VillageProfileForm), but this
+ * was their only render site, so anything entered there now goes
+ * nowhere. Either drop those two fields from the form/DTO or bring a
+ * button back; don't leave the admin filling in a dead input.
  *
  * Composition: full-bleed background image with a bottom-weighted
- * gradient so the wordmark and buttons stay legible over any photo.
+ * gradient so the wordmark stays legible over any photo.
  *
- * Height is a 60vh *minimum*, not a fixed size — matching the reference
- * the client asked for (sosial.gov.az's banner measures 430px of a
- * 720px viewport, i.e. 60%, against the 76/80vh this used to reserve,
- * which swallowed the whole first screen). Because it is `min-h` on a
- * flex container, a narrow portrait viewport whose copy + two buttons +
- * weather card need more room still grows past it instead of clipping.
+ * Height is a 60vh *minimum* at sm+, not a fixed size — matching the
+ * reference the client asked for (sosial.gov.az's banner measures 430px
+ * of a 720px viewport, i.e. 60%, against the 76/80vh this used to
+ * reserve, which swallowed the whole first screen). Mobile keeps 76vh;
+ * because it is `min-h` on a flex container, a viewport that needs more
+ * room still grows past it instead of clipping.
  *
  * Visual priority, deliberately in this order (also the DOM/reading
  * order — the weather widget is positioned in a top corner visually but
  * placed last in markup so it doesn't out-rank the village name for
- * assistive tech either): 1) village name, 2) short intro, 3) primary
- * CTAs, 4) weather — a useful secondary element, not the hero's focal
- * point.
+ * assistive tech either): 1) village name, 2) short intro, 3) weather —
+ * a useful secondary element, not the hero's focal point.
  */
 export async function Hero() {
   const { data: profile, isLive } = await withFallback(
@@ -66,31 +70,10 @@ export async function Hero() {
 
       <div className="relative mx-auto w-full max-w-6xl px-5 pb-10 sm:px-8 sm:pb-14">
         <DataSourceNote isLive={isLive} />
-        <p className="mb-4 text-[length:var(--text-eyebrow)] font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-cream/80">
-          Musaküçə — bizim kənd
-        </p>
         <h1 className="font-display text-[length:var(--text-display)] leading-[var(--text-display--line-height)] text-cream text-balance uppercase">
           {profile.villageName}
         </h1>
         <p className="mt-4 max-w-xl text-xl leading-snug text-cream/95">{profile.shortDescription}</p>
-        <p className="mt-3 max-w-lg text-base leading-relaxed text-cream/75">
-          Musaküçə haqqında tarix, insanlar, xatirələr və bu gün kənddə baş
-          verənlər — bir yerdə.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Button href={profile.ctaLink ?? "#kendimiz"} variant="secondary" size="lg">
-            {profile.ctaText ?? "Kəndimizi tanı"}
-          </Button>
-          <Button
-            href="#bu-gun-kendde"
-            variant="outline"
-            size="lg"
-            className="border-cream/50 text-cream hover:bg-cream/10"
-          >
-            Bu gün kənddə
-          </Button>
-        </div>
       </div>
 
       {/* Corner differs by breakpoint, for measured reasons:
