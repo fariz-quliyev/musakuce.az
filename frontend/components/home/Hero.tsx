@@ -18,14 +18,22 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * paragraph, and secondary button are not part of the managed fields —
  * left as-is.
  *
- * Composition: wide/tall background image with a bottom-weighted
+ * Composition: full-bleed background image with a bottom-weighted
  * gradient so the wordmark and buttons stay legible over any photo.
  *
+ * Height is a 60vh *minimum*, not a fixed size — matching the reference
+ * the client asked for (sosial.gov.az's banner measures 430px of a
+ * 720px viewport, i.e. 60%, against the 76/80vh this used to reserve,
+ * which swallowed the whole first screen). Because it is `min-h` on a
+ * flex container, a narrow portrait viewport whose copy + two buttons +
+ * weather card need more room still grows past it instead of clipping.
+ *
  * Visual priority, deliberately in this order (also the DOM/reading
- * order — the weather widget is positioned top-left visually but placed
- * last in markup so it doesn't out-rank the village name for assistive
- * tech either): 1) village name, 2) short intro, 3) primary CTAs,
- * 4) weather — a useful secondary element, not the hero's focal point.
+ * order — the weather widget is positioned in a top corner visually but
+ * placed last in markup so it doesn't out-rank the village name for
+ * assistive tech either): 1) village name, 2) short intro, 3) primary
+ * CTAs, 4) weather — a useful secondary element, not the hero's focal
+ * point.
  */
 export async function Hero() {
   const { data: profile, isLive } = await withFallback(
@@ -34,7 +42,7 @@ export async function Hero() {
   );
 
   return (
-    <section className="relative flex min-h-[76vh] w-full items-end overflow-hidden sm:min-h-[80vh]">
+    <section className="relative flex min-h-[76vh] w-full items-end overflow-hidden sm:min-h-[60vh]">
       <div className="absolute inset-0">
         <VillagePhoto
           src={profile.heroImageUrl ?? "/images/village/hero-demo.jpg"}
@@ -85,7 +93,16 @@ export async function Hero() {
         </div>
       </div>
 
-      <div className="absolute top-4 left-4 z-10 sm:top-8 sm:left-8">
+      {/* Corner differs by breakpoint, for measured reasons:
+        * - sm+ : top-*right*. The copy column is capped at max-w-xl and
+        *   sits bottom-left, so once the hero shrank to 60vh the card's
+        *   old top-left slot ran straight through the eyebrow and h1;
+        *   on the right it clears the nearest glyph by ~414px.
+        * - mobile: stays top-*left*. The card is ~206px wide, wider than
+        *   half a 375px screen, so no corner can dodge a full-width copy
+        *   block horizontally — separation there comes from the taller
+        *   76vh hero pushing the copy below the card instead. */}
+      <div className="absolute top-4 left-4 z-10 sm:top-8 sm:left-auto sm:right-8">
         <Suspense fallback={null}>
           <HeroWeather />
         </Suspense>
