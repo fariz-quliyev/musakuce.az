@@ -11,8 +11,8 @@
 
 :root {
   /* --- Surfaces --------------------------------------------------------- */
-  --color-cream: #f8f2e6;       /* page background — warm parchment */
-  --color-cream-deep: #efe4cd;  /* alternating-section background */
+  --color-cream: #ffffff;       /* page background — white */
+  --color-cream-deep: #faf7f1;  /* alternating-section background — warm near-white */
   --color-paper: #fffdf8;       /* card / raised-surface background */
   --color-paper-soft: #faf5ea;  /* subtle recessed surface (inputs, wells) */
 
