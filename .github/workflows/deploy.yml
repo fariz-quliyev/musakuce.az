@@ -108,8 +108,6 @@ jobs:
               "DEPLOY_PATH=$(printf %q "$DEPLOY_PATH") TARGET_SHA=$TARGET_SHA bash -s" <<'REMOTE'
           set -euo pipefail
 
-          COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.production"
-
           echo "==> 1/6  Sync checkout to origin/main"
           cd "$DEPLOY_PATH"
           git fetch --prune origin main
@@ -123,10 +121,21 @@ jobs:
           echo "    at $HEAD_SHA"
 
           cd infra
-          if [ ! -f .env.production ]; then
-            echo "::error::infra/.env.production not found on the server — see docs/PRODUCTION_ENV.md"
+          # DEPLOYMENT.md §3 places .env.production next to the compose file
+          # in infra/; the current server keeps it at the repo root instead
+          # (the running stack's compose label says so). Accept either —
+          # the compose file's own ../backend and ../frontend paths resolve
+          # relative to the file, not the env file, so both work identically.
+          if [ -f .env.production ]; then
+            ENV_FILE=.env.production
+          elif [ -f ../.env.production ]; then
+            ENV_FILE=../.env.production
+          else
+            echo "::error::.env.production not found in infra/ or at the repo root — see docs/PRODUCTION_ENV.md"
             exit 1
           fi
+          echo "    env file: $ENV_FILE"
+          COMPOSE="docker compose -f docker-compose.prod.yml --env-file $ENV_FILE"
 
           echo "==> 2/6  Database backup (before any schema change)"
           $COMPOSE --profile production-tools run --rm backup

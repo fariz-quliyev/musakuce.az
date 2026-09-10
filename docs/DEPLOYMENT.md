@@ -216,6 +216,12 @@ action, no checkout) — the VPS pulls the source. The repository is
 public, so that `git fetch` needs no credentials; the only credential
 involved is the SSH key below.
 
+It accepts `.env.production` either next to the compose file in `infra/`
+(§3's location) or at the repository root — the current server keeps it
+at the root (`/opt/musakuce/.env.production`, per the running stack's
+Compose label), and the checkout itself lives at `/opt/musakuce`, which
+is therefore the value for `DEPLOY_PATH` below.
+
 ### One-time setup
 
 1. **On the VPS**, confirm the deploy user can run Docker without
