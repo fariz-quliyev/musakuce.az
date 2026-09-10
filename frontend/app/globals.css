@@ -25,8 +25,12 @@
 
   /* --- Forest (primary brand green) -------------------------------------
      Buttons, links, active nav, primary icons. */
-  --color-forest: #2f4a3b;
-  --color-forest-dark: #1f3329;
+  --color-forest: #133125;
+  /* Must stay darker than --color-forest: it is the hover/pressed step
+     for it (hover:text-forest-dark on links, bg-forest-dark panels). The
+     old #1f3329 was lighter than the new forest, which would have made
+     every hover lift instead of deepen. */
+  --color-forest-dark: #0b1d16;
   --color-forest-light: #6e8f73;
   --color-moss: #8fa37a;
   --color-moss-light: #e3ead9;
