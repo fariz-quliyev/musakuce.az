@@ -148,8 +148,8 @@ export default function DesignSystemPage() {
         <Container as="section" className="py-14 border-t border-stone-light">
           <SectionHeading
             eyebrow="Tipoqrafiya"
-            title="Poppins"
-            description="Bütün sayt üzrə tək şrift — başlıqlar, mətn, naviqasiya və formalar. Azərbaycan hərfləri (ə, Ə, ğ, ı, İ, ö, ş, ü, ç) tam dəstəklənir. Çəkilər: 400, 500, 600, 700."
+            title="Noto Sans"
+            description="Bütün sayt üzrə tək şrift — başlıqlar, mətn, naviqasiya və formalar. Riseley-in Open Sans şriftinin Ə-ni də dəstəkləyən qarşılığı; Azərbaycan hərfləri (Ə ə Ş ş Ğ ğ Ç ç Ö ö Ü ü İ ı) tam dəstəklənir. Çəkilər: 400, 500, 600, 700."
             className="mb-10"
           />
           <div className="space-y-6">

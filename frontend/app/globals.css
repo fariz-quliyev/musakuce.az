@@ -221,12 +221,12 @@
   --shadow-photo: var(--shadow-photo);
   --shadow-sticky-bar: var(--shadow-sticky-bar);
 
-  /* Both point at the same face (Poppins — see lib/fonts.ts). The two
+  /* Both point at the same face (Noto Sans — see lib/fonts.ts). The two
      tokens are kept distinct so a separate heading typeface can be
      reintroduced here alone, without touching components. Fallbacks are
      sans on both, since the display token no longer carries a serif. */
-  --font-display: var(--font-poppins), "Segoe UI", sans-serif;
-  --font-body: var(--font-poppins), "Segoe UI", sans-serif;
+  --font-display: var(--font-noto-sans), "Segoe UI", sans-serif;
+  --font-body: var(--font-noto-sans), "Segoe UI", sans-serif;
 
   /* Fine mobile-first breakpoint below Tailwind's default `sm` (40rem). */
   --breakpoint-xs: 30rem;

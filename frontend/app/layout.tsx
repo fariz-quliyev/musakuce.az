@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { poppins } from "@/lib/fonts";
+import { notoSans } from "@/lib/fonts";
 import { websiteJsonLd, jsonLdScript } from "@/lib/structuredData";
 import { villageProfileApi } from "@/lib/api/villageProfile";
 import { withFallback } from "@/lib/api/withFallback";
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="az"
-      className={`${poppins.variable} h-full scroll-smooth antialiased`}
+      className={`${notoSans.variable} h-full scroll-smooth antialiased`}
     >
       <body className="min-h-full flex flex-col bg-cream text-ink">
         <script
