@@ -21,7 +21,7 @@ export function RelatedSections({ title = "Bunlara da baxın", sections }: { tit
           <Link
             key={section.href}
             href={section.href}
-            className="group flex items-start justify-between gap-2 border-b border-transparent pb-1 hover:border-forest-light/60"
+            className="group flex items-start justify-between gap-2 border-b border-transparent pb-1 hover:border-forest-light"
           >
             <span>
               <span className="block font-display text-[length:var(--text-h4)] text-ink group-hover:text-forest">{section.label}</span>

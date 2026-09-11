@@ -1,12 +1,13 @@
 import L from "leaflet";
 import type { PlaceCategory, PlaceKind } from "@/lib/api/types";
 
-// Matches app/globals.css design tokens (--color-terracotta / --color-forest
-// / --color-paper) — kept as literal hex here since these strings are
-// injected into a Leaflet DivIcon's HTML, outside Tailwind/CSS-var scope.
-const HISTORICAL_COLOR = "#b15e3b";
-const USEFUL_COLOR = "#2f4a3b";
-const CREAM = "#fffdf8";
+// Design tokens from app/globals.css. A Leaflet DivIcon's HTML is
+// inserted into the page DOM, so :root CSS variables resolve inside it.
+// The glyph SVG paints with `currentColor` (set once on the wrapper)
+// because var() isn't reliably honoured in SVG presentation attributes.
+const HISTORICAL_COLOR = "var(--color-terracotta)";
+const USEFUL_COLOR = "var(--color-forest)";
+const CREAM = "var(--color-paper)";
 
 /**
  * One small glyph per PlaceCategory so markers are distinguishable by
@@ -50,11 +51,11 @@ export function createPlaceIcon(kind: PlaceKind, category: PlaceCategory | null,
   const color = kind === "Historical" ? HISTORICAL_COLOR : USEFUL_COLOR;
   const scale = selected ? 1.15 : 1;
   const html = `
-    <div style="transform: scale(${scale}); transform-origin: bottom center; filter: drop-shadow(0 3px 4px rgba(42,35,24,0.35));">
+    <div style="color: ${color}; transform: scale(${scale}); transform-origin: bottom center; filter: drop-shadow(0 3px 4px color-mix(in srgb, var(--color-ink) 35%, transparent));">
       <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-        <path d="M16 1.5C8.8 1.5 3 7.1 3 14c0 9.3 13 23.5 13 23.5S29 23.3 29 14c0-6.9-5.8-12.5-13-12.5Z" fill="${color}" stroke="${CREAM}" stroke-width="1.6"/>
-        <circle cx="16" cy="14" r="8.5" fill="${CREAM}"/>
-        ${categoryGlyph(category, color)}
+        <path d="M16 1.5C8.8 1.5 3 7.1 3 14c0 9.3 13 23.5 13 23.5S29 23.3 29 14c0-6.9-5.8-12.5-13-12.5Z" fill="currentColor" style="stroke: ${CREAM}" stroke-width="1.6"/>
+        <circle cx="16" cy="14" r="8.5" style="fill: ${CREAM}"/>
+        ${categoryGlyph(category, "currentColor")}
       </svg>
     </div>`;
 
@@ -70,7 +71,7 @@ export function createPlaceIcon(kind: PlaceKind, category: PlaceCategory | null,
 /** Small dot for the visitor's own browser-geolocated position. */
 export function createUserLocationIcon(): L.DivIcon {
   return L.divIcon({
-    html: `<div style="width:16px;height:16px;border-radius:9999px;background:#3e6e82;border:2.5px solid ${CREAM};box-shadow:0 0 0 4px rgba(62,110,130,0.28);"></div>`,
+    html: `<div style="width:16px;height:16px;border-radius:9999px;background:var(--color-info);border:2.5px solid ${CREAM};box-shadow:0 0 0 4px color-mix(in srgb, var(--color-info) 28%, transparent);"></div>`,
     className: "musakuce-user-marker",
     iconSize: [16, 16],
     iconAnchor: [8, 8],

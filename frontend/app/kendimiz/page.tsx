@@ -361,7 +361,7 @@ export default async function KendimizPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="group flex items-start justify-between gap-2 border-b border-transparent pb-1 hover:border-forest-light/60"
+                className="group flex items-start justify-between gap-2 border-b border-transparent pb-1 hover:border-forest-light"
               >
                 <span>
                   <span className="block font-display text-[length:var(--text-h4)] text-ink group-hover:text-forest">

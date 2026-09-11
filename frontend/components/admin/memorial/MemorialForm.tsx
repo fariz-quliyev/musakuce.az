@@ -175,7 +175,7 @@ export function MemorialForm({ record, personOptions }: Props) {
         <Textarea id="originalSourceText" name="originalSourceText" maxLength={8000} defaultValue={record?.originalSourceText ?? ""} />
       </FormField>
 
-      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-[0_-4px_12px_-6px_rgba(0,0,0,0.12)] backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
+      <div className="sticky bottom-0 z-10 -mx-5 rounded-t-lg border-t border-stone-light bg-paper/95 px-5 py-4 shadow-sticky-bar backdrop-blur-sm sm:mx-0 sm:rounded-lg sm:border">
         {status === "success" ? (
           <p className="mb-3 text-sm font-medium text-success">Uğurla saxlanıldı ✓</p>
         ) : null}

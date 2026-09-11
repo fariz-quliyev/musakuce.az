@@ -39,7 +39,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
   const pathname = usePathname();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-light/70 bg-cream">
+    <header className="sticky top-0 z-40 border-b border-border bg-cream">
       <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">
         <Link href="/" className="flex shrink-0 items-center" aria-label="Musaküçə — ana səhifə">
           {logoImageUrl ? (
@@ -63,7 +63,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
                   "border-b-2 py-0.5 text-sm font-medium whitespace-nowrap transition-colors",
                   active
                     ? "border-forest text-forest font-semibold"
-                    : "border-transparent text-ink-soft hover:border-forest-light/60 hover:text-forest",
+                    : "border-transparent text-ink-soft hover:border-forest-light hover:text-forest",
                 )}
               >
                 {item.label}
@@ -129,7 +129,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
         // focus in some browsers even though nothing is visible.
         inert={!open}
         className={cn(
-          "grid gap-1 overflow-hidden border-t border-stone-light/70 bg-cream px-5 transition-[grid-template-rows] duration-200 xl:hidden",
+          "grid gap-1 overflow-hidden border-t border-border bg-cream px-5 transition-[grid-template-rows] duration-200 xl:hidden",
           open ? "grid-rows-[1fr] py-3" : "grid-rows-[0fr]",
         )}
       >
@@ -143,7 +143,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "block rounded-md px-2 py-3 text-base font-medium",
-                  active ? "bg-moss-light/50 text-forest font-semibold" : "text-ink hover:bg-paper-soft",
+                  active ? "bg-moss-light text-forest font-semibold" : "text-ink hover:bg-paper-soft",
                 )}
               >
                 {item.label}

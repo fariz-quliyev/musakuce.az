@@ -27,8 +27,8 @@ const PARCHMENT_GRAIN =
 const PARCHMENT_BACKGROUND_STYLE: React.CSSProperties = {
   backgroundColor: "var(--color-parchment)",
   backgroundImage: [
-    "radial-gradient(circle at 10% 6%, rgba(31,52,56,0.06), transparent 40%)",
-    "radial-gradient(circle at 92% 96%, rgba(31,52,56,0.07), transparent 42%)",
+    "radial-gradient(circle at 10% 6%, color-mix(in srgb, var(--color-parchment-accent-ink) 6%, transparent), transparent 40%)",
+    "radial-gradient(circle at 92% 96%, color-mix(in srgb, var(--color-parchment-accent-ink) 7%, transparent), transparent 42%)",
     `url("${PARCHMENT_GRAIN}")`,
   ].join(", "),
 };
@@ -208,7 +208,7 @@ function EventGallery({ event }: { event: HistoricalEventDto }) {
               aria-current={i === selected}
               className={cn(
                 "h-10 w-10 shrink-0 overflow-hidden rounded border transition-colors",
-                i === selected ? "border-parchment-accent-ink" : "border-parchment-line/60 opacity-60 hover:opacity-100",
+                i === selected ? "border-parchment-accent-ink" : "border-parchment-line opacity-60 hover:opacity-100",
               )}
             >
               <VillagePhoto src={image.url} alt="" tone="warm" sizes="40px" />
@@ -324,7 +324,7 @@ function EventDetailContent({
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between border-t border-parchment-line/70 pt-3">
+      <div className="mt-5 flex items-center justify-between border-t border-parchment-line pt-3">
         <button
           type="button"
           onClick={onPrev}

@@ -35,7 +35,7 @@ export async function VillageFacts() {
   if (facts.length === 0) return null;
 
   return (
-    <div className="border-y border-stone-light bg-clay-light/40">
+    <div className="border-y border-border bg-surface-tint">
       <Container className="grid grid-cols-2 gap-x-6 gap-y-8 py-12 sm:grid-cols-5 sm:gap-x-4">
         <DataSourceNote isLive={isLive} />
         {facts.map((fact) => (

@@ -8,7 +8,7 @@ import L from "leaflet";
 const VILLAGE_CENTER: [number, number] = [39.00861, 48.69889];
 
 const markerIcon = L.divIcon({
-  html: `<div style="width:16px;height:16px;border-radius:9999px;background:#b15e3b;border:2.5px solid #fffdf8;box-shadow:0 0 0 3px rgba(177,94,59,0.3);"></div>`,
+  html: `<div style="width:16px;height:16px;border-radius:9999px;background:var(--color-accent);border:2.5px solid var(--color-surface);box-shadow:0 0 0 3px color-mix(in srgb, var(--color-accent) 30%, transparent);"></div>`,
   className: "musakuce-picker-marker",
   iconSize: [16, 16],
   iconAnchor: [8, 8],

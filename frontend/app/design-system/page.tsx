@@ -30,6 +30,21 @@ export const metadata: Metadata = {
 
 const COLOR_GROUPS: { title: string; swatches: { name: string; className: string }[] }[] = [
   {
+    title: "Palitra (Riseley) — bütün digər tokenlər bunlara bağlıdır",
+    swatches: [
+      { name: "primary", className: "bg-primary" },
+      { name: "primary-dark", className: "bg-primary-dark" },
+      { name: "primary-light", className: "bg-primary-light" },
+      { name: "surface-tint", className: "bg-surface-tint" },
+      { name: "background / surface", className: "bg-background border border-border" },
+      { name: "surface-muted", className: "bg-surface-muted border border-border" },
+      { name: "surface-alt", className: "bg-surface-alt" },
+      { name: "text", className: "bg-text" },
+      { name: "text-muted", className: "bg-text-muted" },
+      { name: "border", className: "bg-border" },
+    ],
+  },
+  {
     title: "Səthlər (Surfaces)",
     swatches: [
       { name: "cream", className: "bg-cream" },

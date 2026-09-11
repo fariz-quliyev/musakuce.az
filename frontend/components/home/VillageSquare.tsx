@@ -164,7 +164,7 @@ export async function VillageSquare() {
   });
 
   return (
-    <div className="scroll-mt-20 bg-clay-light/40 py-16 sm:py-20" id="kendin-meydani">
+    <div className="scroll-mt-20 bg-surface-tint py-16 sm:py-20" id="kendin-meydani">
       <Container>
         <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <SectionHeading
@@ -182,7 +182,7 @@ export async function VillageSquare() {
             <Link
               key={entry.label}
               href={entry.href}
-              className="flex flex-col items-center gap-2 rounded-lg border border-stone-light bg-paper px-3 py-4 text-center transition-colors hover:border-terracotta/60 hover:bg-cream sm:w-32"
+              className="flex flex-col items-center gap-2 rounded-lg border border-stone-light bg-paper px-3 py-4 text-center transition-colors hover:border-terracotta hover:bg-cream sm:w-32"
             >
               <span className="grid h-9 w-9 place-items-center rounded-full bg-clay-light text-terracotta-dark">
                 {entry.icon}
@@ -239,7 +239,7 @@ export async function VillageSquare() {
             ) : null}
 
             {localInfo.length > 0 ? (
-              <div className="rounded-xl border border-terracotta/20 bg-paper p-6 lg:col-span-4">
+              <div className="rounded-xl border border-border bg-paper p-6 lg:col-span-4">
                 <h3 className="font-display text-[length:var(--text-h4)] text-ink">Yerli faydalı məlumatlar</h3>
                 <ul className="mt-4 space-y-4">
                   {localInfo.map((entry) => (

@@ -114,7 +114,7 @@ export default async function EducationDetailPage({ params }: Props) {
       {relatedPerson ? (
         <Link
           href={`/insanlarimiz/${relatedPerson.id}`}
-          className="mt-6 flex items-center gap-4 rounded-lg border border-stone-light bg-paper-soft p-4 transition-colors hover:border-forest-light/60 hover:bg-paper"
+          className="mt-6 flex items-center gap-4 rounded-lg border border-stone-light bg-paper-soft p-4 transition-colors hover:border-forest-light hover:bg-paper"
         >
           <div className="h-16 w-16 shrink-0 overflow-hidden rounded-full">
             <VillagePhoto

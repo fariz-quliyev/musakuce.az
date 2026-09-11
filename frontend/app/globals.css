@@ -4,77 +4,104 @@
    MUSAKÜÇƏ — BİZİM KƏND — Design Tokens
    "Modern Heritage + Digital Village Square"
 
-   Warm, local, human, photographic — never government/newspaper/SaaS.
-   Palette drawn from village greenery, earth, stone, wood, warm sunlight
-   and old photographs. See docs/MUSAKUCE_SPEC.md §3 for the design brief.
+   Colour palette: riseleyparishcouncil.gov.uk (see the Palette block
+   below). Structure/type/spacing brief: docs/MUSAKUCE_SPEC.md §3.
    ========================================================================== */
 
 :root {
+  /* ========================================================================
+     Palette — taken as-is from riseleyparishcouncil.gov.uk (Elementor kit
+     `post-1090.css` globals + the colours its pages actually render).
+     These are the ONLY brand HEX values in the codebase: every other
+     colour token below, and every component, points back at one of them.
+     Don't tune them — if a new shade seems necessary, map it to one of
+     these instead.
+     ======================================================================== */
+  --color-primary: #2f5d3b;       /* kit primary/accent — nav bar, buttons, links, dropdowns, green bands */
+  --color-primary-dark: #143a1e;  /* kit button:hover */
+  --color-primary-light: #a8b9a3; /* kit secondary — secondary buttons, soft rules */
+  --color-background: #ffffff;    /* page */
+  --color-surface: #ffffff;       /* cards / raised panels */
+  --color-surface-tint: #dee4dc;  /* kit light green — top strip, card headers, footer band */
+  --color-surface-muted: #fafafa; /* quiet section / recessed well */
+  --color-surface-alt: #f4f4f6;   /* alternating section (Riseley gallery band) */
+  --color-text: #333333;          /* kit text */
+  --color-text-muted: #3a3a3a;    /* Riseley's only secondary grey (its link-hover colour) */
+  --color-text-on-primary: #ffffff;
+  --color-border: #ebebeb;        /* Riseley's hairline rule */
+  --color-accent: var(--color-primary); /* the kit sets accent === primary */
+  --color-link: var(--color-primary);
+  --color-link-hover: var(--color-text-muted);
+
+  /* ========================================================================
+     Legacy role names — kept so the ~1,800 existing utility usages
+     (bg-cream, text-forest, border-stone-light…) keep working. Each is
+     now only an alias onto the palette above; no HEX lives here.
+     ======================================================================== */
+
   /* --- Surfaces --------------------------------------------------------- */
-  --color-cream: #ffffff;       /* page background — white */
-  --color-cream-deep: #f7f7f5;  /* alternating-section background — neutral near-white */
-  --color-paper: #fffdf8;       /* card / raised-surface background */
-  --color-paper-soft: #f5f5f3;  /* subtle recessed surface (inputs, wells) — neutral near-white */
+  --color-cream: var(--color-background);       /* page background */
+  --color-cream-deep: var(--color-surface-alt); /* alternating-section background */
+  --color-paper: var(--color-surface);          /* card / raised-surface background */
+  --color-paper-soft: var(--color-surface-muted); /* subtle recessed surface (inputs, wells) */
 
   /* --- Ink (text) --------------------------------------------------------
-     Warm near-black rather than pure black — softer, more human. */
-  --color-ink: #2a2318;
-  --color-ink-soft: #5c5344;
-  --color-ink-faint: #8a8072;
-  --color-ink-on-dark: #f8f2e6;
+     Riseley has one secondary grey, so the soft and faint steps share it —
+     hierarchy there comes from size/weight, not from lighter text. */
+  --color-ink: var(--color-text);
+  --color-ink-soft: var(--color-text-muted);
+  --color-ink-faint: var(--color-text-muted);
+  --color-ink-on-dark: var(--color-text-on-primary);
 
   /* --- Forest (primary brand green) -------------------------------------
-     Buttons, links, active nav, primary icons. */
-  --color-forest: #133125;
-  /* Must stay darker than --color-forest: it is the hover/pressed step
-     for it (hover:text-forest-dark on links, bg-forest-dark panels). The
-     old #1f3329 was lighter than the new forest, which would have made
-     every hover lift instead of deepen. */
-  --color-forest-dark: #0b1d16;
-  --color-forest-light: #6e8f73;
-  --color-moss: #8fa37a;
-  --color-moss-light: #e3ead9;
+     Buttons, links, active nav, primary icons. forest-dark is the
+     hover/pressed step and must stay darker than forest. */
+  --color-forest: var(--color-primary);
+  --color-forest-dark: var(--color-primary-dark);
+  --color-forest-light: var(--color-primary-light);
+  --color-moss: var(--color-primary-light);
+  --color-moss-light: var(--color-surface-tint);
 
-  /* --- Terracotta (earth accent) -----------------------------------------
-     Village-square CTAs ("Bu gün kənddə"), stat highlights, secondary
-     emphasis. Warm clay, not corporate orange. */
-  --color-terracotta: #b15e3b;
-  --color-terracotta-dark: #8f4a2d;
-  --color-clay-light: #f1ddc4;
+  /* --- Terracotta (accent) ------------------------------------------------
+     Riseley's accent is its primary green, so the old clay accent now
+     resolves to it: primary buttons, eyebrows, stat icons, the
+     "Kəndin meydanı" / stats bands (clay-light). */
+  --color-terracotta: var(--color-accent);
+  --color-terracotta-dark: var(--color-primary-dark);
+  --color-clay-light: var(--color-surface-tint);
 
-  /* --- Gold (sunlight accent) --------------------------------------------
-     Used sparingly: featured markers, highlights, "bir hekayə" moments. */
-  --color-gold: #c99a3e;
-  --color-gold-dark: #a67c2c;
-  --color-gold-light: #f4e6bf;
+  /* --- Gold (highlight) ---------------------------------------------------
+     Featured markers, active filter chips, text selection. */
+  --color-gold: var(--color-primary-light);
+  --color-gold-dark: var(--color-primary-dark);
+  --color-gold-light: var(--color-surface-tint);
 
   /* --- Stone (neutral / borders) ------------------------------------------ */
-  --color-stone: #a79c89;
-  --color-stone-light: #e4dcc9;
-  --color-stone-dark: #6b6152;
+  --color-stone: var(--color-primary-light);  /* stronger rule — input outlines, timeline nodes */
+  --color-stone-light: var(--color-border);   /* hairline borders & dividers */
+  --color-stone-dark: var(--color-text);
 
   /* --- Memorial / calm palette (Xatirə) -----------------------------------
-     Deliberately muted and desaturated — never the lively site accent. */
-  --color-memorial-bg: #f4f4f2;
-  --color-memorial-surface: #fafaf9;
-  --color-memorial-ink: #4a463e;
-  --color-memorial-accent: #7c8a82;
-  --color-memorial-line: #dcd7ca;
+     Kept neutral grey rather than green — never the lively site accent. */
+  --color-memorial-bg: var(--color-surface-alt);
+  --color-memorial-surface: var(--color-surface-muted);
+  --color-memorial-ink: var(--color-text);
+  --color-memorial-accent: var(--color-text-muted);
+  --color-memorial-line: var(--color-border);
 
   /* --- Parchment / archival-document palette (Tariximiz event card) -------
-     Own dedicated palette, same reasoning as Memorial above: the History
-     Timeline's event card is meant to feel like a preserved document, not
-     another CMS card, so it gets its own restrained accent pair rather than
-     the everyday --color-forest/terracotta. Used only within that one card
-     — never spread across the surrounding page. */
-  --color-parchment: #fafaf9;             /* timeline detail panel base — neutral near-white, one step above the cream-deep band it sits on */
-  --color-parchment-accent-ink: #1f3438;  /* deep teal — rules, small accents, active states */
-  --color-parchment-accent: #6e9c90;      /* sage — secondary accent, used sparingly */
-  --color-parchment-line: #cdbb95;        /* hairline divider/border tone */
+     The History Timeline's event card; used only within that one card. */
+  --color-parchment: var(--color-surface-muted);         /* timeline detail panel base */
+  --color-parchment-accent-ink: var(--color-primary);    /* rules, small accents, active states */
+  --color-parchment-accent: var(--color-primary-light);  /* secondary accent, used sparingly */
+  --color-parchment-line: var(--color-border);           /* hairline divider/border tone */
 
-  /* --- Status (muted — no news-red, no corporate blue) -------------------- */
-  --color-success: #4c7a52;
-  --color-success-bg: #e7f0e3;
+  /* --- Status --------------------------------------------------------------
+     Success maps onto the palette. Warning / danger / info have no
+     Riseley equivalent and carry meaning (form errors, notices), so they
+     keep their own functional values rather than turning green. */
+  --color-success: var(--color-primary);
+  --color-success-bg: var(--color-surface-tint);
   --color-warning: #ad7c25;
   --color-warning-bg: #f6ecd4;
   --color-danger: #a8482f;
@@ -91,8 +118,8 @@
   --radius-full: 9999px;
 
   /* --- Shadows --------------------------------------------------------------
-     Warm-tinted (brown, not cold gray) soft elevation. */
-  --shadow-color: 30 20% 20%;
+     Neutral black, as Riseley's own overlays are. */
+  --shadow-color: 0 0% 0%;
   --shadow-sm: 0 1px 2px hsl(var(--shadow-color) / 0.06),
     0 1px 1px hsl(var(--shadow-color) / 0.04);
   --shadow-md: 0 6px 16px -4px hsl(var(--shadow-color) / 0.14),
@@ -100,10 +127,12 @@
   --shadow-lg: 0 16px 32px -8px hsl(var(--shadow-color) / 0.18),
     0 6px 12px -4px hsl(var(--shadow-color) / 0.1);
   --shadow-photo: 0 20px 40px -12px hsl(var(--shadow-color) / 0.28);
+  /* Upward shadow for the sticky save bar at the foot of admin forms. */
+  --shadow-sticky-bar: 0 -4px 12px -6px hsl(var(--shadow-color) / 0.12);
 
   /* --- Focus ring ----------------------------------------------------------
-     Accessible, warm-toned focus indicator (not corporate blue). */
-  --ring-color: #b15e3b;
+     Riseley marks focused inputs with its primary green. */
+  --ring-color: var(--color-primary);
 }
 
 /* ==========================================================================
@@ -111,6 +140,25 @@
    (bg-cream, text-forest, rounded-lg, shadow-photo, font-display, etc.)
    ========================================================================== */
 @theme inline {
+  /* Semantic palette — preferred for new work (bg-primary, text-text-muted,
+     border-border, bg-surface-tint…). */
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-tint: var(--color-surface-tint);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-surface-alt: var(--color-surface-alt);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-on-primary: var(--color-text-on-primary);
+  --color-border: var(--color-border);
+  --color-accent: var(--color-accent);
+  --color-link: var(--color-link);
+  --color-link-hover: var(--color-link-hover);
+
+  /* Legacy role names (aliases of the palette above). */
   --color-cream: var(--color-cream);
   --color-cream-deep: var(--color-cream-deep);
   --color-paper: var(--color-paper);
@@ -169,6 +217,7 @@
   --shadow-md: var(--shadow-md);
   --shadow-lg: var(--shadow-lg);
   --shadow-photo: var(--shadow-photo);
+  --shadow-sticky-bar: var(--shadow-sticky-bar);
 
   /* Both point at the same face (Poppins — see lib/fonts.ts). The two
      tokens are kept distinct so a separate heading typeface can be
@@ -219,7 +268,7 @@ h3,
   letter-spacing: -0.01em;
 }
 
-/* Accessible, warm-toned focus ring for every interactive element. */
+/* Accessible focus ring for every interactive element. */
 :focus-visible {
   outline: 2px solid var(--ring-color);
   outline-offset: 2px;
