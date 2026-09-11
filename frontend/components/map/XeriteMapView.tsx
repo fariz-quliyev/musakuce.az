@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Badge } from "@/components/ui/Badge";
@@ -95,6 +95,49 @@ export function XeriteMapView({ places, isLive }: Props) {
       {selectedPlace ? (
         <SelectedPlaceCard place={selectedPlace} onClose={() => setSelectedId(null)} />
       ) : null}
+    </div>
+  );
+}
+
+/**
+ * The homepage "Musaküçə xəritədə" map — the same real map and markers as
+ * /xerite, in PlacesMap's preview mode. Lives here because this module is
+ * already the client boundary that loads Leaflet via next/dynamic.
+ *
+ * Mounted only once it comes within ~400px of the viewport, so visitors
+ * who never scroll that far don't download Leaflet or any map tiles. The
+ * box keeps its size throughout (height comes from `className`), so the
+ * swap causes no layout shift. `isolate` keeps Leaflet's high z-index
+ * panes and controls from painting over the sticky header.
+ */
+export function PlacesMapPreview({ places, className }: { places: PlaceDto[]; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setNear(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "400px 0px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      role="region"
+      aria-label="Musaküçə xəritəsi"
+      className={cn("isolate w-full overflow-hidden rounded-sm border border-border bg-surface-tint", className)}
+    >
+      {near ? <PlacesMap places={places} preview /> : null}
     </div>
   );
 }

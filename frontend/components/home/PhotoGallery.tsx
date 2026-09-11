@@ -4,10 +4,13 @@ import { HomeSection } from "@/components/home/HomeSection";
 import { fetchHomeGallery } from "@/lib/homeGallery";
 import { cn } from "@/lib/cn";
 
+// Two columns on phones for every count but one. Three photos on a phone
+// lead with the first at full width (as the mosaic does) rather than
+// leaving a lone half-width photo on the last row.
 const GRID_COLUMNS: Record<number, string> = {
   1: "grid-cols-1",
-  2: "grid-cols-1 sm:grid-cols-2",
-  3: "grid-cols-1 sm:grid-cols-3",
+  2: "grid-cols-2",
+  3: "grid-cols-2 sm:grid-cols-3",
   4: "grid-cols-2 lg:grid-cols-4",
   6: "grid-cols-2 lg:grid-cols-3",
 };
@@ -18,6 +21,10 @@ const GRID_COLUMNS: Record<number, string> = {
  * its layout come from lib/homeGallery.ts (mosaic from 8 photos up, an
  * even grid below that). This section owns those photos on the
  * homepage; "Musaküçədən" above leaves them out.
+ *
+ * TODO(content): the published photos' originals are ~475px wide, which
+ * looks soft on high-density screens. Re-upload them (admin → Fotoalbom)
+ * at ≥1200px on the long edge. Content only — no code change needed.
  */
 export async function PhotoGallery() {
   const { photos, layout } = await fetchHomeGallery();
@@ -35,6 +42,7 @@ export async function PhotoGallery() {
       >
         {photos.map((photo, i) => {
           const lead = mosaic && i === 0;
+          const mobileLead = !mosaic && photos.length === 3 && i === 0;
           return (
             <Link
               key={photo.id}
@@ -43,6 +51,7 @@ export async function PhotoGallery() {
               className={cn(
                 "group relative block overflow-hidden rounded-lg bg-surface-tint",
                 lead ? "col-span-2 aspect-[4/3] lg:row-span-2 lg:aspect-auto" : "aspect-[4/3]",
+                mobileLead && "col-span-2 sm:col-span-1",
               )}
             >
               <VillagePhoto
@@ -51,7 +60,13 @@ export async function PhotoGallery() {
                 tone="warm"
                 placeholderLabel={photo.title}
                 imageClassName="transition-transform duration-300 group-hover:scale-[1.02]"
-                sizes={lead ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1024px) 33vw, 50vw"}
+                sizes={
+                  lead
+                    ? "(min-width: 1024px) 50vw, 100vw"
+                    : mobileLead
+                      ? "(min-width: 640px) 33vw, 100vw"
+                      : "(min-width: 1024px) 33vw, 50vw"
+                }
               />
             </Link>
           );

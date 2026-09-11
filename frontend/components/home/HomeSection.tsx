@@ -43,13 +43,16 @@ export function HomeSection({ title, description, cta, band = "plain", id, class
   );
 }
 
-/** Text link with a trailing arrow — the homepage's one CTA style. */
+/** Text link with a trailing arrow — the homepage's one CTA style.
+ * `py-3 -my-3` grows the tappable box to 44px tall (20px text + 24px)
+ * while the negative margin cancels it out, so the link looks and sits
+ * exactly as before. */
 export function ArrowLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
   return (
     <Link
       href={href}
       className={cn(
-        "group inline-flex items-center gap-1.5 text-sm font-semibold text-link transition-colors hover:text-link-hover",
+        "group -my-3 inline-flex items-center gap-1.5 py-3 text-sm font-semibold text-link transition-colors hover:text-link-hover",
         className,
       )}
     >

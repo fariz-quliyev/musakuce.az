@@ -25,6 +25,14 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * The weather card sits top-right at sm+ and top-left on mobile, placed
  * last in the markup so it never out-ranks the greeting for assistive
  * tech.
+ *
+ * Overlay: from-ink/85 via-ink/45 — the lightest pair measured to keep
+ * white text readable over the live photo's brightest patches (heading
+ * ≥3:1, subtitle ≥4.5:1 at every sampled pixel; it was 2.3:1 and 4.0:1).
+ *
+ * TODO(content): the current hero photo's original is 1254px wide and is
+ * upscaled on wide screens. Upload a ≥2400px-wide photo in the admin
+ * (Kəndimiz → hero şəkli). Content only — no code change needed.
  */
 export async function Hero() {
   const { data: profile, isLive } = await withFallback(
@@ -50,7 +58,7 @@ export async function Hero() {
           priority
           sizes="100vw"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/30 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/45 to-transparent" />
       </div>
 
       <div className="relative mx-auto w-full max-w-6xl px-5 pb-10 sm:px-8 sm:pb-14">

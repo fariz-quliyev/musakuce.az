@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { MapContainer, TileLayer, LayersControl, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { createPlaceIcon, createUserLocationIcon } from "./placeMarkerIcon";
 import { placeCategoryLabels } from "@/lib/api/labels";
@@ -73,9 +74,20 @@ function LocateControl() {
 
 type Props = {
   places: PlaceDto[];
-  selectedId: string | null;
-  onSelect: (place: PlaceDto) => void;
+  selectedId?: string | null;
+  onSelect?: (place: PlaceDto) => void;
+  /**
+   * Homepage preview mode: the street layer only (no layer switcher, no
+   * "Yerimi göstər"), framed to fit every published place, and it never
+   * captures page scrolling — no wheel zoom, and no one-finger drag on
+   * touch screens, where it would trap the visitor's scroll. Markers and
+   * their popups work as on /xerite; the +/− buttons still zoom.
+   */
+  preview?: boolean;
 };
+
+const STREET_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri';
+const STREET_TILES = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
 
 /**
  * Real Leaflet map (OpenStreetMap street tiles + Esri satellite +
@@ -85,44 +97,56 @@ type Props = {
  * for `window`/`document` at module init, which breaks SSR/hydration if
  * imported any other way.
  */
-export function PlacesMap({ places, selectedId, onSelect }: Props) {
+export function PlacesMap({ places, selectedId = null, onSelect, preview = false }: Props) {
+  // react-leaflet only fits `bounds` when center/zoom are absent, so the
+  // preview passes one or the other. Client-only module: window is safe.
+  const fitToPlaces = preview && places.length > 0;
+  const bounds = fitToPlaces
+    ? L.latLngBounds([VILLAGE_CENTER, ...places.map((p): [number, number] => [p.latitude, p.longitude])])
+    : undefined;
+  const isTouch = window.matchMedia("(pointer: coarse)").matches;
+
   return (
     <MapContainer
-      center={VILLAGE_CENTER}
-      zoom={INITIAL_ZOOM}
+      center={fitToPlaces ? undefined : VILLAGE_CENTER}
+      zoom={fitToPlaces ? undefined : INITIAL_ZOOM}
+      bounds={bounds}
+      boundsOptions={{ padding: [40, 40], maxZoom: 16 }}
       minZoom={12}
       maxZoom={18}
-      scrollWheelZoom
+      scrollWheelZoom={!preview}
+      dragging={!(preview && isTouch)}
       style={{ height: "100%", width: "100%" }}
     >
-      <LayersControl position="topleft">
-        <LayersControl.BaseLayer checked name="Standart">
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Peyk">
-          <TileLayer
-            attribution="&copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-            maxNativeZoom={18}
-          />
-        </LayersControl.BaseLayer>
-        <LayersControl.BaseLayer name="Relyef">
-          <TileLayer
-            attribution='Xəritə: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA) &mdash; Data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri, SRTM'
-            url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-            maxNativeZoom={17}
-          />
-        </LayersControl.BaseLayer>
-      </LayersControl>
+      {preview ? (
+        <TileLayer attribution={STREET_ATTRIBUTION} url={STREET_TILES} />
+      ) : (
+        <LayersControl position="topleft">
+          <LayersControl.BaseLayer checked name="Standart">
+            <TileLayer attribution={STREET_ATTRIBUTION} url={STREET_TILES} />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Peyk">
+            <TileLayer
+              attribution="&copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              maxNativeZoom={18}
+            />
+          </LayersControl.BaseLayer>
+          <LayersControl.BaseLayer name="Relyef">
+            <TileLayer
+              attribution='Xəritə: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA) &mdash; Data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> müəllifləri, SRTM'
+              url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+              maxNativeZoom={17}
+            />
+          </LayersControl.BaseLayer>
+        </LayersControl>
+      )}
       {places.map((place) => (
         <Marker
           key={place.id}
           position={[place.latitude, place.longitude]}
           icon={createPlaceIcon(place.kind, place.category, place.id === selectedId)}
-          eventHandlers={{ click: () => onSelect(place) }}
+          eventHandlers={onSelect ? { click: () => onSelect(place) } : undefined}
         >
           <Popup>
             <div className="min-w-[160px] max-w-[220px]">
@@ -137,7 +161,7 @@ export function PlacesMap({ places, selectedId, onSelect }: Props) {
           </Popup>
         </Marker>
       ))}
-      <LocateControl />
+      {preview ? null : <LocateControl />}
     </MapContainer>
   );
 }

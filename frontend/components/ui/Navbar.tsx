@@ -85,7 +85,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
           <Link
             href="/axtaris"
             aria-label="Axtarış"
-            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest"
+            className="grid h-11 w-11 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest"
           >
             <svg
               aria-hidden
@@ -108,7 +108,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
             aria-label={open ? "Menyunu bağla" : "Menyunu aç"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest lg:hidden"
+            className="grid h-11 w-11 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest lg:hidden"
           >
             <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-5 w-5">
               {open ? (

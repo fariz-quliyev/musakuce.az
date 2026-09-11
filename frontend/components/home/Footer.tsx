@@ -45,9 +45,11 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="border-t border-stone-light bg-cream-deep">
-      {/* Brand + contact (2 columns) + four link columns = 6. */}
-      <Container className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-6">
-        <div className="sm:col-span-2">
+      {/* Brand + contact (2 columns) + four link columns = 6 on desktop;
+          on phones the brand spans the width and the four link groups sit
+          two by two, instead of five blocks stacked one per row. */}
+      <Container className="grid grid-cols-2 gap-x-6 gap-y-8 py-10 lg:grid-cols-6">
+        <div className="col-span-2">
           <p className="font-display text-xl font-semibold text-forest">
             MUSAKÜÇƏ.AZ
           </p>
@@ -68,12 +70,14 @@ export function Footer() {
             <h3 className="mb-2.5 text-sm font-semibold text-ink">
               {col.title}
             </h3>
-            <ul className="space-y-1.5">
+            {/* Below sm each link is a 44px-tall row (the tap-target
+                minimum); from sm up the list keeps its compact spacing. */}
+            <ul className="sm:space-y-1.5">
               {col.links.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
-                    className="text-sm text-ink-soft transition-colors hover:text-forest"
+                    className="flex min-h-11 items-center text-sm text-ink-soft transition-colors hover:text-forest sm:inline sm:min-h-0"
                   >
                     {link.label}
                   </Link>
@@ -89,7 +93,10 @@ export function Footer() {
           <p>© {new Date().getFullYear()} Musaküçə.az — kəndimizin rəqəmsal evi.</p>
           <div className="flex items-center gap-4">
             <p>Tarixi məlumatların mənbələri hər səhifədə ayrıca qeyd olunur.</p>
-            <Link href="/mexfilik-siyaseti" className="shrink-0 hover:text-forest hover:underline">
+            <Link
+              href="/mexfilik-siyaseti"
+              className="inline-flex min-h-11 shrink-0 items-center hover:text-forest hover:underline sm:min-h-0"
+            >
               Məxfilik siyasəti
             </Link>
           </div>
