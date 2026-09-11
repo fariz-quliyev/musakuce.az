@@ -11,6 +11,10 @@ const cardStyles = cva("overflow-hidden rounded-lg border transition-shadow", {
        *  slightly warmer surface so it never reads as a marketplace. */
       square:
         "border-clay-light bg-paper shadow-sm hover:shadow-md",
+      /** Homepage — Riseley-style: hairline border, no shadow; hover
+       *  only firms up the border. */
+      flat:
+        "border-border bg-surface shadow-none hover:border-primary-light",
       /** Xatirə/memorial — calm, muted, no hover-lift, no bright shadow. */
       memorial:
         "border-memorial-line bg-memorial-surface shadow-none",

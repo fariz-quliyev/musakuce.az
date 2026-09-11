@@ -110,11 +110,13 @@
   --color-info-bg: #e2edf0;
 
   /* --- Radii --------------------------------------------------------------
-     Soft, generous rounding — "modern heritage", never sharp/corporate. */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.875rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
+     Small and quiet, after Riseley (5px buttons, 6px gallery photos,
+     square cards) — rounding should never be what a component is
+     noticed for. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.3125rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
   --radius-full: 9999px;
 
   /* --- Shadows --------------------------------------------------------------

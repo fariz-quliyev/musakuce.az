@@ -194,7 +194,7 @@ export default async function KendimizPage() {
           <div className="grid grid-cols-2 gap-3 sm:h-[320px] sm:grid-cols-4 sm:grid-rows-2 sm:gap-3">
             <div
               className={cn(
-                "relative col-span-2 overflow-hidden rounded-2xl shadow-lg",
+                "relative col-span-2 overflow-hidden rounded-xl shadow-lg",
                 smallPhotos.length > 0 ? "aspect-[4/3] sm:col-span-2 sm:row-span-2 sm:aspect-auto" : "aspect-[16/10] sm:col-span-4 sm:row-span-2 sm:aspect-auto",
               )}
             >
@@ -285,7 +285,7 @@ export default async function KendimizPage() {
                 </p>
               ) : null}
             </div>
-            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-md">
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-md">
               <VillagePhoto
                 src={profile.heroImageUrl ?? "/images/village/hero-demo.jpg"}
                 alt={heroAlt}
@@ -311,7 +311,7 @@ export default async function KendimizPage() {
       {/* Adın mənşəyi */}
       {profile.nameOriginNarrative ? (
         <Container as="section" className="py-10 sm:py-14">
-          <div className="rounded-2xl border border-stone-light bg-paper-soft p-6 sm:p-10">
+          <div className="rounded-xl border border-stone-light bg-paper-soft p-6 sm:p-10">
             <div className={cn("grid gap-8", hasNameOriginAside && "lg:grid-cols-[1fr_220px]")}>
               <div>
                 <SectionHeading eyebrow="Rəvayət" title="Adın mənşəyi" />

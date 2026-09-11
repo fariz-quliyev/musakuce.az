@@ -47,7 +47,7 @@ export function SectionHeading({
       ) : null}
       <Heading
         className={cn(
-          "font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] text-balance",
+          "font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] font-semibold text-balance",
           isMemorial ? "text-memorial-ink" : "text-ink",
         )}
       >
