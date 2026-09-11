@@ -31,7 +31,7 @@ export const VILLAGE_PROFILE_FALLBACK: VillageProfileDto = {
   heroMediaAssetId: null,
   heroImageUrl: null,
   ctaText: "Kəndimizi tanı",
-  ctaLink: "#kendimiz",
+  ctaLink: "/kendimiz",
   logoMediaAssetId: null,
   logoImageUrl: null,
   contactInfo: null,

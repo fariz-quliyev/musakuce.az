@@ -60,8 +60,8 @@ const DIRECTIONS = [
  * "Musaküçə haqqında" — the homepage's version of Riseley's "Village
  * Information" row: four signposts into the inner pages, no long copy.
  * The only prose is the admin's one-line VillageProfile.shortDescription,
- * shown when set. Keeps the `kendimiz` anchor, which the hero button's
- * default admin link (`#kendimiz`) points at.
+ * shown when set. Keeps the `kendimiz` anchor so any existing
+ * `/#kendimiz` link still lands here.
  */
 export async function AboutVillage() {
   const { data: profile, isLive } = await withFallback(
