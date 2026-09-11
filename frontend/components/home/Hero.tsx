@@ -12,7 +12,7 @@ import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
  * Welcome hero, after Riseley's "Welcome to Riseley": one village photo,
  * a greeting, one line, one button. Deliberately bounded in height (a
  * fixed min-height per breakpoint rather than a share of the viewport)
- * so the first screen also shows the start of "Son xəbərlər" instead of
+ * so the first screen also shows the start of the next section instead of
  * being all hero.
  *
  * The photo is admin-managed (VillageProfile.heroImageUrl). The button

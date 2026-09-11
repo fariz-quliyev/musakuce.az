@@ -21,7 +21,7 @@ const PAGE_SIZE = 12;
 
 /**
  * The full "Kəndimizdən" feed (see lib/villageUpdates.ts) — the same
- * source as the homepage's "Son xəbərlər", just a larger page. Falls
+ * source as the homepage's "Musaküçədən" section, just a larger page. Falls
  * back to the placeholder bulletin only if the API is unreachable.
  */
 export default async function KendimizdenPage() {

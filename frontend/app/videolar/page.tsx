@@ -3,6 +3,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { VideosBrowser } from "@/components/videos/VideosBrowser";
+import { MediaTabs } from "@/components/photos/MediaTabs";
 import { videosApi } from "@/lib/api/videos";
 import { withFallback } from "@/lib/api/withFallback";
 import { buildPageMetadata } from "@/lib/seo";
@@ -47,11 +48,12 @@ export default async function VideolarPage() {
       <Container className="py-16 sm:py-20">
         <SectionHeading
           as="h1"
-          eyebrow="Video arxivi"
+          eyebrow="Fotoalbom"
           title="Videolar"
           description="Kənd həyatından görüntülər, söhbətlər və xatirələr."
-          className="mb-10"
+          className="mb-8"
         />
+        <MediaTabs active="video" />
 
         <VideosBrowser initialData={videos} initialIsLive={isLive} />
       </Container>

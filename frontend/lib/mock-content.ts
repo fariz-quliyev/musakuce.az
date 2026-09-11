@@ -12,7 +12,7 @@
  * Scope note: the homepage sections for listings, local info, events,
  * photos, people, history and voices are now served by the real API
  * (see `lib/api/*` + `withFallback`), so their mock fixtures were
- * removed. Only the "Kəndimizdən" feed (homepage "Son xəbərlər" and
+ * removed. Only the "Kəndimizdən" feed (homepage "Musaküçədən" and
  * /kendimizden) still falls back here.
  */
 

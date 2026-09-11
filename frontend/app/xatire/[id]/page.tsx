@@ -64,6 +64,7 @@ export default async function MemorialDetailPage({ params }: Props) {
   const deathYear = formatYear(record.deathDate);
   const breadcrumbItems = [
     { name: "Ana səhifə", path: "/" },
+    { name: "Tariximiz", path: "/tariximiz" },
     { name: "Xatirə", path: "/xatire" },
     { name: record.fullName, path: `/xatire/${record.id}` },
   ];

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { MemorialBrowser } from "@/components/memorial/MemorialBrowser";
 import { memorialApi } from "@/lib/api/memorial";
 import { withFallback } from "@/lib/api/withFallback";
@@ -31,6 +32,14 @@ export default async function XatirePage() {
     <PageShell>
       <div className="bg-memorial-bg">
         <Container className="py-16 sm:py-20">
+          <Breadcrumbs
+            tone="memorial"
+            items={[
+              { name: "Ana səhifə", path: "/" },
+              { name: "Tariximiz", path: "/tariximiz" },
+              { name: "Xatirə", path: "/xatire" },
+            ]}
+          />
           <SectionHeading
             as="h1"
             eyebrow="Ehtiramla xatırlayırıq"

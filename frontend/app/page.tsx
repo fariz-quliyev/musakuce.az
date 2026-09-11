@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/ui/Navbar";
 import { Hero } from "@/components/home/Hero";
-import { LatestNews } from "@/components/home/LatestNews";
+import { FromVillage } from "@/components/home/FromVillage";
 import { AboutVillage } from "@/components/home/AboutVillage";
 import { VillageSquare } from "@/components/home/VillageSquare";
 import { PhotoGallery } from "@/components/home/PhotoGallery";
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
 /**
  * Homepage — a doorway, not an archive (after riseleyparishcouncil.gov.uk):
  * each section shows a small taste and hands off to its inner page.
- * Order: welcome → news → about → village life → photos → people →
+ * Order: welcome → village updates → about → village life → photos → people →
  * history → map → contribute. Detail lives on the inner pages.
  */
 export default async function Home() {
@@ -59,7 +59,7 @@ export default async function Home() {
       <Navbar logoImageUrl={profile.logoImageUrl} />
       <main className="flex-1">
         <Hero />
-        <LatestNews />
+        <FromVillage />
         <AboutVillage />
         <VillageSquare />
         <PhotoGallery />

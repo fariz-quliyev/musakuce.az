@@ -75,6 +75,7 @@ export default async function InterviewDetailPage({ params }: Props) {
   const embedUrl = interviewEmbedUrl(interview);
   const breadcrumbItems = [
     { name: "Ana səhifə", path: "/" },
+    { name: "Tariximiz", path: "/tariximiz" },
     { name: "Kəndimizin səsi", path: "/kendimizin-sesi" },
     { name: interview.personName, path: `/kendimizin-sesi/${interview.id}` },
   ];

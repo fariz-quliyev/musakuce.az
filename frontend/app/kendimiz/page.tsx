@@ -188,7 +188,13 @@ export default async function KendimizPage() {
         {!profileIsLive ? <DataSourceNote isLive={profileIsLive} /> : null}
         <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-12">
           <div>
-            <SectionHeading as="h1" eyebrow="Musaküçə haqqında" title={profile.villageName} description={profile.tagline ?? undefined} />
+            {/* villageName is admin-entered and can be blank — never render an empty h1. */}
+            <SectionHeading
+              as="h1"
+              eyebrow="Musaküçə haqqında"
+              title={profile.villageName.trim() || "Musaküçə"}
+              description={profile.tagline ?? undefined}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:h-[320px] sm:grid-cols-4 sm:grid-rows-2 sm:gap-3">
@@ -349,6 +355,28 @@ export default async function KendimizPage() {
           </div>
         </Container>
       ) : null}
+
+      {/* Mədəni irs — a sub-section of Kəndimiz (its own page, not a
+          header item); /medeniyyet's eyebrow and breadcrumbs point back here. */}
+      <Container as="section" className="pb-10 sm:pb-14">
+        <Link
+          href="/medeniyyet"
+          className="group flex flex-col gap-4 rounded-lg border border-transparent bg-surface-tint p-6 transition-colors hover:border-primary-light sm:flex-row sm:items-center sm:justify-between sm:p-8"
+        >
+          <div>
+            <h2 className="font-display text-[length:var(--text-h3)] leading-[var(--text-h3--line-height)] font-semibold text-text">
+              Mədəni irs
+            </h2>
+            <p className="mt-1.5 max-w-xl text-sm leading-relaxed text-text-muted">
+              Ənənələr, sənətkarlıq, folklor, mətbəx və adətlər — nəsildən-nəslə keçən yerli bilik.
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary">
+            Mədəni irsə bax
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+          </span>
+        </Link>
+      </Container>
 
       {/* Kəndin yaddaşı */}
       <Container as="section" className="pb-10 sm:pb-14">

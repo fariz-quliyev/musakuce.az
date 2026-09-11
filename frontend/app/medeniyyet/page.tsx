@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { CulturalHeritageBrowser } from "@/components/culturalHeritage/CulturalHeritageBrowser";
 import { culturalHeritageApi } from "@/lib/api/culturalHeritage";
 import { withFallback } from "@/lib/api/withFallback";
@@ -31,6 +32,13 @@ export default async function MedeniyyetPage() {
   return (
     <PageShell>
       <Container className="py-16 sm:py-20">
+        <Breadcrumbs
+          items={[
+            { name: "Ana səhifə", path: "/" },
+            { name: "Kəndimiz", path: "/kendimiz" },
+            { name: "Mədəni irs", path: "/medeniyyet" },
+          ]}
+        />
         <SectionHeading
           as="h1"
           eyebrow="Mədəni irs"

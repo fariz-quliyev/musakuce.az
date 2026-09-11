@@ -110,11 +110,15 @@ export default async function TariximizPage() {
 
         <HistoryBrowser initialData={{ ...events, items: events.items.map(withPublicDescription) }} initialIsLive={isLive} />
 
+        {/* Xatirə and Kəndimizin səsi live under Tariximiz (the Navbar
+            highlights Tariximiz on both, and their breadcrumbs lead back
+            here) — this block is their doorway from the history page. */}
         <RelatedSections
+          title="Kəndin yaddaşı"
           sections={[
-            { href: "/fotoalbom", label: "Fotoalbom", description: "Köhnə və müasir Musaküçədən şəkillər" },
-            { href: "/insanlarimiz", label: "İnsanlarımız", description: "Musaküçəni tanıdan adlar" },
             { href: "/xatire", label: "Xatirə", description: "Aramızdan ayrılan sakinlərimizi xatırladığımız arxiv" },
+            { href: "/kendimizin-sesi", label: "Kəndimizin səsi", description: "Sakinlərimizin öz sözləri ilə xatirələr və hekayələr" },
+            { href: "/insanlarimiz", label: "İnsanlarımız", description: "Musaküçəni tanıdan adlar" },
           ]}
         />
       </Container>

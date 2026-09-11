@@ -1,62 +1,39 @@
 import Link from "next/link";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { HomeSection } from "@/components/home/HomeSection";
-import { photosApi } from "@/lib/api/photos";
-import { withFallback } from "@/lib/api/withFallback";
-import { fetchVillageUpdates, HOME_NEWS_COUNT } from "@/lib/villageUpdates";
-import { HOMEPAGE_REVALIDATE_SECONDS } from "@/lib/homepageCache";
+import { fetchHomeGallery } from "@/lib/homeGallery";
 import { cn } from "@/lib/cn";
-import type { PhotoDto } from "@/lib/api/types";
 
-const FALLBACK_PHOTOS: PhotoDto[] = [];
-const SHOWN = 5;
+const GRID_COLUMNS: Record<number, string> = {
+  1: "grid-cols-1",
+  2: "grid-cols-1 sm:grid-cols-2",
+  3: "grid-cols-1 sm:grid-cols-3",
+  4: "grid-cols-2 lg:grid-cols-4",
+  6: "grid-cols-2 lg:grid-cols-3",
+};
 
 /**
- * "Musaküçədən görüntülər" — after Riseley's Gallery band: photos only,
- * no captions or decoration. Five or more photos form a mosaic (one
- * large + four small); fewer fall back to an even grid so the layout
- * never shows empty cells.
- *
- * Photos already shown in "Son xəbərlər" just above are left out, so the
- * gallery only shows pictures the visitor hasn't seen yet. The one
- * exception: when every published photo is already in the news row (a
- * young archive), the gallery shows them anyway rather than vanishing.
+ * "Musaküçədən görüntülər" — after Riseley's Gallery band: photos from
+ * the Photo archive only, no captions or decoration. The selection and
+ * its layout come from lib/homeGallery.ts (mosaic from 8 photos up, an
+ * even grid below that). This section owns those photos on the
+ * homepage; "Musaküçədən" above leaves them out.
  */
 export async function PhotoGallery() {
-  const [{ data: photos }, shownInNews] = await Promise.all([
-    withFallback(
-      () =>
-        photosApi
-          .getPaged({ publicationStatus: "Published", pageSize: SHOWN + HOME_NEWS_COUNT }, HOMEPAGE_REVALIDATE_SECONDS)
-          .then((r) => r.items),
-      FALLBACK_PHOTOS,
-    ),
-    fetchVillageUpdates(HOME_NEWS_COUNT, HOMEPAGE_REVALIDATE_SECONDS)
-      .then((updates) => new Set(updates.slice(0, HOME_NEWS_COUNT).map((u) => u.sourceId)))
-      .catch(() => new Set<string | undefined>()),
-  ]);
+  const { photos, layout } = await fetchHomeGallery();
+  if (photos.length === 0) return null;
 
-  const unseen = photos.filter((p) => !shownInNews.has(p.id));
-  const shown = (unseen.length > 0 ? unseen : photos).slice(0, SHOWN);
-  if (shown.length === 0) return null;
-
-  const mosaic = shown.length >= SHOWN;
+  const mosaic = layout === "mosaic";
 
   return (
     <HomeSection band="alt" title="Musaküçədən görüntülər" cta={{ label: "Bütün fotolara bax", href: "/fotoalbom" }}>
       <div
         className={cn(
           "grid gap-3 sm:gap-4",
-          mosaic
-            ? "grid-cols-2 lg:grid-cols-4 lg:grid-rows-2"
-            : shown.length === 1
-              ? "grid-cols-1"
-              : shown.length === 2
-                ? "grid-cols-1 sm:grid-cols-2"
-                : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+          mosaic ? "grid-cols-2 lg:grid-cols-4 lg:grid-rows-2" : GRID_COLUMNS[photos.length],
         )}
       >
-        {shown.map((photo, i) => {
+        {photos.map((photo, i) => {
           const lead = mosaic && i === 0;
           return (
             <Link
@@ -74,7 +51,7 @@ export async function PhotoGallery() {
                 tone="warm"
                 placeholderLabel={photo.title}
                 imageClassName="transition-transform duration-300 group-hover:scale-[1.02]"
-                sizes={lead ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 50vw"}
+                sizes={lead ? "(min-width: 1024px) 50vw, 100vw" : "(min-width: 1024px) 33vw, 50vw"}
               />
             </Link>
           );

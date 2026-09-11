@@ -1,32 +1,43 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 
+// Grouped the way the site is organised (see PRIMARY_NAV in Navbar.tsx):
+// every page appears under the header section it belongs to, so nothing
+// here is a stray link — Mədəni irs under Kəndimiz, Xatirə and
+// Kəndimizin səsi under Tarix və yaddaş, Videolar beside Fotoalbom.
 const COLUMNS = [
   {
-    title: "Kəşf et",
+    title: "Kəndimiz",
     links: [
       { label: "Kəndimiz", href: "/kendimiz" },
-      { label: "Tariximiz", href: "/tariximiz" },
-      { label: "İnsanlarımız", href: "/insanlarimiz" },
+      { label: "Mədəni irs", href: "/medeniyyet" },
       { label: "Təhsil", href: "/tehsil" },
-      { label: "Fotoalbom", href: "/fotoalbom" },
+      { label: "Xəritə", href: "/xerite" },
     ],
   },
   {
-    title: "Kənd meydanı",
+    title: "Tarix və yaddaş",
     links: [
+      { label: "Tariximiz", href: "/tariximiz" },
+      { label: "Xatirə", href: "/xatire" },
+      { label: "Kəndimizin səsi", href: "/kendimizin-sesi" },
+      { label: "İnsanlarımız", href: "/insanlarimiz" },
+    ],
+  },
+  {
+    title: "Foto və video",
+    links: [
+      { label: "Fotoalbom", href: "/fotoalbom" },
+      { label: "Videolar", href: "/videolar" },
+    ],
+  },
+  {
+    title: "Kənd həyatı",
+    links: [
+      { label: "Kəndimizdən", href: "/kendimizden" },
       { label: "Elanlar", href: "/elanlar" },
       { label: "Təqvim", href: "/teqvim" },
       { label: "Faydalı məlumatlar", href: "/faydali-melumatlar" },
-    ],
-  },
-  {
-    title: "Arxiv",
-    links: [
-      { label: "Videolar", href: "/videolar" },
-      { label: "Kəndimizin səsi", href: "/kendimizin-sesi" },
-      { label: "Xatirə", href: "/xatire" },
-      { label: "Mədəni irs", href: "/medeniyyet" },
     ],
   },
 ];
@@ -34,10 +45,9 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="border-t border-stone-light bg-cream-deep">
-      {/* Brand (2 columns) + four link columns = 6 — at 5 the "Əlaqə"
-          column used to wrap onto a second row on desktop. */}
+      {/* Brand + contact (2 columns) + four link columns = 6. */}
       <Container className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-6">
-        <div className="lg:col-span-2">
+        <div className="sm:col-span-2">
           <p className="font-display text-xl font-semibold text-forest">
             MUSAKÜÇƏ.AZ
           </p>
@@ -47,6 +57,10 @@ export function Footer() {
           {/* Social media links have a reserved spot here for when real
               village-run accounts exist — intentionally not stubbed with
               placeholder icons/links until then. */}
+          <ul className="mt-5 space-y-1.5 text-sm text-ink-soft">
+            <li>musakuce@musakuce.az</li>
+            <li>Musaküçə, Masallı, Azərbaycan</li>
+          </ul>
         </div>
 
         {COLUMNS.map((col) => (
@@ -68,14 +82,6 @@ export function Footer() {
             </ul>
           </nav>
         ))}
-
-        <div>
-          <h3 className="mb-2.5 text-sm font-semibold text-ink">Əlaqə</h3>
-          <ul className="space-y-1.5 text-sm text-ink-soft">
-            <li>musakuce@musakuce.az</li>
-            <li>Musaküçə, Masallı, Azərbaycan</li>
-          </ul>
-        </div>
       </Container>
 
       <div className="border-t border-stone-light">

@@ -6,31 +6,40 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/cn";
 
+// Eight items, Riseley-style — short enough to sit on one line from lg
+// up. Every other public page belongs under one of them (`also`), so the
+// bar still shows where the visitor is: Mədəni irs is part of Kəndimiz,
+// Xatirə and Kəndimizin səsi of Tariximiz (the village's memory),
+// Videolar of Fotoalbom (its Video tab), and the Village Square pages of
+// Kəndimizdən. Footer.tsx groups its links the same way.
 const PRIMARY_NAV = [
   { label: "Ana səhifə", href: "/" },
-  { label: "Kəndimiz", href: "/kendimiz" },
-  { label: "Kəndimizdən", href: "/kendimizden" },
+  { label: "Kəndimiz", href: "/kendimiz", also: ["/medeniyyet"] },
+  { label: "Kəndimizdən", href: "/kendimizden", also: ["/elanlar", "/teqvim", "/faydali-melumatlar"] },
   { label: "İnsanlarımız", href: "/insanlarimiz" },
-  { label: "Tariximiz", href: "/tariximiz" },
+  { label: "Tariximiz", href: "/tariximiz", also: ["/xatire", "/kendimizin-sesi"] },
   { label: "Təhsil", href: "/tehsil" },
-  { label: "Fotoalbom", href: "/fotoalbom" },
+  { label: "Fotoalbom", href: "/fotoalbom", also: ["/videolar"] },
   { label: "Xəritə", href: "/xerite" },
 ];
-
-// Eight items, Riseley-style. The Village Square pages (Elanlar, Təqvim,
-// Faydalı məlumatlar) are one click away from the homepage's "Kənd
-// həyatı" row and listed in Footer.tsx's "Kənd meydanı" column; Xatirə,
-// Mədəni irs, Videolar and Kəndimizin səsi in its "Arxiv" column — kept
-// out of the bar so it stays short enough to sit on one line from lg up.
 
 /**
  * Header/navigation shell per spec §27, now wired to real routes
  * (Phase 4). Large touch targets and a full-screen mobile menu, per the
  * mobile-first requirement.
  */
-function isActivePath(pathname: string, href: string): boolean {
-  if (href === "/") return pathname === "/";
+function isUnder(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+/** "page" on the item's own route, "true" on a page that belongs under
+ * it (e.g. Fotoalbom while on /videolar) — both highlight the item, but
+ * only the former tells assistive tech "this link is the current page". */
+function currentState(pathname: string, item: (typeof PRIMARY_NAV)[number]): "page" | "true" | undefined {
+  if (item.href === "/") return pathname === "/" ? "page" : undefined;
+  if (pathname === item.href) return "page";
+  if (isUnder(pathname, item.href) || item.also?.some((href) => isUnder(pathname, href))) return "true";
+  return undefined;
 }
 
 export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
@@ -52,12 +61,13 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
 
         <nav className="hidden items-center gap-6 lg:flex">
           {PRIMARY_NAV.map((item) => {
-            const active = isActivePath(pathname, item.href);
+            const current = currentState(pathname, item);
+            const active = current !== undefined;
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                aria-current={active ? "page" : undefined}
+                aria-current={current}
                 className={cn(
                   "border-b-2 py-0.5 text-sm font-medium whitespace-nowrap transition-colors",
                   active
@@ -134,12 +144,13 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
       >
         <div className="min-h-0 overflow-hidden">
           {PRIMARY_NAV.map((item) => {
-            const active = isActivePath(pathname, item.href);
+            const current = currentState(pathname, item);
+            const active = current !== undefined;
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                aria-current={active ? "page" : undefined}
+                aria-current={current}
                 className={cn(
                   "block rounded-md px-2 py-3 text-base font-medium",
                   active ? "bg-moss-light text-forest font-semibold" : "text-ink hover:bg-paper-soft",

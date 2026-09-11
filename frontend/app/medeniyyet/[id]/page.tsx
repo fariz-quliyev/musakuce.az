@@ -46,6 +46,7 @@ export default async function CulturalHeritageDetailPage({ params }: Props) {
   const item = await loadItem(id);
   const breadcrumbItems = [
     { name: "Ana səhifə", path: "/" },
+    { name: "Kəndimiz", path: "/kendimiz" },
     { name: "Mədəni irs", path: "/medeniyyet" },
     { name: item.title, path: `/medeniyyet/${item.id}` },
   ];

@@ -3,17 +3,15 @@ import { listingsApi } from "@/lib/api/listings";
 import { photoCategoryLabels, classifiedCategoryLabels } from "@/lib/api/labels";
 import type { TodayUpdate } from "@/lib/mock-content";
 
-/** How many feed items the homepage's "Son xəbərlər" shows. The photo
- * gallery below it reads the same slice (fetch memoization makes that
- * free) to avoid repeating a photo the visitor has just seen. */
-export const HOME_NEWS_COUNT = 3;
+/** How many feed items the homepage's "Musaküçədən" section shows. */
+export const HOME_UPDATES_COUNT = 3;
 
 /**
- * The "Kəndimizdən" feed — the site's news. There is no separate
- * news/update backend entity by design; the feed is composed from the
- * two real content types that carry recent village activity: published
- * Photos, then active Listings. Shared by /kendimizden and the
- * homepage's "Son xəbərlər" so both always agree on what "latest" means.
+ * The "Kəndimizdən" feed. There is no News entity (yet); the feed is
+ * composed from the two real content types that carry recent village
+ * activity: published Photos, then active Listings. Shared by
+ * /kendimizden and the homepage's "Musaküçədən" section so both agree
+ * on what "latest" means.
  *
  * An empty result is real, live data (the API answered, nothing recent
  * yet) and is returned as-is; only a fetch failure throws, which is what

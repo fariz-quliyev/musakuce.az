@@ -3,6 +3,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { PhotosBrowser } from "@/components/photos/PhotosBrowser";
+import { MediaTabs } from "@/components/photos/MediaTabs";
 import { photosApi } from "@/lib/api/photos";
 import { withFallback } from "@/lib/api/withFallback";
 import { buildPageMetadata } from "@/lib/seo";
@@ -54,8 +55,9 @@ export default async function FotoalbomPage() {
           eyebrow="Fotoarxiv"
           title="Fotoalbom"
           description="Köhnə Musaküçədən bugünkü kənd həyatına — hər foto bir hekayə daşıyır."
-          className="mb-10"
+          className="mb-8"
         />
+        <MediaTabs active="photo" />
 
         <PhotosBrowser initialData={photos} initialIsLive={isLive} />
       </Container>

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { InterviewsBrowser } from "@/components/interviews/InterviewsBrowser";
 import { interviewsApi } from "@/lib/api/interviews";
 import { withFallback } from "@/lib/api/withFallback";
@@ -31,6 +32,13 @@ export default async function KendimizinSesiPage() {
   return (
     <PageShell>
       <Container className="py-16 sm:py-20">
+        <Breadcrumbs
+          items={[
+            { name: "Ana səhifə", path: "/" },
+            { name: "Tariximiz", path: "/tariximiz" },
+            { name: "Kəndimizin səsi", path: "/kendimizin-sesi" },
+          ]}
+        />
         <SectionHeading
           as="h1"
           eyebrow="Şifahi tarix"

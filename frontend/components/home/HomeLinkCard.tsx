@@ -5,8 +5,6 @@ type HomeLinkCardProps = {
   icon: React.ReactNode;
   title: string;
   description: string;
-  /** Optional live figure, e.g. "3 aktiv elan" — omitted, never guessed, when unknown. */
-  meta?: string;
 };
 
 /**
@@ -15,7 +13,7 @@ type HomeLinkCardProps = {
  * icon, a title, one sentence, and an arrow. The whole card is the link;
  * it exists to send the visitor to the inner page, not to hold content.
  */
-export function HomeLinkCard({ href, icon, title, description, meta }: HomeLinkCardProps) {
+export function HomeLinkCard({ href, icon, title, description }: HomeLinkCardProps) {
   return (
     // Icon beside the text on one-column mobile (keeps eight stacked cards
     // from becoming a long scroll); icon above the text from sm up.
@@ -31,11 +29,8 @@ export function HomeLinkCard({ href, icon, title, description, meta }: HomeLinkC
           {title}
         </h3>
         <p className="mt-1.5 text-sm leading-relaxed text-text-muted sm:mt-2">{description}</p>
-        <span className="mt-auto flex items-center justify-between pt-3 text-sm font-semibold text-primary sm:pt-5">
-          <span className="text-xs font-medium text-text-muted">{meta}</span>
-          <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-            →
-          </span>
+        <span aria-hidden className="mt-auto self-end pt-3 text-sm font-semibold text-primary transition-transform group-hover:translate-x-0.5 sm:pt-5">
+          →
         </span>
       </div>
     </Link>

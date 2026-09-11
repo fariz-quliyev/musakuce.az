@@ -15,7 +15,7 @@ const BANDS = {
 type HomeSectionProps = {
   title: string;
   description?: string;
-  /** The section's single way onward, e.g. "Bütün xəbərlər". */
+  /** The section's single way onward, e.g. "Bütün fotolara bax". */
   cta?: { label: string; href: string };
   band?: keyof typeof BANDS;
   id?: string;
