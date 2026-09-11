@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
 import { Navbar } from "@/components/ui/Navbar";
 import { Hero } from "@/components/home/Hero";
-import { VillageIntro } from "@/components/home/VillageIntro";
-import { VillageFacts } from "@/components/home/VillageFacts";
-import { VillageTodayStrip } from "@/components/home/VillageTodayStrip";
-import { TodayInVillage } from "@/components/home/TodayInVillage";
+import { LatestNews } from "@/components/home/LatestNews";
+import { AboutVillage } from "@/components/home/AboutVillage";
 import { VillageSquare } from "@/components/home/VillageSquare";
-import { ThisWeek } from "@/components/home/ThisWeek";
-import { TodayPhotos } from "@/components/home/TodayPhotos";
+import { PhotoGallery } from "@/components/home/PhotoGallery";
 import { OurPeople } from "@/components/home/OurPeople";
 import { OurHistory } from "@/components/home/OurHistory";
-import { VillageVoices } from "@/components/home/VillageVoices";
 import { MapPreview } from "@/components/home/MapPreview";
-import { MemorialMinimal } from "@/components/home/MemorialMinimal";
 import { ContributeCta } from "@/components/home/ContributeCta";
 import { Footer } from "@/components/home/Footer";
 import { villageProfileApi } from "@/lib/api/villageProfile";
@@ -48,12 +43,10 @@ export const metadata: Metadata = {
 };
 
 /**
- * Homepage — combines the Digital Memory pillar (history, people,
- * photos, voices, memorial) with the Digital Village Square pillar
- * (today's life, the village square board, this week's events) per
- * docs/MUSAKUCE_SPEC.md §5. Every photo is a `PhotoPlaceholder` pending
- * real Musaküçə photography; all list content is placeholder data from
- * lib/mock-content.ts pending the admin CMS (Phase 5+).
+ * Homepage — a doorway, not an archive (after riseleyparishcouncil.gov.uk):
+ * each section shows a small taste and hands off to its inner page.
+ * Order: welcome → news → about → village life → photos → people →
+ * history → map → contribute. Detail lives on the inner pages.
  */
 export default async function Home() {
   const { data: profile } = await withFallback(
@@ -66,18 +59,13 @@ export default async function Home() {
       <Navbar logoImageUrl={profile.logoImageUrl} />
       <main className="flex-1">
         <Hero />
-        <VillageIntro />
-        <VillageFacts />
-        <VillageTodayStrip />
-        <TodayInVillage />
+        <LatestNews />
+        <AboutVillage />
         <VillageSquare />
-        <ThisWeek />
-        <TodayPhotos />
+        <PhotoGallery />
         <OurPeople />
         <OurHistory />
-        <VillageVoices />
         <MapPreview />
-        <MemorialMinimal />
         <ContributeCta />
       </main>
       <Footer />

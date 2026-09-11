@@ -1,5 +1,5 @@
 /**
- * "Bu gün kənddə" bulletin items with a real date (currently only
+ * "Kəndimizdən" feed items with a real date (currently only
  * Listings — `postedAt` — since Photo only carries `takenDate`, which is
  * when the photo was taken, not when it was added, so it isn't a
  * meaningful "recency" signal) render a relative time label instead of
@@ -22,4 +22,17 @@ export function formatRelativeTimeAz(dateIso: string): string | null {
   if (diffDays <= 7) return `${diffDays} gün əvvəl`;
 
   return null;
+}
+
+const MONTHS_AZ = [
+  "yanvar", "fevral", "mart", "aprel", "may", "iyun",
+  "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr",
+];
+
+/** "5 sentyabr 2026" — built by hand rather than via toLocaleDateString
+ * so the month name doesn't depend on the runtime's ICU data. */
+export function formatDateAz(dateIso: string): string | null {
+  const date = new Date(dateIso);
+  if (Number.isNaN(date.getTime())) return null;
+  return `${date.getDate()} ${MONTHS_AZ[date.getMonth()]} ${date.getFullYear()}`;
 }

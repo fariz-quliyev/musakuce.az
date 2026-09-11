@@ -34,10 +34,12 @@ const COLUMNS = [
 export function Footer() {
   return (
     <footer className="border-t border-stone-light bg-cream-deep">
-      <Container className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-5">
+      {/* Brand (2 columns) + four link columns = 6 — at 5 the "Əlaqə"
+          column used to wrap onto a second row on desktop. */}
+      <Container className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-6">
         <div className="lg:col-span-2">
           <p className="font-display text-xl font-semibold text-forest">
-            Musaküçə
+            MUSAKÜÇƏ.AZ
           </p>
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ink-soft">
             Kəndimizin rəqəmsal yaddaşı və gündəlik həyatı — bir yerdə.

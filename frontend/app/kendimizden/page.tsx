@@ -5,11 +5,9 @@ import { Container } from "@/components/ui/Container";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Badge } from "@/components/ui/Badge";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
-import { photosApi } from "@/lib/api/photos";
-import { listingsApi } from "@/lib/api/listings";
 import { withFallback } from "@/lib/api/withFallback";
-import { photoCategoryLabels, classifiedCategoryLabels } from "@/lib/api/labels";
-import { todayUpdates as MOCK_UPDATES, type TodayUpdate } from "@/lib/mock-content";
+import { todayUpdates as MOCK_UPDATES } from "@/lib/mock-content";
+import { fetchVillageUpdates } from "@/lib/villageUpdates";
 import { formatRelativeTimeAz } from "@/lib/relativeTime";
 import { buildPageMetadata } from "@/lib/seo";
 
@@ -22,42 +20,12 @@ export const metadata: Metadata = buildPageMetadata({
 const PAGE_SIZE = 12;
 
 /**
- * There is no separate "village update/news" backend entity by design
- * (see TodayInVillage.tsx) — this composes the same real content types
- * (published Photos + active Listings) that homepage's "Bu gün kənddə"
- * teaser already draws from, just with a larger page and no featured/
- * rest split. Falls back to the placeholder bulletin only if the API is
- * unreachable.
+ * The full "Kəndimizdən" feed (see lib/villageUpdates.ts) — the same
+ * source as the homepage's "Son xəbərlər", just a larger page. Falls
+ * back to the placeholder bulletin only if the API is unreachable.
  */
 export default async function KendimizdenPage() {
-  const { data: updates, isLive } = await withFallback(async () => {
-    const [photos, listings] = await Promise.all([
-      photosApi.getPaged({ publicationStatus: "Published", pageSize: PAGE_SIZE }),
-      listingsApi.getPaged({ listingStatus: "Active", pageSize: PAGE_SIZE }),
-    ]);
-
-    const fromPhotos: TodayUpdate[] = photos.items.map((p) => ({
-      title: p.title,
-      description: p.description ?? p.story ?? photoCategoryLabels[p.category],
-      category: photoCategoryLabels[p.category],
-      kind: "photo",
-      tone: "warm",
-      image: p.imageUrl,
-    }));
-    const fromListings: TodayUpdate[] = listings.items.map((l) => ({
-      title: l.title,
-      description: l.description,
-      category: classifiedCategoryLabels[l.category],
-      kind: l.imageUrls[0] ? "photo" : "text",
-      tone: "forest",
-      image: l.imageUrls[0],
-      date: l.postedAt,
-    }));
-
-    // An empty result here is real, live data — not a failure. See
-    // TodayInVillage.tsx for the same reasoning.
-    return [...fromPhotos, ...fromListings];
-  }, MOCK_UPDATES);
+  const { data: updates, isLive } = await withFallback(() => fetchVillageUpdates(PAGE_SIZE), MOCK_UPDATES);
 
   return (
     <PageShell>

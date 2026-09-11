@@ -12,7 +12,8 @@
  * Scope note: the homepage sections for listings, local info, events,
  * photos, people, history and voices are now served by the real API
  * (see `lib/api/*` + `withFallback`), so their mock fixtures were
- * removed. Only the "Bu gün kənddə" bulletin still falls back here.
+ * removed. Only the "Kəndimizdən" feed (homepage "Son xəbərlər" and
+ * /kendimizden) still falls back here.
  */
 
 export type PhotoTone = "warm" | "forest" | "memorial";
@@ -45,6 +46,10 @@ export type TodayUpdate = {
    * see lib/relativeTime.ts). Renders as "2 saat əvvəl"/"Dünən"/etc.
    * when present; omitted entirely otherwise, never guessed. */
   date?: string;
+  /** Id of the underlying Photo/Listing record — absent on mock items. */
+  sourceId?: string;
+  /** Where the item's own page lives, when it has one. */
+  href?: string;
 };
 
 export const todayUpdates: TodayUpdate[] = [

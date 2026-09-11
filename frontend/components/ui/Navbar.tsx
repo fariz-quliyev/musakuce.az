@@ -10,8 +10,6 @@ const PRIMARY_NAV = [
   { label: "Ana səhifə", href: "/" },
   { label: "Kəndimiz", href: "/kendimiz" },
   { label: "Kəndimizdən", href: "/kendimizden" },
-  { label: "Elanlar", href: "/elanlar" },
-  { label: "Təqvim", href: "/teqvim" },
   { label: "İnsanlarımız", href: "/insanlarimiz" },
   { label: "Tariximiz", href: "/tariximiz" },
   { label: "Təhsil", href: "/tehsil" },
@@ -19,10 +17,11 @@ const PRIMARY_NAV = [
   { label: "Xəritə", href: "/xerite" },
 ];
 
-// Xatirə, Mədəni irs, Videolar, Kəndimizin səsi, Faydalı məlumatlar are
-// already reachable from Footer.tsx's "Arxiv"/"Kənd meydanı" columns —
-// deliberately not duplicated into the primary bar too, so it stays
-// readable (Phase 13 Part 10: "without becoming overcrowded").
+// Eight items, Riseley-style. The Village Square pages (Elanlar, Təqvim,
+// Faydalı məlumatlar) are one click away from the homepage's "Kənd
+// həyatı" row and listed in Footer.tsx's "Kənd meydanı" column; Xatirə,
+// Mədəni irs, Videolar and Kəndimizin səsi in its "Arxiv" column — kept
+// out of the bar so it stays short enough to sit on one line from lg up.
 
 /**
  * Header/navigation shell per spec §27, now wired to real routes
@@ -47,11 +46,11 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
               <Image src={logoImageUrl} alt="Musaküçə" fill sizes="128px" className="object-contain object-left" priority />
             </span>
           ) : (
-            <span className="font-display text-xl font-semibold tracking-tight text-forest">Musaküçə</span>
+            <span className="font-display text-lg font-semibold tracking-tight text-forest sm:text-xl">MUSAKÜÇƏ.AZ</span>
           )}
         </Link>
 
-        <nav className="hidden items-center gap-6 xl:flex">
+        <nav className="hidden items-center gap-6 lg:flex">
           {PRIMARY_NAV.map((item) => {
             const active = isActivePath(pathname, item.href);
             return (
@@ -99,7 +98,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
             aria-label={open ? "Menyunu bağla" : "Menyunu aç"}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest xl:hidden"
+            className="grid h-10 w-10 place-items-center rounded-full text-ink-soft transition-colors hover:bg-paper-soft hover:text-forest lg:hidden"
           >
             <svg aria-hidden viewBox="0 0 20 20" fill="none" className="h-5 w-5">
               {open ? (
@@ -129,7 +128,7 @@ export function Navbar({ logoImageUrl }: { logoImageUrl?: string | null }) {
         // focus in some browsers even though nothing is visible.
         inert={!open}
         className={cn(
-          "grid gap-1 overflow-hidden border-t border-border bg-cream px-5 transition-[grid-template-rows] duration-200 xl:hidden",
+          "grid gap-1 overflow-hidden border-t border-border bg-cream px-5 transition-[grid-template-rows] duration-200 lg:hidden",
           open ? "grid-rows-[1fr] py-3" : "grid-rows-[0fr]",
         )}
       >

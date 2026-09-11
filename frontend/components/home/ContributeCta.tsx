@@ -1,50 +1,42 @@
 import { Container } from "@/components/ui/Container";
 import { Button } from "@/components/ui/Button";
 
-// All four contribution types are presented with equal weight, on
-// request: Foto göndər and Xatirə paylaş used to be filled terracotta
-// against the two outlined ones, which ranked them ahead of Video/Tarixi
-// məlumat. The `primary` flag that drove that split is gone rather than
-// left set to false on every entry, so nothing here implies a hierarchy
-// the UI no longer has.
+// All four contribution types carry equal weight — same outline style,
+// no primary/secondary split — so nothing implies a hierarchy between a
+// photo, a video, a memory and a piece of history.
 const ACTIONS = [
   { label: "Foto göndər", href: "/paylas?kind=Photo" },
-  { label: "Xatirə paylaş", href: "/paylas?kind=Memory" },
   { label: "Video göndər", href: "/paylas?kind=Video" },
+  { label: "Xatirə paylaş", href: "/paylas?kind=Memory" },
   { label: "Tarixi məlumat göndər", href: "/paylas?kind=HistoricalInfo" },
 ];
 
-/** Prominent community-contribution CTA — forest band so it reads as a
- * warm invitation, not a form-page teaser. */
+/** "Yaddaşa töhfə" — the community-contribution invitation that closes
+ * the homepage, on the one solid primary band. */
 export function ContributeCta() {
   return (
-    <div className="bg-forest">
+    <section className="bg-primary">
       <Container className="py-16 text-center sm:py-20">
-        <p className="mb-3 text-[length:var(--text-eyebrow)] font-semibold uppercase tracking-[var(--text-eyebrow--letter-spacing)] text-moss-light">
-          Birlikdə qoruyaq
-        </p>
-        <h2 className="mx-auto max-w-2xl font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] text-cream text-balance">
-          Musaküçənin yaddaşına sən də əlavə et
+        <h2 className="mx-auto max-w-2xl font-display text-[length:var(--text-h2)] leading-[var(--text-h2--line-height)] font-semibold text-text-on-primary text-balance">
+          Musaküçənin yaddaşını birlikdə yaşadaq
         </h2>
-        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-cream/80">
-          Köhnə fotolarınız, videolarınız, xatirələriniz və ya tarixi
-          məlumatınız var? Bizimlə paylaşın — moderasiyadan sonra kənd
-          arxivinin bir parçası olsun.
+        <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-text-on-primary/85">
+          Köhnə foto, video, sənəd və ya kəndimiz haqqında maraqlı məlumatınız varsa, bizimlə paylaşın.
         </p>
-        <div className="mt-8 flex flex-wrap justify-center gap-3">
+        <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           {ACTIONS.map((action) => (
             <Button
               key={action.label}
               href={action.href}
               variant="outline"
               size="md"
-              className="border-cream/40 text-cream hover:bg-cream/10"
+              className="border-text-on-primary/40 text-text-on-primary hover:bg-text-on-primary/10"
             >
               {action.label}
             </Button>
           ))}
         </div>
       </Container>
-    </div>
+    </section>
   );
 }
