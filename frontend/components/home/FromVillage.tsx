@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Card, CardMedia, CardBody, CardTitle, CardDescription } from "@/components/ui/Card";
 import { VillagePhoto } from "@/components/ui/VillagePhoto";
 import { DataSourceNote } from "@/components/layout/DataSourceNote";
-import { HomeSection } from "@/components/home/HomeSection";
+import { ArrowLink, HomeSection } from "@/components/home/HomeSection";
 import { withFallback } from "@/lib/api/withFallback";
 import { todayUpdates as MOCK_UPDATES, type TodayUpdate } from "@/lib/mock-content";
 import { fetchVillageUpdates, HOME_UPDATES_COUNT } from "@/lib/villageUpdates";
@@ -18,8 +18,10 @@ import { formatDateAz } from "@/lib/relativeTime";
  * real News entity can take this slot later.
  *
  * Photos the gallery section is showing are left out, so no picture
- * appears twice on the homepage; with a small archive (every photo in
- * the gallery, no listings) the section simply doesn't render.
+ * appears twice on the homepage. The section always renders, so the
+ * homepage keeps the same shape whatever the data: with nothing left to
+ * show (e.g. every photo is in the gallery and there are no listings) it
+ * shows a one-line empty state pointing to /kendimizden instead of cards.
  */
 export async function FromVillage() {
   const [{ data: updates, isLive }, gallery] = await Promise.all([
@@ -34,7 +36,22 @@ export async function FromVillage() {
 
   const inGallery = new Set(gallery.photos.map((p) => p.id));
   const items = updates.filter((u) => !u.sourceId || !inGallery.has(u.sourceId)).slice(0, HOME_UPDATES_COUNT);
-  if (items.length === 0) return null;
+
+  if (items.length === 0) {
+    return (
+      <HomeSection title="Musaküçədən">
+        <DataSourceNote isLive={isLive} />
+        <div className="flex flex-col items-start gap-4 rounded-lg border border-border bg-surface-muted p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <p className="text-base leading-relaxed text-text-muted">
+            Kəndimizdən yeni məlumat, elan və görüntülər burada paylaşılacaq.
+          </p>
+          <ArrowLink href="/kendimizden" className="shrink-0">
+            Kəndimizdən bölməsinə keç
+          </ArrowLink>
+        </div>
+      </HomeSection>
+    );
+  }
 
   return (
     <HomeSection
