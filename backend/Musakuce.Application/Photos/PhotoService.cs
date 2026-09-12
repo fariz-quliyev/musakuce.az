@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Photos;
 
@@ -19,8 +20,9 @@ public class PhotoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         photos = photos.Where(p => p.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            photos = photos.Where(p => p.Title.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            photos = photos.Where(p => p.Title.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         photos = photos.OrderByDescending(p => p.CreatedAt);

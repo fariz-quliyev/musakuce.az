@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Memorial;
 
@@ -19,8 +20,9 @@ public class MemorialRecordService(IMusakuceDbContext db, IAuditLogService audit
         records = records.Where(r => r.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            records = records.Where(r => r.FullName.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            records = records.Where(r => r.FullName.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         records = records.OrderBy(r => r.FullName);

@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.People;
 
@@ -23,8 +24,9 @@ public class PersonService(IMusakuceDbContext db, IAuditLogService auditLog, IMe
         people = people.Where(p => p.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            people = people.Where(p => p.FirstName.ToLower().Contains(term) || p.LastName.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            people = people.Where(p => p.FirstName.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term) || p.LastName.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         people = people.OrderBy(p => p.LastName).ThenBy(p => p.FirstName);

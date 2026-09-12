@@ -4,6 +4,7 @@ using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Listings;
 
@@ -28,8 +29,9 @@ public class ListingService(IMusakuceDbContext db, IAuditLogService auditLog) : 
         listings = listings.Where(l => l.ModerationStatus == (query.ModerationStatus ?? ModerationStatus.Approved));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            listings = listings.Where(l => l.Title.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            listings = listings.Where(l => l.Title.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         listings = query.SortBy switch

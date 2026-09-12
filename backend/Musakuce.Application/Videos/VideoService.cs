@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Videos;
 
@@ -17,8 +18,9 @@ public class VideoService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         videos = videos.Where(v => v.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            videos = videos.Where(v => v.Title.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            videos = videos.Where(v => v.Title.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         videos = videos.OrderByDescending(v => v.CreatedAt);

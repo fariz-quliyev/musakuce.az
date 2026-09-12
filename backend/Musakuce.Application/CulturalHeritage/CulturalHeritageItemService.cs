@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.CulturalHeritage;
 
@@ -19,8 +20,9 @@ public class CulturalHeritageItemService(IMusakuceDbContext db, IAuditLogService
         items = items.Where(i => i.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            items = items.Where(i => i.Title.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            items = items.Where(i => i.Title.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         items = items.OrderBy(i => i.Title);

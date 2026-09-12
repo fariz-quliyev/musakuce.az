@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Places;
 
@@ -24,8 +25,9 @@ public class PlaceService(IMusakuceDbContext db, IAuditLogService auditLog, IMed
         places = places.Where(p => p.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            places = places.Where(p => p.Name.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            places = places.Where(p => p.Name.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         places = places.OrderBy(p => p.Name);

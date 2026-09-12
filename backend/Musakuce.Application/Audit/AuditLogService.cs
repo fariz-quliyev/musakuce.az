@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Musakuce.Application.Abstractions;
 using Musakuce.Application.Common;
 using Musakuce.Domain.Entities;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Audit;
 
@@ -56,8 +57,9 @@ public class AuditLogService(IMusakuceDbContext db, ICurrentActorContext actor, 
             entries = entries.Where(e => e.Timestamp <= query.To);
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            entries = entries.Where(e => (e.ActorEmail ?? "").ToLower().Contains(term) || (e.EntityId ?? "").ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            entries = entries.Where(e => (e.ActorEmail ?? "").ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term) || (e.EntityId ?? "").ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         entries = entries.OrderByDescending(e => e.Timestamp);

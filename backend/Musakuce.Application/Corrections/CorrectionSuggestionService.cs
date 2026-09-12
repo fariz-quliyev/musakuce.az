@@ -4,6 +4,7 @@ using Musakuce.Application.Audit;
 using Musakuce.Application.Common;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Corrections;
 
@@ -22,8 +23,9 @@ public class CorrectionSuggestionService(IMusakuceDbContext db, IAuditLogService
             suggestions = suggestions.Where(s => s.TargetEntityType == query.TargetEntityType);
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            suggestions = suggestions.Where(s => s.TargetTitle.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            suggestions = suggestions.Where(s => s.TargetTitle.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         suggestions = suggestions.OrderByDescending(s => s.CreatedAt);

@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Education;
 
@@ -19,8 +20,9 @@ public class EducationEntryService(IMusakuceDbContext db, IAuditLogService audit
         entries = entries.Where(e => e.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            entries = entries.Where(e => e.Title.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            entries = entries.Where(e => e.Title.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         entries = entries.OrderBy(e => e.Title);

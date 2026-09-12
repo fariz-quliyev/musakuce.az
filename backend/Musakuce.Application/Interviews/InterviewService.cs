@@ -5,6 +5,7 @@ using Musakuce.Application.Common;
 using Musakuce.Application.Media;
 using Musakuce.Domain.Entities;
 using Musakuce.Domain.Enums;
+using Musakuce.Application.Search;
 
 namespace Musakuce.Application.Interviews;
 
@@ -17,8 +18,9 @@ public class InterviewService(IMusakuceDbContext db, IAuditLogService auditLog, 
         interviews = interviews.Where(i => i.PublicationStatus == (query.PublicationStatus ?? PublicationStatus.Published));
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            var term = query.Search.ToLower();
-            interviews = interviews.Where(i => i.PersonName.ToLower().Contains(term));
+            // Azerbaijani case folding — see SearchTextNormalizer.
+            var term = SearchTextNormalizer.FoldIFamily(query.Search);
+            interviews = interviews.Where(i => i.PersonName.ToLower().Replace("ı", "i").Replace("\u0307", "").Contains(term));
         }
 
         interviews = interviews.OrderByDescending(i => i.RecordingDate).ThenByDescending(i => i.CreatedAt);
