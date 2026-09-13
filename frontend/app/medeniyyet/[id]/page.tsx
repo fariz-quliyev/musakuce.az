@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, unstable_rethrow } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { Container } from "@/components/ui/Container";
 import { Badge } from "@/components/ui/Badge";
@@ -36,7 +36,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       imageUrl: item.coverImageUrl,
       type: "article",
     });
-  } catch {
+  } catch (error) {
+    // notFound() inside loadItem() throws a framework interrupt, not an
+    // application error, and this catch used to swallow it. The response
+    // still had the right 404 status and body, but the not-found page's
+    // metadata lost to the fallback below, so once the client hydrated
+    // the tab title flipped to "Mədəni irs — Musaküçə". Rethrowing first
+    // lets Next.js handle its own control flow; a genuine failure (backend
+    // down, bad payload) still falls through to the graceful metadata.
+    unstable_rethrow(error);
     return buildPageMetadata({ title: "Mədəni irs", description: "Musaküçə mədəni irs arxivi.", path: `/medeniyyet/${id}`, type: "article" });
   }
 }
