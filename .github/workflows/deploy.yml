@@ -1,36 +1,38 @@
 # Production deploy — runs on every push to `main` (and on demand).
 #
-# Mirrors docs/DEPLOYMENT.md §7 + §9 exactly, executed over SSH on the
-# VPS (topology B — shared host Nginx, so no `bundled-nginx` profile):
+# The runner does almost nothing: it decides *what* to deploy, then makes a
+# single SSH call. All the privileged work happens on the VPS inside
+# /usr/local/sbin/musakuce-deploy, a root-owned script the deploy user can
+# invoke through one narrow sudo rule and nothing else.
 #
-#   1. git reset --hard origin/main        (deploy tree is never edited
-#                                            by hand; .env.production is
-#                                            untracked so it survives)
-#   2. backup   (production-tools)         snapshot the DB *before* any
-#                                            schema change
-#   3. migrator (production-tools)         `dotnet ef database update` —
-#                                            idempotent: applies only
-#                                            pending migrations, a no-op
-#                                            for frontend-only pushes
-#   4. up -d --build                        rebuild + restart api/frontend
-#   5. health checks                        api /health/ready + frontend /
-#                                            on their loopback ports
-#   6. docker image prune                   reclaim old build layers
-#                                            (shared VPS disk)
+# Why the remote script is no longer inline here (it used to be a ~40 line
+# heredoc piped to `bash -s`): the deploy key is now pinned to a forced
+# command in /home/deploy/.ssh/authorized_keys, so sshd ignores whatever the
+# client asks for and always runs the wrapper. A heredoc would be silently
+# discarded. The command we send survives only as $SSH_ORIGINAL_COMMAND,
+# which the wrapper matches against an allowlist of exactly three words.
 #
-# Deliberately uses plain `ssh` instead of a third-party action: nothing
-# runs on the runner except an ssh client, so there is no supply-chain
-# surface and every remote command is readable right here.
+# That inversion is the point of the design:
+#   - the deploy user is in neither the `sudo` nor the `docker` group
+#   - /opt/musakuce stays root:root, so CI cannot rewrite the Dockerfiles
+#     it is about to build
+#   - .env.production stays 600 root:root, so CI never sees DB_PASSWORD,
+#     JWT_SECRET, ADMIN_BOOTSTRAP_PASSWORD or MEDIA_STORAGE_SECRET_KEY
+#   - a leaked DEPLOY_SSH_KEY can trigger a deploy of whatever is already
+#     on origin/main, and nothing else — no shell, no file read, no docker
 #
-# Required repository secrets (Settings → Secrets and variables → Actions):
+# Still deliberately no third-party actions: the runner uses only `curl`
+# (GitHub's own API, with the job's read-only GITHUB_TOKEN) and `ssh`.
+#
+# Required repository secrets (Settings -> Secrets and variables -> Actions):
 #   DEPLOY_HOST            VPS hostname or IP
-#   DEPLOY_USER            SSH user that owns the checkout + can run docker
-#   DEPLOY_SSH_KEY         private key for that user (deploy-only key —
-#                          docs/DEPLOYMENT.md §9b walks through creating it)
+#   DEPLOY_USER            deploy
+#   DEPLOY_SSH_KEY         private half of the github-actions-musakuce key
 #   DEPLOY_SSH_KNOWN_HOSTS output of `ssh-keyscan -H <host>` — pins the
 #                          server's host key so the runner cannot be
 #                          silently redirected to another machine
-#   DEPLOY_PATH            absolute path of the repo checkout on the VPS
+#   DEPLOY_PATH            kept for documentation/parity; the wrapper hard-
+#                          codes /opt/musakuce and ignores anything sent
 # Optional:
 #   DEPLOY_SSH_PORT        defaults to 22
 
@@ -40,6 +42,12 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      target:
+        description: "What to deploy"
+        type: choice
+        options: [auto, frontend, api, all]
+        default: auto
 
 # Never run two deploys at once; queue instead. cancel-in-progress is
 # intentionally false — killing a deploy mid-migration is worse than
@@ -61,16 +69,91 @@ jobs:
       url: https://musakuce.az
 
     steps:
+      # Picks one of: frontend | api | all | none.
+      #
+      # A frontend-only push must not rebuild the API and must not run the
+      # database backup/migrator, which is exactly what the previous
+      # `up -d --build` (no service argument) did on every single push.
+      #
+      # Conservative by construction: anything touching infra/, and any
+      # failure to work out the diff, falls through to `all`, which is the
+      # slow-but-safe path (backup -> migrator -> rebuild both).
+      - name: Decide deployment target
+        id: target
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          INPUT_TARGET: ${{ inputs.target }}
+          BEFORE: ${{ github.event.before }}
+          SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          if [ "$EVENT" = "workflow_dispatch" ] && [ "${INPUT_TARGET:-auto}" != "auto" ]; then
+            echo "Manual run, explicit target: $INPUT_TARGET"
+            echo "target=$INPUT_TARGET" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # A first push to a branch, or a force-push, reports an all-zero
+          # "before" and the compare API cannot help. Deploy everything.
+          if [ -z "${BEFORE:-}" ] || [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "No usable base commit — falling back to 'all'."
+            echo "target=all" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          api_url="${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/compare/${BEFORE}...${SHA}"
+          if ! body=$(curl -fsS \
+                        -H "Authorization: Bearer ${GH_TOKEN}" \
+                        -H "Accept: application/vnd.github+json" \
+                        -H "X-GitHub-Api-Version: 2022-11-28" \
+                        --max-time 30 "$api_url"); then
+            echo "::warning::compare API call failed — falling back to 'all'."
+            echo "target=all" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          count=$(printf '%s' "$body" | jq '.files | length')
+          files=$(printf '%s' "$body" | jq -r '.files[].filename')
+          echo "Changed files ($count):"
+          printf '%s\n' "$files" | sed 's/^/  /'
+
+          # The compare endpoint caps `files` at 300. A change set that large
+          # is not something to guess about.
+          if [ "$count" -ge 300 ]; then
+            echo "::warning::diff truncated at 300 files — falling back to 'all'."
+            echo "target=all" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          has() { printf '%s\n' "$files" | grep -qE "$1"; }
+
+          if has '^infra/'; then
+            target=all          # compose file / scripts can affect either service
+          elif has '^backend/' && has '^frontend/'; then
+            target=all
+          elif has '^backend/'; then
+            target=api
+          elif has '^frontend/'; then
+            target=frontend
+          else
+            target=none         # docs, README, workflow files only
+          fi
+
+          echo "Target: $target"
+          echo "target=$target" >> "$GITHUB_OUTPUT"
+
       - name: Check required secrets are configured
+        if: steps.target.outputs.target != 'none'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         run: |
           missing=""
-          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_SSH_KNOWN_HOSTS DEPLOY_PATH; do
+          for v in DEPLOY_HOST DEPLOY_USER DEPLOY_SSH_KEY DEPLOY_SSH_KNOWN_HOSTS; do
             [ -z "${!v}" ] && missing="$missing $v"
           done
           if [ -n "$missing" ]; then
@@ -79,7 +162,14 @@ jobs:
           fi
           echo "All deploy secrets present."
 
+      - name: Nothing to deploy
+        if: steps.target.outputs.target == 'none'
+        run: |
+          echo "No backend/, frontend/ or infra/ change in this push — skipping deployment."
+          echo "### No deployment needed" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prepare SSH
+        if: steps.target.outputs.target != 'none'
         env:
           DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
           DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
@@ -91,87 +181,40 @@ jobs:
           printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 644 ~/.ssh/known_hosts
 
+      # One call. The word after the host is the entire remote interface:
+      # sshd hands it to the forced command as $SSH_ORIGINAL_COMMAND, which
+      # accepts only frontend / api / all and maps it to a literal before it
+      # ever reaches sudo. There is no argument, quoting or expansion path
+      # from here into a shell on the server.
       - name: Deploy over SSH
+        if: steps.target.outputs.target != 'none'
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
           DEPLOY_SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT }}
-          TARGET_SHA: ${{ github.sha }}
+          TARGET: ${{ steps.target.outputs.target }}
         run: |
+          set -euo pipefail
+          echo "Deploying '$TARGET' (${GITHUB_SHA}) to $DEPLOY_HOST"
           ssh -i ~/.ssh/deploy_key \
+              -o IdentitiesOnly=yes \
               -o StrictHostKeyChecking=yes \
               -o BatchMode=yes \
               -o ConnectTimeout=20 \
               -p "${DEPLOY_SSH_PORT:-22}" \
-              "$DEPLOY_USER@$DEPLOY_HOST" \
-              "DEPLOY_PATH=$(printf %q "$DEPLOY_PATH") TARGET_SHA=$TARGET_SHA bash -s" <<'REMOTE'
-          set -euo pipefail
+              "$DEPLOY_USER@$DEPLOY_HOST" "$TARGET"
 
-          echo "==> 1/6  Sync checkout to origin/main"
-          cd "$DEPLOY_PATH"
-          git fetch --prune origin main
-          git checkout -f main
-          git reset --hard origin/main
-          HEAD_SHA=$(git rev-parse HEAD)
-          if [ "$HEAD_SHA" != "$TARGET_SHA" ]; then
-            echo "::error::Checkout is at $HEAD_SHA but this run targets $TARGET_SHA — main moved during deploy? Aborting."
-            exit 1
-          fi
-          echo "    at $HEAD_SHA"
-
-          cd infra
-          # DEPLOYMENT.md §3 places .env.production next to the compose file
-          # in infra/; the current server keeps it at the repo root instead
-          # (the running stack's compose label says so). Accept either —
-          # the compose file's own ../backend and ../frontend paths resolve
-          # relative to the file, not the env file, so both work identically.
-          if [ -f .env.production ]; then
-            ENV_FILE=.env.production
-          elif [ -f ../.env.production ]; then
-            ENV_FILE=../.env.production
-          else
-            echo "::error::.env.production not found in infra/ or at the repo root — see docs/PRODUCTION_ENV.md"
-            exit 1
-          fi
-          echo "    env file: $ENV_FILE"
-          COMPOSE="docker compose -f docker-compose.prod.yml --env-file $ENV_FILE"
-
-          echo "==> 2/6  Database backup (before any schema change)"
-          $COMPOSE --profile production-tools run --rm backup
-
-          echo "==> 3/6  Apply pending EF migrations (no-op if none)"
-          $COMPOSE --profile production-tools run --rm migrator
-
-          echo "==> 4/6  Build and (re)start api + frontend"
-          $COMPOSE up -d --build --remove-orphans
-
-          echo "==> 5/6  Health checks"
-          wait_for() {
-            local name="$1" url="$2" tries=30
-            for i in $(seq 1 "$tries"); do
-              if curl -fsS -o /dev/null --max-time 5 "$url"; then
-                echo "    $name healthy ($url)"
-                return 0
-              fi
-              sleep 3
-            done
-            echo "::error::$name did not become healthy at $url after $((tries*3))s"
-            $COMPOSE ps
-            $COMPOSE logs --tail=80 api frontend
-            return 1
-          }
-          wait_for "api"      "http://127.0.0.1:8081/health/ready"
-          wait_for "frontend" "http://127.0.0.1:3001/"
-
-          echo "==> 6/6  Prune dangling build images"
-          docker image prune -f >/dev/null
-
-          echo
-          $COMPOSE ps
-          echo
-          echo "Deployed $HEAD_SHA"
-          REMOTE
+      - name: Summary
+        if: always() && steps.target.outputs.target != 'none'
+        env:
+          TARGET: ${{ steps.target.outputs.target }}
+        run: |
+          {
+            echo "### Deploy \`$TARGET\`"
+            echo ""
+            echo "- commit: \`${GITHUB_SHA}\`"
+            echo "- result: ${{ job.status }}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Remove SSH key from runner
         if: always()
